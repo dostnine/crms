@@ -54,12 +54,13 @@
 <template>
     <AppLayout title="Service Units">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Service Units
-            </h2>
+            <div class="page-heading">
+                <h2 class="page-heading-title">Service Units</h2>
+                <p class="page-heading-subtitle mb-0">Manage service units and launch rating/report actions.</p>
+            </div>
         </template>
 
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-4 libraries-page">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-11">
                     <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
@@ -201,133 +202,58 @@
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
 
 <style scoped>
-/* Card Enhancements */
+.libraries-page {
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf3fb 100%);
+    min-height: 100vh;
+}
+
+.page-heading-title {
+    margin: 0;
+    color: #12243a;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.page-heading-subtitle {
+    color: #5b7088;
+    font-size: 0.9rem;
+}
+
 .card {
-    transition: all 0.3s ease;
+    border: 1px solid #d8e5f5 !important;
+    box-shadow: 0 10px 26px rgba(21, 59, 112, 0.08) !important;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+.card-header {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
 }
 
-/* Service Header Row */
 .service-header-row {
-    background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%) !important;
-    transition: all 0.3s ease;
+    background: #eaf2ff !important;
 }
 
-.service-header-row:hover {
-    background: linear-gradient(135deg, rgba(79, 172, 254, 0.25) 0%, rgba(0, 242, 254, 0.25) 100%) !important;
-}
-
-/* Table Row Animations */
-.table-row-animated {
-    transition: all 0.3s ease;
+.table-dark th {
+    background: #1f3b6e !important;
+    border-color: #365988 !important;
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(79, 172, 254, 0.08) !important;
-    transform: translateX(5px);
-}
-
-.table-hover tbody tr:hover td:first-child {
-    border-left: 3px solid #4facfe;
-}
-
-/* Icon Circle */
-.icon-circle {
-    transition: all 0.3s ease;
-}
-
-.table-row-animated:hover .icon-circle {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
-}
-
-/* Button Enhancements */
-.btn-group .btn {
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.btn-group .btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    background-color: rgba(33, 94, 154, 0.06) !important;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f6db3, #1a4f89);
     border: none;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #fa7268 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #c47b2f, #a65c27);
     border: none;
-    color: white;
-}
-
-.btn-warning:hover:not(:disabled) {
-    background: linear-gradient(135deg, #e04860 0%, #d8475c 100%);
+    color: #fff;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    background: linear-gradient(135deg, #2e9b6a, #1f7f67);
     border: none;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #38d96b 0%, #2ee9c7 100%);
-}
-
-.btn-light {
-    color: #4facfe;
-    background: white;
-    border: none;
-}
-
-.btn-light:hover {
-    background: #f8f9fa;
-    color: #00f2fe;
-}
-
-.text-blue {
-    color: #4facfe !important;
-}
-
-.text-info {
-    color: #4facfe !important;
-}
-
-/* Disabled button styling */
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .card-header {
-        flex-direction: column !important;
-        gap: 15px !important;
-    }
-    
-    .card-header > div:last-child {
-        width: 100%;
-        flex-direction: column;
-    }
-    
-    .btn-group {
-        flex-direction: column;
-    }
-    
-    .btn-group .btn {
-        border-radius: 15px !important;
-        margin-bottom: 5px;
-    }
 }
 </style>

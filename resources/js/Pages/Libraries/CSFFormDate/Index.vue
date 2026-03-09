@@ -31,12 +31,13 @@
 <template>
     <AppLayout title="CSF Form Date Display">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                CSF Form Date Display
-            </h2>
+            <div class="page-heading">
+                <h2 class="page-heading-title">CSF Form Date Display</h2>
+                <p class="page-heading-subtitle mb-0">Control the visibility of the CSF form date.</p>
+            </div>
         </template>
 
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-4 libraries-page">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-6">
                     <div class="card shadow-lg border-0 text-center" style="border-radius: 20px; overflow: hidden;">
@@ -95,86 +96,34 @@
 </template>
 
 <style scoped>
-/* Card Enhancements */
+.libraries-page {
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf3fb 100%);
+    min-height: 100vh;
+}
+
+.page-heading-title {
+    margin: 0;
+    color: #12243a;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.page-heading-subtitle {
+    color: #5b7088;
+    font-size: 0.9rem;
+}
+
 .card {
-    transition: all 0.3s ease;
+    border: 1px solid #d8e5f5 !important;
+    box-shadow: 0 10px 26px rgba(21, 59, 112, 0.08) !important;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+.card-header {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
 }
 
-/* Icon Circle */
-.icon-circle {
-    transition: all 0.3s ease;
-}
-
-.card:hover .icon-circle {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(156, 39, 176, 0.4);
-}
-
-.text-purple {
-    color: #9c27b0 !important;
-}
-
-/* Custom Switch Styling */
-.form-switch .form-check-input {
-    width: 60px;
-    height: 30px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.form-switch .form-check-input:checked {
-    background-color: #43e97b;
-    border-color: #43e97b;
-    box-shadow: 0 0 15px rgba(67, 233, 123, 0.5);
-}
-
-.form-switch .form-check-input:not(:checked) {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-}
-
-.form-switch .form-check-input:focus {
-    box-shadow: 0 0 0 0.25rem rgba(156, 39, 176, 0.25);
-    border-color: #9c27b0;
-}
-
-/* Button Enhancements */
 .btn-primary {
-    background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+    background: linear-gradient(135deg, #1f6db3, #1a4f89);
     border: none;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
-}
-
-/* Text Colors */
-.text-success {
-    color: #43e97b !important;
-}
-
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .card-header h3 {
-        font-size: 1.25rem;
-    }
-    
-    .form-switch .form-check-input {
-        width: 50px;
-        height: 25px;
-    }
 }
 </style>

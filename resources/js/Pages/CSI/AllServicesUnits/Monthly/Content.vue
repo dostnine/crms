@@ -1,5 +1,5 @@
 <script setup>
-    import { computed } from 'vue'
+    import { computed, ref } from 'vue'
     
     const props = defineProps({
         data: {
@@ -60,6 +60,78 @@
             (cc3?.cc3_ans1 > 0) || (cc3?.cc3_ans2 > 0) || (cc3?.cc3_ans3 > 0) || (cc3?.cc3_ans4 > 0)
         );
     };
+
+    const reportSummaryLabel = computed(() => {
+        if (props.form?.csi_type === 'By Quarter') {
+            return 'QUARTERLY SUMMARY';
+        }
+        if (props.form?.csi_type === 'By Year/Annual') {
+            return 'YEARLY SUMMARY';
+        }
+        return 'MONTHLY SUMMARY';
+    });
+
+    const assessmentPeriodText = computed(() => {
+        if (props.form?.csi_type === 'By Quarter') {
+            return `${props.form?.selected_quarter || ''} ${props.form?.selected_year || ''}`.trim();
+        }
+        if (props.form?.csi_type === 'By Year/Annual') {
+            return props.form?.selected_year || '';
+        }
+        return `${props.form?.selected_month || ''} ${props.form?.selected_year || ''}`.trim();
+    });
+
+    const piePalette = ['#1f77b4', '#2ca02c', '#ffbf00', '#ff7f0e', '#d62728', '#8c8c8c'];
+
+    const unitPieCharts = computed(() => {
+        if (!props.data?.services_units?.data || !props.data?.all_units_data?.units_data) return [];
+
+        const charts = [];
+        for (const service of props.data.services_units.data) {
+            if (!service.units) continue;
+            for (const unit of service.units) {
+                const unitData = props.data.all_units_data.units_data?.[service.id]?.[unit.id];
+                if (!unitData || (unitData.total_respo || 0) <= 0) continue;
+
+                const counts = [
+                    Number(unitData.strongly_agree_count || 0),
+                    Number(unitData.agree_count || 0),
+                    Number(unitData.neither_count || 0),
+                    Number(unitData.disagree_count || 0),
+                    Number(unitData.strongly_disagree_count || 0),
+                    Number(unitData.na_count || 0),
+                ];
+                const labels = ['Strongly Agree', 'Agree', 'Neither', 'Disagree', 'Strongly Disagree', 'N/A'];
+                const total = counts.reduce((a, b) => a + b, 0);
+                if (total <= 0) continue;
+
+                const percentages = counts.map((v) => (v / total) * 100);
+                let offset = 0;
+                const slices = percentages.map((pct, idx) => {
+                    const start = offset;
+                    offset += pct;
+                    return `${piePalette[idx]} ${start.toFixed(2)}% ${offset.toFixed(2)}%`;
+                });
+
+                charts.push({
+                    key: `${service.id}-${unit.id}`,
+                    serviceName: service.services_name,
+                    unitName: unit.unit_name,
+                    total,
+                    background: `conic-gradient(${slices.join(', ')})`,
+                    legend: labels.map((label, idx) => ({
+                        label,
+                        color: piePalette[idx],
+                        count: counts[idx],
+                        pct: percentages[idx].toFixed(2),
+                    })),
+                });
+            }
+        }
+        return charts;
+    });
+
+    const showPieCharts = ref(true);
 
 </script>
 <template>
@@ -168,10 +240,12 @@
         </table>
     </v-card>
 
+
+
     <!-- PART II: Service Units Overview -->
     <v-card v-if="props.data && props.data.services_units && props.data.all_units_data && (props.data.total_respondents > 0 || hasUnitsWithSubUnits())">
         <div class="m-5">
-            <h4 class="mb-3">PART II: SERVICE UNITS OVERVIEW - MONTHLY SUMMARY</h4>
+            <h4 class="mb-3">PART II: SERVICE UNITS OVERVIEW - {{ reportSummaryLabel }}</h4>
             <table class="mb-4" style="width:100%; border-collapse: collapse;">
                 <thead>
                     <tr>
@@ -338,7 +412,7 @@
                     </template>
                 
                     <tr class="total-row" style="font-weight: bold; background-color: #e3f2fd;">
-                        <td><strong>Total:</strong></td>
+                        <td><strong>TOTAL:</strong></td>
                         <td class="text-center"><strong>{{ props.data.total_respondents > 0 ? props.data.total_respondents : '-' }}</strong></td>
                         <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_strongly_agree > 0 ? props.data.all_units_data?.grand_pct_strongly_agree + '%' : '-' }}</strong></td>
                         <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_agree > 0 ? props.data.all_units_data?.grand_pct_agree + '%' : '-' }}</strong></td>
@@ -350,11 +424,182 @@
                 </tbody>
             </table>
 
+            <!-- Summary Table - Service Category Totals -->
+            <div v-if="props.data && props.data.all_units_data?.service_totals" class="mb-4 mt-4 service-category-summary">
+                <table style="width:100%; border-collapse: collapse; border: 2px solid #333;">
+                    <thead>
+                        <tr style="background-color: #1976d2; color: white;">
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center; font-size: 16px;" colspan="5">SERVICE CATEGORY TOTALS SUMMARY</th>
+                        </tr>
+                        <tr style="background-color: #1976d2; color: white;">
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center;">CATEGORIES</th>
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center;">OFFICE OF THE REGIONAL DIRECTOR</th>
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center;">FINANCE AND ADMINISTRATIVE SUPPORT SERVICES</th>
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center;">TECHNICAL OPERATION SERVICES</th>
+                            <th style="padding: 10px; border: 1px solid #333; text-align: center;">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- TOTAL RESPONDENTS Row -->
+                        <tr style="background-color: #e3f2fd;">
+                            <td style="padding: 10px; border: 1px solid #333; font-weight: bold;">TOTAL RESPONDENTS</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[1]?.total_respo || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[2]?.total_respo || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[3]?.total_respo || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center; font-weight: bold;">{{ props.data.total_respondents || 0 }}</td>
+                        </tr>
+                        <!-- TOTAL NO. OF STRONGLY AGREE / AGREE RATING Row -->
+                        <tr style="background-color: #e3f2fd;">
+                            <td style="padding: 10px; border: 1px solid #333; font-weight: bold;">TOTAL NO. OF STRONGLY AGREE / AGREE RATING</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[1]?.strongly_agree_agree_count || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[2]?.strongly_agree_agree_count || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[3]?.strongly_agree_agree_count || 0 }}</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center; font-weight: bold;">{{ props.data.all_units_data?.grand_strongly_agree_agree_count || 0 }}</td>
+                        </tr>
+                        <!-- % SA + A Row -->
+                        <tr style="background-color: #e3f2fd;">
+                            <td style="padding: 10px; border: 1px solid #333; font-weight: bold;">% SA + A</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[1]?.pct_strongly_agree_agree || 0 }}%</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[2]?.pct_strongly_agree_agree || 0 }}%</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data.service_totals[3]?.pct_strongly_agree_agree || 0 }}%</td>
+                            <td style="padding: 10px; border: 1px solid #333; text-align: center; font-weight: bold;">{{ props.data.all_units_data?.grand_pct_strongly_agree_agree || 0 }}%</td>
+                        </tr>
+
+                        <tr style="background-color: #e3f2fd;">
+                            <td colspan="3" style="padding: 10px; border: 1px solid #333; font-weight: bold;">CUSTOMER SATISFACTION RATING (VERY STRONGLY AGREE AND AGREE COMBINED):</td>
+                            <td colspan="2" style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data?.grand_pct_strongly_agree_agree || 0 }}%</td>
+                        </tr>
+
+                        <tr style="background-color: #e3f2fd;">
+                            <td colspan="3" style="padding: 10px; border: 1px solid #333; font-weight: bold;">OVERALL SCORING RESULTS INTERPRETATION:</td>
+                            <td colspan="2" style="padding: 10px; border: 1px solid #333; text-align: center;">{{ props.data.all_units_data?.grand_pct_strongly_agree_agree || 0 }}%</td>
+                        </tr>
+
+                        <tr style="background-color: #e3f2fd;">
+                            <td colspan="3" style="padding: 10px; border: 1px solid #333; font-weight: bold;">TARGET: AT LEAST:</td>
+                            <td colspan="2" style="padding: 10px; border: 1px solid #333; text-align: center;">95% (VS + S combined)</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sex-Disaggregated Data And Age Groups -->
+            <div v-if="props.data?.respondent_profile" class="mb-4 mt-4">
+                <h5 class="mb-3">SEX-DISAGGREGATED DATA AND AGE GROUPS</h5>
+
+                <table style="width:100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 16px;">
+                    <thead>
+                        <tr style="background-color: #1f3b6e; color: white;">
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 30%;">Sex</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 23%;">External</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 23%;">Internal</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 24%;">Overall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="(row, idx) in (props.data.respondent_profile.sex_table || [])" :key="'sex-' + idx">
+                            <tr>
+                                <td style="padding: 6px; border: 1px solid #333;" :rowspan="2">{{ row.label }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.external.pct === '-' ? '-' : row.external.pct + '%' }}
+                                </td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.internal.pct === '-' ? '-' : row.internal.pct + '%' }}
+                                </td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.overall.pct === '-' ? '-' : row.overall.pct + '%' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.external.count }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.internal.count }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.overall.count }}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+
+                <table style="width:100%; border-collapse: collapse; border: 2px solid #333;">
+                    <thead>
+                        <tr style="background-color: #1f3b6e; color: white;">
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 30%;">Age</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 23%;">External</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 23%;">Internal</th>
+                            <th style="padding: 6px; border: 1px solid #333; text-align: center; width: 24%;">Overall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template v-for="(row, idx) in (props.data.respondent_profile.age_table || [])" :key="'age-' + idx">
+                            <tr>
+                                <td style="padding: 6px; border: 1px solid #333;" :rowspan="2">{{ row.label }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.external.pct === '-' ? '-' : row.external.pct + '%' }}
+                                </td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.internal.pct === '-' ? '-' : row.internal.pct + '%' }}
+                                </td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center; background-color: #d7e4ef; font-weight: bold;">
+                                    {{ row.overall.pct === '-' ? '-' : row.overall.pct + '%' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.external.count }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.internal.count }}</td>
+                                <td style="padding: 4px; border: 1px solid #333; text-align: center;">{{ row.overall.count }}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pie Chart Report By Unit -->
+            <div v-if="unitPieCharts.length > 0" class="mb-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">PIE CHART REPORT BY UNIT</h5>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary pie-toggle-btn"
+                        @click="showPieCharts = !showPieCharts"
+                    >
+                        {{ showPieCharts ? 'Hide Charts' : 'Show Charts' }}
+                    </button>
+                </div>
+                <div v-show="showPieCharts" class="pie-grid pie-chart-collapsible">
+                    <div v-for="chart in unitPieCharts" :key="chart.key" class="pie-card">
+                        <div class="pie-title">{{ chart.unitName }}</div>
+                        <div class="pie-subtitle">{{ chart.serviceName }}</div>
+                        <div class="pie-circle" :style="{ background: chart.background }"></div>
+                        <div class="pie-total">Total Ratings: {{ chart.total }}</div>
+                        <table class="pie-legend-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Count</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in chart.legend" :key="chart.key + '-' + item.label">
+                                    <td class="legend-label">
+                                        <span class="legend-dot" :style="{ backgroundColor: item.color }"></span>
+                                        {{ item.label }}
+                                    </td>
+                                    <td class="text-center">{{ item.count }}</td>
+                                    <td class="text-center">{{ item.pct }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p v-show="!showPieCharts" class="text-muted mb-0 pie-collapsed-note">Pie chart section is collapsed.</p>
+            </div>
+
             <!-- Assessment Summary -->
             <div class="assessment m-5">
-                <h5 class="mb-3">ASSESSMENT SUMMARY - {{ props.form?.selected_month }} {{ props.form?.selected_year || '' }}</h5>
+                <h5 class="mb-3">ASSESSMENT SUMMARY - {{ assessmentPeriodText }}</h5>
                 <p v-if="props.data.total_respondents > 0">
-                    The Department of Science and Technology IX for the month of <strong>{{ props.form?.selected_month }}</strong> <strong>{{ props.form?.selected_year }}</strong> 
+                    The Department of Science and Technology IX for <strong>{{ assessmentPeriodText }}</strong> 
                     had a total of <strong>{{ props.data.total_respondents || 0 }}</strong> respondents who filled out and rated the Customer Satisfaction Feedback. 
                     <strong>{{ props.data.total_vss_respondents || 0 }}</strong> (or <strong>{{ props.data.percentage_vss_respondents || 0 }}%</strong>) 
                     of the respondents rated the CSF as either very satisfied (VS) or satisfied (S), which resulted in an overall average 
@@ -366,6 +611,9 @@
             </div>
         </div>
     </v-card>
+
+
+     
 
     <!-- No Data State -->
     <v-card v-else>
@@ -408,5 +656,59 @@ tr,th, td {
 }
 .bg-green-50 {
     background-color: #e8f5e9;
+}
+.pie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+.pie-card {
+    border: 1px solid #cfd8dc;
+    border-radius: 8px;
+    padding: 12px;
+    background: #ffffff;
+}
+.pie-title {
+    font-weight: 700;
+    text-align: center;
+}
+.pie-subtitle {
+    font-size: 12px;
+    text-align: center;
+    color: #455a64;
+    margin-bottom: 8px;
+}
+.pie-circle {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    margin: 0 auto 10px auto;
+    border: 1px solid #b0bec5;
+}
+.pie-total {
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+.pie-legend-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.pie-legend-table th,
+.pie-legend-table td {
+    border: 1px solid #cfd8dc;
+    padding: 4px;
+    font-size: 12px;
+}
+.legend-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
 }
 </style>

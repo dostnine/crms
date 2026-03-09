@@ -409,24 +409,42 @@ const printCSIReport = async () => {
 <template>
     <AppLayout title="Customer Satisfaction Index" class="overflow-visible">
         <template #header>
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="fw-semibold fs-4 text-dark mb-0">
-                    <i class="ri-bar-chart-line text-primary me-2"></i>
-                    Customer Satisfaction Index
-                </h2>
-                <div class="text-muted small">
-                    <i class="ri-information-line me-1"></i>
-                    Generate and view CSI reports
-                </div>
+            <div class="page-heading">
+                <h2 class="page-heading-title">Customer Satisfaction Index - Service Units</h2>
+                <p class="page-heading-subtitle mb-0">Configure filters and generate unit-level CSI reports by period.</p>
             </div>
         </template>
 
 
-        <div class="py-5 overflow-visible" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 100vh;">
-            <div class="container-fluid px-4 overflow-visible" style="max-width: 1400px;">
-                <div class="bg-white shadow-lg overflow-visible" style="border-radius: 20px;">
+        <div class="py-4 overflow-visible csi-service-page">
+            <div class="container-fluid px-3 px-md-4 overflow-visible" style="max-width: 1400px;">
+                <div class="summary-hero mb-4">
+                    <div class="summary-hero-content">
+                        <div>
+                            <p class="summary-kicker mb-1">CSI Monitoring</p>
+                            <h3 class="summary-title mb-1">Service Unit Reporting Workspace</h3>
+                            <p class="summary-text mb-0">Generate monthly, quarterly, and yearly performance reports with demographic filters.</p>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-pill">
+                                <span class="stat-label">Total Respondents</span>
+                                <span class="stat-value">{{ props.total_respondents ?? 0 }}</span>
+                            </div>
+                            <div class="stat-pill">
+                                <span class="stat-label">CSI</span>
+                                <span class="stat-value">{{ Number(props.customer_satisfaction_index || props.csi || 0).toFixed(2) }}%</span>
+                            </div>
+                            <div class="stat-pill">
+                                <span class="stat-label">NPS</span>
+                                <span class="stat-value">{{ Number(props.net_promoter_score || props.ave_net_promoter_score || 0).toFixed(2) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-shell bg-white shadow-lg overflow-visible">
                    <div class="card mb-4 overflow-visible border-0 shadow-sm" v-if="service && unit">
-                      <div class="card-header bg-primary text-white">
+                      <div class="card-header service-title-header text-white">
                           <div class="d-flex align-items-center">
                               <div class="me-3">
                                   <i class="ri-building-4-line fs-2"></i>
@@ -439,9 +457,9 @@ const printCSIReport = async () => {
                       </div>
                     </div>
 
-                    <div class="card overflow-visible mb-5 border-0 shadow-lg">
-                          <div class="card-header bg-light border-bottom-0">
-                              <h5 class="mb-0 text-primary">
+                    <div class="card overflow-visible mb-5 border-0 shadow report-config-card">
+                          <div class="card-header report-config-header border-bottom-0">
+                              <h5 class="mb-0 text-white">
                                   <i class="ri-settings-5-line me-2"></i>
                                   Report Configuration
                               </h5>
@@ -587,7 +605,7 @@ const printCSIReport = async () => {
                           <hr class="border-opacity-100">
                           
 
-                          <div class="card-footer bg-light border-top-0">
+                    <div class="card-footer report-config-footer border-top-0">
                               <div class="row g-3 align-items-end" v-if="form.csi_type == 'By Date'">
                                   <div class="col-md-3">
                                       <label class="form-label fw-semibold">
@@ -613,13 +631,13 @@ const printCSIReport = async () => {
                                   </div>
                                   <div class="col-md-6">
                                       <div class="d-flex gap-2 justify-content-end">
-                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary">
+                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary action-btn btn-generate">
                                               <i class="ri-play-circle-line me-1"></i>Generate Report
                                           </button>
-                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary">
+                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success">
+                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Preview
                                           </button>
                                       </div>
@@ -649,13 +667,13 @@ const printCSIReport = async () => {
                                   </div>
                                   <div class="col-md-6">
                                       <div class="d-flex gap-2 justify-content-end">
-                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary">
+                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary action-btn btn-generate">
                                               <i class="ri-play-circle-line me-1"></i>Generate Report
                                           </button>
-                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary">
+                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success">
+                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Preview
                                           </button>
                                       </div>
@@ -688,13 +706,13 @@ const printCSIReport = async () => {
                                   </div>
                                   <div class="col-md-6">
                                       <div class="d-flex gap-2 justify-content-end">
-                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary">
+                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary action-btn btn-generate">
                                               <i class="ri-play-circle-line me-1"></i>Generate Report
                                           </button>
-                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary">
+                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success">
+                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Report
                                           </button>
                                       </div>
@@ -714,13 +732,13 @@ const printCSIReport = async () => {
                                   </div>
                                   <div class="col-md-9">
                                       <div class="d-flex gap-2 justify-content-end">
-                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary">
+                                          <button @click="generateCSIReport(service, unit)" class="btn btn-primary action-btn btn-generate">
                                               <i class="ri-play-circle-line me-1"></i>Generate Report
                                           </button>
-                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary">
+                                          <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success">
+                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Report
                                           </button>
                                       </div>
@@ -769,6 +787,160 @@ const printCSIReport = async () => {
    
 </template>
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
+<style scoped>
+.csi-service-page {
+    --brand-navy: #153b70;
+    --brand-blue: #2266a8;
+    --brand-sky: #e9f3ff;
+    --surface: #ffffff;
+    --text-strong: #12243a;
+    --text-soft: #5b7088;
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf3fb 100%);
+    min-height: 100vh;
+}
 
+.page-heading-title {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
 
+.page-heading-subtitle {
+    margin-top: 2px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+}
 
+.summary-hero {
+    border-radius: 16px;
+    border: 1px solid #d9e7f7;
+    background:
+        radial-gradient(circle at top right, rgba(71, 153, 233, 0.3) 0, rgba(71, 153, 233, 0) 45%),
+        linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
+    overflow: hidden;
+}
+
+.summary-hero-content {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.summary-kicker {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #3f6c9e;
+    font-weight: 700;
+}
+
+.summary-title {
+    color: var(--text-strong);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.summary-text {
+    color: #38506b;
+    font-size: 0.92rem;
+}
+
+.summary-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.stat-pill {
+    background: #ffffff;
+    border: 1px solid #d3e4f8;
+    border-radius: 12px;
+    min-width: 148px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
+}
+
+.stat-label {
+    color: #5f7893;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: #0d2f54;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.page-shell {
+    border-radius: 20px;
+}
+
+.service-title-header {
+    background: linear-gradient(90deg, #1b365d, #2a568f);
+}
+
+.report-config-card {
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.report-config-header {
+    background: linear-gradient(90deg, var(--brand-navy), var(--brand-blue));
+}
+
+.report-config-footer {
+    background: #f5f9ff;
+}
+
+.report-config-card .form-label {
+    color: #1f3956;
+    margin-bottom: 6px;
+}
+
+.report-config-card .form-select,
+.report-config-card .form-control {
+    border-color: #b8cfe8;
+    min-height: 40px;
+}
+
+.report-config-card .form-select:focus,
+.report-config-card .form-control:focus {
+    border-color: #3d89d1;
+    box-shadow: 0 0 0 0.2rem rgba(29, 122, 208, 0.15);
+}
+
+.action-btn {
+    min-height: 40px;
+    font-weight: 700;
+}
+
+.btn-generate {
+    background: linear-gradient(135deg, #1f6db3, #1a4f89);
+    border: none;
+}
+
+.btn-generate:hover {
+    background: linear-gradient(135deg, #1a5d99, #153f6d);
+}
+
+@media (max-width: 992px) {
+    .summary-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .summary-stats {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+</style>

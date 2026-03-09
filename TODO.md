@@ -1,26 +1,21 @@
-# TODO: Display PSTOs with region_id = 10 in All Services Units Summary
+# CSI All Services Units Report Fix Plan
 
-## Task: Display PSTOs based on survey (region_id = 10) in All Services Units summary
+## Issues Identified:
+1. **Data Passing Issue in Index.vue**: The MonthlyContent component receives incorrect data structure
+2. **Data Structure Mismatch**: Frontend expects different key names than what controller provides
+3. **Service Totals Percentage Calculation**: Uses formula with `total_respo * 6` which may be incorrect
 
-### Changes Made:
+## Fixes to Implement:
 
-1. [x] **app/Http/Controllers/ReportController.php**
-   - [x] Update `generateCSIAllUnitMonthly` method to eager load unit PSTOs
-   - [x] Fix `getAllUnitsData` method to calculate and include unit-level PSTO data with region_id = 10
-   - [x] Added sub_unit_types to services query
-   - [x] PSTO queries now use customer_id instead of csf_form_id
-   - [x] Rating checks use rate_score (5,4,3,2,1,6) instead of text (SA,A,etc.)
-   - [x] Added year filtering with whereYear()
-   
-2. [x] **resources/js/Pages/CSI/AllServicesUnits/Monthly/Content.vue**
-   - [x] Add display logic for unit-level PSTOs under each unit
-   - [x] Added helper function getUnitPstosWithData
+### 1. Fix Index.vue - Correct data passing to MonthlyContent
+- Pass proper data structure to MonthlyContent component
 
-3. [x] **Yearly Report**
-   - [x] Uses same data structure from controller, PSTO display handled by Monthly Content.vue
+### 2. Fix Content.vue - Match expected data structure
+- Update references to use correct data keys from controller
 
-### Notes:
-- Unit PSTOs are stored in `unit_pstos` table and related via `pstos()` relationship in Unit model
-- PSTOs are filtered by region_id = 10 (Region IX - Zamboanga Peninsula)
-- PSTO data shows: total respondents, VSS %, rating percentages
-- The Yearly report has a different structure focused on ORD units
+### 3. Fix Service Category Totals Calculation
+- Update percentage calculation in getAllUnitsData and getAllUnitsDataByQuarter
+
+### 4. Add missing grand total data
+- Ensure grand_pct_strongly_agree_agree is properly calculated and returned
+

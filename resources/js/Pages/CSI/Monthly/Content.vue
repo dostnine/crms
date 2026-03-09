@@ -416,13 +416,53 @@
 </template>
 
 <style scoped>
-   table {
-    border-collapse: collapse;
-    width: 100%; /* Optional: Set a width for the table */
-  }
+.card {
+    border: 1px solid #d8e5f5;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-  tr, th, td {
-    border: 1px solid rgb(145, 139, 139); /* Optional: Add a border for better visibility */
-    padding: 8px; /* Optional: Add padding for better spacing */
-  }
+.card-header {
+    border-bottom: 0;
+    font-weight: 700;
+}
+
+.card-header.bg-primary,
+.card-header.bg-success,
+.card-header.bg-warning {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
+    color: #fff !important;
+}
+
+.card-header.bg-light {
+    background: #eff6ff !important;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead.table-dark th {
+    background: #1f3b6e !important;
+    border-color: #365988;
+}
+
+.table th,
+.table td {
+    border-color: #b8cbe2 !important;
+    vertical-align: middle;
+}
+
+.bg-blue-200 {
+    background-color: #e6f1ff !important;
+}
+
+.badge {
+    border-radius: 999px;
+    padding: 0.4rem 0.65rem;
+}
+
+.card-body h3 {
+    font-weight: 800;
+}
 </style>

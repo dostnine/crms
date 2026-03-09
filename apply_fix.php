@@ -1,63 +1,68 @@
 <?php
+$content = file_get_contents('app/Http/Controllers/ReportController.php');
 
-$file = 'app/Http/Controllers/ReportController.php';
-$content = file_get_contents($file);
+$old = "                'cc3_total' => \$grand_cc3_total,
+            ],
+        ];
+    }
 
-// Fix 1: Add $totalNotApplicable calculation after $totalVeryDisagree in calculateUnitMetrics function
-$search1 = "        // Total Very Disagree (rate_score = 1)
-        \$totalVeryDisagree = \$ratings->where('rate_score', 1)->groupBy('customer_id')->count();       
+    /**
+     * Calculate CSI for a single unit using Weighted Sum method";
 
-        // Calculate percentages";
+$new = "                'cc3_total' => \$grand_cc3_total,
+            ],
+            // Service totals for SERVICE CATEGORY TOTALS SUMMARY
+            'service_totals' => \$service_totals,
+            // Grand strongly agree + agree count for overall total
+            'grand_strongly_agree_agree_count' => \$grand_strongly_agree_count + \$grand_agree_count,
+            // Grand percentage of strongly agree + agree
+            'grand_pct_strongly_agree_agree' => \$grand_total_ratings > 0 
+                ? ((\$grand_strongly_agree_count + \$grand_agree_count) / \$grand_total_ratings) * 100 
+                : 0,
+        ];
+    }
 
-$replace1 = "        // Total Very Disagree (rate_score = 1)
-        \$totalVeryDisagree = \$ratings->where('rate_score', 1)->groupBy('customer_id')->count();       
+    /**
+     * Calculate CSI for a single unit using Weighted Sum method";
 
-        // Total Not Applicable (rate_score = 6)
-        \$totalNotApplicable = \$ratings->where('rate_score', 6)->groupBy('customer_id')->count();
+if (strpos($content, $old) !== false) {
+    $content = str_replace($old, $new, $content);
+    file_put_contents('app/Http/Controllers/ReportController.php', $content);
+    echo "Edit successful!\n";
+} else {
+    echo "Pattern not found. Trying alternative pattern...\n";
+    
+    // Try alternative pattern
+    $old2 = "                'cc3_total' => \$grand_cc3_total,
+            ],
+        ];
+    }
 
-        // Calculate percentage_not_applicable
-        \$percentageNotApplicable = 0;
-        if (\$totalRespondents > 0) {
-            \$percentageNotApplicable = number_format((\$totalNotApplicable / \$totalRespondents) * 100, 2);
-        }
+    /**
+     * Calculate CSI";
+    
+    $new2 = "                'cc3_total' => \$grand_cc3_total,
+            ],
+            // Service totals for SERVICE CATEGORY TOTALS SUMMARY
+            'service_totals' => \$service_totals,
+            // Grand strongly agree + agree count for overall total
+            'grand_strongly_agree_agree_count' => \$grand_strongly_agree_count + \$grand_agree_count,
+            // Grand percentage of strongly agree + agree
+            'grand_pct_strongly_agree_agree' => \$grand_total_ratings > 0 
+                ? ((\$grand_strongly_agree_count + \$grand_agree_count) / \$grand_total_ratings) * 100 
+                : 0,
+        ];
+    }
 
-        // Calculate percentages";
-
-$content = str_replace($search1, $replace1, $content);
-
-// Fix 2: Change $percentage_not_applicable to $percentageNotApplicable in the return array
-$search2 = "            'percentage_not_applicable' => \$percentage_not_applicable,";
-$replace2 = "            'percentage_not_applicable' => \$percentageNotApplicable,";
-
-$content = str_replace($search2, $replace2, $content);
-
-// Fix 3: Add 'total_not_applicable' => $totalNotApplicable to the return array
-$search3 = "            'total_very_disagree' => \$totalVeryDisagree,
-            'percentage_strongly_agree' => \$percentageStronglyAgree,";
-
-$replace3 = "            'total_very_disagree' => \$totalVeryDisagree,
-            'total_not_applicable' => \$totalNotApplicable,
-            'percentage_strongly_agree' => \$percentageStronglyAgree,";
-
-$content = str_replace($search3, $replace3, $content);
-
-file_put_contents($file, $content);
-
-echo "Fixes applied successfully!\n";
-
-// Verify the changes
-$verify = file_get_contents($file);
-if (strpos($verify, '\$totalNotApplicable = \$ratings->where(\'rate_score\', 6)') !== false) {
-    echo "✓ \$totalNotApplicable calculation added\n";
+    /**
+     * Calculate CSI";
+    
+    if (strpos($content, $old2) !== false) {
+        $content = str_replace($old2, $new2, $content);
+        file_put_contents('app/Http/Controllers/ReportController.php', $content);
+        echo "Edit successful with alternative pattern!\n";
+    } else {
+        echo "Alternative pattern not found either.\n";
+    }
 }
-if (strpos($verify, '\$percentageNotApplicable = number_format((\$totalNotApplicable / \$totalRespondents) * 100, 2)') !== false) {
-    echo "✓ \$percentageNotApplicable calculation added\n";
-}
-if (strpos($verify, "'percentage_not_applicable' => \$percentageNotApplicable,") !== false) {
-    echo "✓ Return array uses \$percentageNotApplicable\n";
-}
-if (strpos($verify, "'total_not_applicable' => \$totalNotApplicable,") !== false) {
-    echo "✓ Return array includes 'total_not_applicable'\n";
-}
-
 ?>

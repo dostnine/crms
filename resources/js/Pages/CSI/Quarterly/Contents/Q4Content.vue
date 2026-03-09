@@ -807,13 +807,32 @@
 </template>
 
 <style scoped>
-   table {
-    border-collapse: collapse;
-    width: 100%; /* Optional: Set a width for the table */
-  }
+:deep(.v-card) {
+    border: 1px solid #d8e5f5;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(22, 54, 93, 0.08);
+}
 
-  tr, th, td {
-    border: 1px solid rgb(145, 139, 139); /* Optional: Add a border for better visibility */
-    padding: 3px; /* Optional: Add padding for better spacing */
-  }
+:deep(.v-card-title) {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+tr, th, td {
+    border: 1px solid #b8cbe2 !important;
+    padding: 4px;
+    vertical-align: middle;
+}
+
+.bg-blue-200 {
+    background-color: #e6f1ff !important;
+}
 </style>

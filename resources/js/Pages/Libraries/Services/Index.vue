@@ -1,249 +1,115 @@
 <script setup>
-    import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link } from '@inertiajs/vue3';
-</script>
+import AppLayout from '@/Layouts/AppLayout.vue';
+import { Link } from '@inertiajs/vue3';
 
+const libraryItems = [
+    {
+        title: 'Accounts',
+        description: 'Manage user accounts and permissions',
+        href: '/accounts',
+        icon: 'ri-account-circle-line',
+        toneClass: 'tone-blue',
+    },
+    {
+        title: 'Assignatorees',
+        description: 'Manage assignees and their assignments',
+        href: '/assignatorees',
+        icon: 'ri-team-line',
+        toneClass: 'tone-green',
+    },
+    {
+        title: 'Service Units',
+        description: 'Configure and manage service units',
+        href: '/service_units',
+        icon: 'ri-building-4-line',
+        toneClass: 'tone-cyan',
+    },
+    {
+        title: 'Regions',
+        description: 'Manage regional configurations',
+        href: '/regions',
+        icon: 'ri-map-pin-line',
+        toneClass: 'tone-orange',
+    },
+    {
+        title: 'PSTOs',
+        description: 'Manage PSTO configurations',
+        href: '/pstos',
+        icon: 'ri-building-line',
+        toneClass: 'tone-coral',
+    },
+    {
+        title: 'Unit PSTOs',
+        description: 'Configure unit-specific PSTOs',
+        href: '/unit-pstos',
+        icon: 'ri-map-pin-range-line',
+        toneClass: 'tone-amber',
+    },
+    {
+        title: 'Sub Unit PSTOs',
+        description: 'Manage sub-unit PSTO mappings',
+        href: '/sub-unit-pstos',
+        icon: 'ri-map-pin-2-line',
+        toneClass: 'tone-teal',
+    },
+    {
+        title: 'CSF Date Display',
+        description: 'View and manage CSF form dates',
+        href: '/show-date-csf-form',
+        icon: 'ri-calendar-line',
+        toneClass: 'tone-indigo',
+    },
+];
+</script>
 
 <template>
     <AppLayout title="Libraries">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Libraries
-            </h2>
+            <div class="page-heading">
+                <h2 class="page-heading-title">Libraries</h2>
+                <p class="page-heading-subtitle mb-0">Manage core system configurations and reference data.</p>
+            </div>
         </template>
 
-        <div class="container-fluid py-5">
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-11">
-                    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
-                        <div class="card-header text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 25px 30px;">
-                            <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                                <i class="ri-library-line" style="font-size: 100px;"></i>
-                            </div>
-                            <h3 class="card-title mb-0 position-relative">
-                                <i class="ri-library-line me-2"></i>
-                                Libraries Management
-                            </h3>
-                            <p class="mb-0 mt-2 opacity-75 position-relative">Manage your system libraries and configurations</p>
+        <div class="libraries-page py-4">
+            <div class="container-fluid px-3 px-md-4" style="max-width: 1400px;">
+                <div class="summary-hero mb-4">
+                    <div class="summary-hero-content">
+                        <div>
+                            <p class="summary-kicker mb-1">System Configuration</p>
+                            <h3 class="summary-title mb-1">Libraries Management</h3>
+                            <p class="summary-text mb-0">Select a library module to maintain your operational data.</p>
                         </div>
-                        <div class="card-body p-4">
-                            <div class="row g-4">
-                                <!-- Accounts -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/accounts" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);">
-                                                        <i class="ri-account-circle-line ri-3x icon-main" style="color: #667eea;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Accounts
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Manage user accounts and permissions
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Assignatorees -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/assignatorees" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(67, 233, 123, 0.15) 0%, rgba(56, 249, 215, 0.15) 100%);">
-                                                        <i class="ri-team-line ri-3x icon-main" style="color: #43e97b;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Assignatorees
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Manage assignees and their assignments
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Service Units -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/service_units" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%);">
-                                                        <i class="ri-building-4-line ri-3x icon-main" style="color: #4facfe;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Service Units
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Configure and manage service units
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Regions -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/regions" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(240, 147, 251, 0.15) 0%, rgba(245, 87, 108, 0.15) 100%);">
-                                                        <i class="ri-map-pin-line ri-3x icon-main" style="color: #f093fb;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Regions
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Manage regional configurations
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- PSTOs -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/pstos" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(250, 114, 104, 0.15) 0%, rgba(253, 121, 168, 0.15) 100%);">
-                                                        <i class="ri-building-line ri-3x icon-main" style="color: #fa7268;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    PSTOs
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Manage PSTO configurations
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Unit PSTOs -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/unit-pstos" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%);">
-                                                        <i class="ri-map-pin-range-line ri-3x icon-main" style="color: #ffc107;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Unit PSTOs
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Configure unit-specific PSTOs
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Sub Unit PSTOs -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/sub-unit-pstos" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(0, 188, 212, 0.15) 0%, rgba(0, 150, 136, 0.15) 100%);">
-                                                        <i class="ri-map-pin-2-line ri-3x icon-main" style="color: #00bcd4;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Sub Unit PSTOs
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Manage sub-unit PSTO mappings
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- CSF Date Display -->
-                                <div class="col-md-4 mb-4">
-                                    <Link href="/show-date-csf-form" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(103, 58, 183, 0.15) 100%);">
-                                                        <i class="ri-calendar-line ri-3x icon-main" style="color: #9c27b0;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    CSF Date Display
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    View and manage CSF form dates
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-
-                                <!-- Additional Card - Reports (if needed) -->
-                                <!-- <div class="col-md-4 mb-4">
-                                    <Link href="/reports" class="text-decoration-none">
-                                        <div class="card card-amazing h-100 border-0 library-card" style="border-radius: 16px;">
-                                            <div class="card-body text-center py-4 position-relative">
-                                                <div class="icon-container position-relative d-inline-block mb-3">
-                                                    <div class="icon-wrapper" style="display: inline-block; padding: 20px; border-radius: 50%; background: linear-gradient(135deg, rgba(233, 30, 99, 0.15) 0%, rgba(233, 30, 99, 0.15) 100%);">
-                                                        <i class="ri-bar-chart-line ri-3x icon-main" style="color: #e91e63;"></i>
-                                                    </div>
-                                                </div>
-                                                <h5 class="card-title fw-bold mb-2" style="color: #333;">
-                                                    Reports
-                                                </h5>
-                                                <p class="card-description text-muted small mb-0">
-                                                    Generate and view reports
-                                                </p>
-                                                <div class="arrow-icon position-absolute bottom-0 end-0 p-3">
-                                                    <i class="ri-arrow-right-line text-muted"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div> -->
+                        <div class="summary-stats">
+                            <div class="stat-pill">
+                                <span class="stat-label">Modules</span>
+                                <span class="stat-value">{{ libraryItems.length }}</span>
                             </div>
+                            <div class="stat-pill">
+                                <span class="stat-label">Category</span>
+                                <span class="stat-value">Administration</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="libraries-shell">
+                    <div class="row g-3 g-md-4">
+                        <div v-for="item in libraryItems" :key="item.href" class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                            <Link :href="item.href" class="text-decoration-none">
+                                <article class="library-card h-100" :class="item.toneClass">
+                                    <div class="library-card-body">
+                                        <div class="library-icon-wrap">
+                                            <i class="ri-2x" :class="item.icon"></i>
+                                        </div>
+                                        <h5 class="library-title">{{ item.title }}</h5>
+                                        <p class="library-description mb-0">{{ item.description }}</p>
+                                        <div class="library-arrow">
+                                            <i class="ri-arrow-right-up-line"></i>
+                                        </div>
+                                    </div>
+                                </article>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -253,83 +119,214 @@
 </template>
 
 <style scoped>
-/* Enhanced card styles */
+.libraries-page {
+    --brand-navy: #153b70;
+    --brand-blue: #2266a8;
+    --brand-sky: #e9f3ff;
+    --text-strong: #12243a;
+    --text-soft: #5b7088;
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf3fb 100%);
+    min-height: 100vh;
+}
+
+.page-heading-title {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.page-heading-subtitle {
+    margin-top: 2px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+}
+
+.summary-hero {
+    border-radius: 16px;
+    border: 1px solid #d9e7f7;
+    background:
+        radial-gradient(circle at top right, rgba(71, 153, 233, 0.3) 0, rgba(71, 153, 233, 0) 45%),
+        linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
+    overflow: hidden;
+}
+
+.summary-hero-content {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.summary-kicker {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #3f6c9e;
+    font-weight: 700;
+}
+
+.summary-title {
+    color: var(--text-strong);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.summary-text {
+    color: #38506b;
+    font-size: 0.92rem;
+}
+
+.summary-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.stat-pill {
+    background: #ffffff;
+    border: 1px solid #d3e4f8;
+    border-radius: 12px;
+    min-width: 120px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
+}
+
+.stat-label {
+    color: #5f7893;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: #0d2f54;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.libraries-shell {
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid #d8e5f5;
+    padding: 18px;
+    box-shadow: 0 10px 26px rgba(21, 59, 112, 0.08);
+}
+
 .library-card {
-    transition: all 0.3s ease;
-    cursor: pointer;
-    background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid #dae6f5;
+    border-radius: 14px;
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .library-card:hover {
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(17, 40, 69, 0.12);
+    border-color: #b7cde8;
 }
 
-.library-card .icon-wrapper {
-    transition: all 0.3s ease;
+.library-card-body {
+    padding: 18px 16px 15px;
+    height: 100%;
+    position: relative;
 }
 
-.library-card:hover .icon-wrapper {
-    transform: scale(1.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+.library-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border: 1px solid transparent;
 }
 
-.library-card .card-title {
-    color: #333;
-    transition: all 0.3s ease;
+.library-title {
+    color: #1a3658;
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 4px;
 }
 
-.library-card:hover .card-title {
-    transform: translateY(-2px);
+.library-description {
+    color: #61758e;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    padding-right: 24px;
 }
 
-.library-card .card-description {
-    transition: all 0.3s ease;
-}
-
-.library-card:hover .card-description {
-    color: #6c757d !important;
-}
-
-.library-card .arrow-icon {
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.library-card:hover .arrow-icon {
-    opacity: 1;
-    transform: translateX(-5px);
-}
-
-/* Header decorative elements */
-.card-header::before {
-    content: '';
+.library-arrow {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-    animation: rotate 20s linear infinite;
+    right: 12px;
+    bottom: 10px;
+    color: #6f87a3;
+    transition: transform 0.2s ease;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.library-card:hover .library-arrow {
+    transform: translate(2px, -2px);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .library-card {
-        margin-bottom: 1rem;
-    }
-    
-    .card-header h3 {
-        font-size: 1.25rem;
-    }
-    
-    .card-header p {
-        font-size: 0.875rem;
+.tone-blue .library-icon-wrap {
+    background: #eaf1ff;
+    color: #2f66b3;
+    border-color: #d1e0f7;
+}
+
+.tone-green .library-icon-wrap {
+    background: #e8f9f1;
+    color: #1f9d65;
+    border-color: #cdeedc;
+}
+
+.tone-cyan .library-icon-wrap {
+    background: #eaf8ff;
+    color: #1484ba;
+    border-color: #d1edf8;
+}
+
+.tone-orange .library-icon-wrap {
+    background: #fff3e8;
+    color: #d97329;
+    border-color: #f7dfc7;
+}
+
+.tone-coral .library-icon-wrap {
+    background: #fff0ec;
+    color: #d35a49;
+    border-color: #f5d5cf;
+}
+
+.tone-amber .library-icon-wrap {
+    background: #fff7e8;
+    color: #cc8b1f;
+    border-color: #f5e2bc;
+}
+
+.tone-teal .library-icon-wrap {
+    background: #e9f8f6;
+    color: #198c83;
+    border-color: #ccece7;
+}
+
+.tone-indigo .library-icon-wrap {
+    background: #eef1ff;
+    color: #4f63c7;
+    border-color: #d7def8;
+}
+
+@media (max-width: 992px) {
+    .summary-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 </style>

@@ -290,19 +290,39 @@
 </template>
 
 <style scoped>
+.card {
+    border: 1px solid #d8e5f5;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header.bg-primary,
+.card-header.bg-success,
+.card-header.bg-info {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
+}
+
 table {
     border-collapse: collapse;
     width: 100%;
 }
+
 tr, th, td {
-    border: 1px solid #dddddd;
+    border: 1px solid #b8cbe2 !important;
     padding: 8px;
 }
+
+.table-dark th {
+    background: #1f3b6e !important;
+    border-color: #365988 !important;
+}
+
 .total-row {
     font-weight: bold;
-    background-color: #f9f9f9;
+    background-color: #edf4ff;
 }
+
 .bg-blue-200 {
-    background-color: #e3f2fd;
+    background-color: #e6f1ff;
 }
 </style>

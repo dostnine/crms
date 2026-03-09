@@ -10,6 +10,7 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\AssignatoreesController;
 use App\Http\Controllers\ShowDateCSFFormController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SubUnitController;
 use App\Http\Controllers\UnitPstoController;
@@ -81,9 +82,7 @@ Route::middleware([
         Route::post('/show-date-csf-form/update', [ShowDateCSFFormController::class, 'update']);
     });
 
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', function () {
         return Inertia::render('Profile/Show');
     })->name('profile');
@@ -107,7 +106,6 @@ Route::middleware([
 
 
 });
-
 
 
 

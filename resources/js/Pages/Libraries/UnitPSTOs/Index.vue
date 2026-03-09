@@ -72,12 +72,13 @@
 <template>
     <AppLayout title="Dashboard">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Unit PSTOs
-            </h2>
+            <div class="page-heading">
+                <h2 class="page-heading-title">Unit PSTOs</h2>
+                <p class="page-heading-subtitle mb-0">Assign PSTOs to service units.</p>
+            </div>
         </template>
 
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-4 libraries-page">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-11">
                     <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
@@ -182,113 +183,53 @@
 </template>
 
 <style scoped>
-/* Card Enhancements */
+.libraries-page {
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf3fb 100%);
+    min-height: 100vh;
+}
+
+.page-heading-title {
+    margin: 0;
+    color: #12243a;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.page-heading-subtitle {
+    color: #5b7088;
+    font-size: 0.9rem;
+}
+
 .card {
-    transition: all 0.3s ease;
+    border: 1px solid #d8e5f5 !important;
+    box-shadow: 0 10px 26px rgba(21, 59, 112, 0.08) !important;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+.card-header {
+    background: linear-gradient(90deg, #1b365d, #2a568f) !important;
 }
 
-/* Search Box Enhancements */
 .search-box .input-group {
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    min-width: 250px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-.search-box .input-group:focus-within {
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-    transform: scale(1.02);
-}
-
-/* Table Row Animations */
-.table-row-animated {
-    transition: all 0.3s ease;
+.table-dark th {
+    background: #1f3b6e !important;
+    border-color: #365988 !important;
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(102, 126, 234, 0.08) !important;
-    transform: translateX(5px);
+    background-color: rgba(33, 94, 154, 0.06) !important;
 }
 
-.table-hover tbody tr:hover td:first-child {
-    border-left: 3px solid #667eea;
-}
-
-/* Button Enhancements */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f6db3, #1a4f89);
     border: none;
-    transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-/* Pagination Enhancements */
 .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
-    font-weight: bold;
-}
-
-.pagination .page-link {
-    color: #4a5568;
-    border-radius: 10px;
-    margin: 0 3px;
-    transition: all 0.3s ease;
-}
-
-.pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.2);
-    color: #667eea;
-    transform: scale(1.1);
-}
-
-/* Icon Circle */
-.icon-circle {
-    transition: all 0.3s ease;
-}
-
-.table-row-animated:hover .icon-circle {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
-}
-
-.text-purple {
-    color: #667eea !important;
-}
-
-/* Empty State */
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .card-header {
-        flex-direction: column !important;
-        gap: 15px !important;
-    }
-    
-    .card-header > div:last-child {
-        width: 100%;
-        flex-direction: column;
-    }
-    
-    .search-box {
-        width: 100%;
-    }
-    
-    .search-box .input-group {
-        min-width: 100%;
-    }
+    background: linear-gradient(135deg, #1f6db3, #1a4f89);
+    border-color: #1f6db3;
 }
 </style>
