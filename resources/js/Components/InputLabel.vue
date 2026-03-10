@@ -5,8 +5,19 @@ defineProps({
 </script>
 
 <template>
-    <label class="block font-medium text-sm text-gray-700">
+    <label class="custom-input-label">
         <span v-if="value">{{ value }}</span>
         <span v-else><slot /></span>
     </label>
 </template>
+
+<style scoped>
+.custom-input-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+</style>
+

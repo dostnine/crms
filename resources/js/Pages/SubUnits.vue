@@ -1,10 +1,9 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { reactive, watch, ref, onMounted } from "vue";
- import AOS from 'aos'
+import AOS from 'aos'
 import 'aos/dist/aos.css'
 import { router } from '@inertiajs/vue3'
-
 
 AOS.init();
 
@@ -25,154 +24,271 @@ const goNext = async (region_id, service_id, unit_id, sub_unit_id) => {
                                 `&sub_unit_id=` + sub_unit_id );   
     }
     else{
-        getSubUnitPSTO(region_id, service_id, unit_id, sub_unit_id);
-    }
-   
-}
-
-
-const getSubUnitPSTO = async (region_id, service_id, unit_id, sub_unit_id) => {
-
         router.get(`/services/csf/sub-unit/pstos?region_id=`+ region_id + 
                                 `&service_id=`+ service_id + 
                                 `&unit_id=`+ unit_id +
                                 `&sub_unit_id=` + sub_unit_id );      
+    }
 }
 
-const goBack = async (sub_unit_id) => {
+const goBack = async () => {
     window.history.back()
 }
 
-
-
-
-
 </script>
 
-<template >
+<template>
     <Head title="Service Units" />   
-     <nav 
-        data-aos="fade-down" 
-        data-aos-duration="500" 
-        data-aos-delay="500" 
-         style="backdrop-filter: blur(2px);"
-        class="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
-            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-            <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src="../../../public/images/dost-logo.jpg" class="h-8" alt="DOST Logo">
-                <span class="self-center text-2xl font-semibold whitespace-nowrap">DOST <span v-if="region">{{ region.code }}</span> Customer Relation Management System</span>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" data-aos="fade-down" data-aos-duration="500" data-aos-delay="500" style="backdrop-filter: blur(2px);">
+        <div class="container-fluid">
+            <a href="/" class="navbar-brand d-flex align-items-center">
+                <img src="../../../public/images/dost-logo.jpg" class="me-3" alt="DOST Logo" style="height: 2rem;">
+                <span class="fw-bold fs-4">DOST <span v-if="region">{{ region.code }}</span> Customer Relation Management System</span>
             </a>
-
-            </div>
-
-        
+        </div>
     </nav>  
-    <v-container fill-height>
-        <v-row class="mx-15" style="margin-top: 100px;" >
-            <v-col>
-                <div class="w-full border bg-blue">
-                <v-card-title class="text-center text-uppercase">{{ unit.unit_name  }}</v-card-title>
-             </div>
-            </v-col>
-        </v-row>
-        <v-row   class=" mx-15 mt-5" align="center" justify="center">        
-                <v-col v-for="sub_unit in sub_units" cols="12"sm="4" md="4" lg="4">
-                    <Link @click="goNext(region_id, service_id, unit_id, sub_unit.id)">
-                        <div style="height:150px"  class="card max-w-sm p-6 bg-white border shadow border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                                <v-icon color="blue" size="x-large" class="p-3" >mdi-check-circle</v-icon>
-                                <h5 class="mb-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                                    {{ sub_unit.sub_unit_name }}
-                                </h5>      
-                        </div>     
+    <div class="min-vh-100 d-flex flex-column subunits-page">
+        <div class="mx-3" style="margin-top: 100px;">
+            <div class="subunits-hero" data-aos="fade-up">
+                <div class="subunits-hero-content">
+                    <div>
+                        <p class="subunits-kicker mb-1">Available</p>
+                        <h2 class="subunits-title mb-1">{{ unit?.unit_name || 'Sub Units' }}</h2>
+                        <p class="subunits-text mb-0">Select a sub unit to continue</p>
+                    </div>
+                    <div class="subunits-stats">
+                        <div class="stat-pill">
+                            <span class="stat-label">Sub Units</span>
+                            <span class="stat-value">{{ sub_units?.length || 0 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid mt-4">
+            <div class="row justify-content-center">
+                <div v-for="(sub_unit, index) in sub_units" :key="sub_unit.id" class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" :data-aos="'zoom-in'" :data-aos-delay="index * 10">
+                    <Link :href="sub_unit.id == 3 ? '/services/csf/sub-unit/types?region_id=' + region_id + '&service_id=' + service_id + '&unit_id=' + unit_id + '&sub_unit_id=' + sub_unit.id : '/services/csf/sub-unit/pstos?region_id=' + region_id + '&service_id=' + service_id + '&unit_id=' + unit_id + '&sub_unit_id=' + sub_unit.id" class="text-decoration-none">
+                        <div class="subunit-card">
+                            <div class="subunit-card-body">
+                                <div class="subunit-icon-wrapper">
+                                    <i class="ri-check-line subunit-icon"></i>
+                                </div>
+                                <h6 class="subunit-card-title">{{ sub_unit.sub_unit_name }}</h6>
+                            </div>
+                            <div class="subunit-card-footer">
+                                <span class="explore-text">Click to explore</span>
+                                <i class="ri-arrow-right-line"></i>
+                            </div>
+                        </div>
                     </Link>
-                </v-col>
-
-        </v-row>
-        <v-row>
-            <Link @click="goBack()">
-            <v-btn prepend-icon="mdi-arrow-left" style="margin-left: 120px">Back</v-btn>
-            </Link>
-        </v-row>
-        
-     
-  
-</v-container>
-
+                </div>
+            </div>
+        </div>
+        <div class="mt-auto text-center mb-4">
+            <button @click="goBack()" class="btn btn-back">
+                <i class="ri-arrow-left-line me-2"></i> Back
+            </button>
+        </div>
+    </div>
 </template>
+
 <style scoped>
-.sub-unit-card {
-  position: relative;
-  width: 100%;
-  height: 220px;
-  background-color: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transition: all 0.3s ease;
-  overflow: hidden;
+.subunits-page {
+    background: linear-gradient(135deg, #f6f9fc 0%, #e8f0f8 100%);
+    min-height: 100vh;
 }
 
-.sub-unit-card:hover {
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-  transform: translateY(-5px);
+.subunits-hero {
+    border-radius: 16px;
+    border: 1px solid #d9e7f7;
+    background: linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(21, 59, 112, 0.08);
 }
 
-.card-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  z-index: 1;
+.subunits-hero-content {
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
 }
 
-.sub-unit-icon {
-  font-size: 3rem;
-  color: #667eea;
-  padding: 1rem;
-  position: relative;
-  z-index: 2;
+.subunits-kicker {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #3f6c9e;
+    font-weight: 700;
 }
 
-.sub-unit-name {
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
-  position: relative;
-  z-index: 2;
+.subunits-title {
+    color: #153b70;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
 }
 
-.card-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+.subunits-text {
+    color: #38506b;
+    font-size: 1rem;
 }
 
-.back-button {
-  background-color: white;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  border-radius: 50px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
+.subunits-stats {
+    display: flex;
+    gap: 12px;
 }
 
-.back-button:hover {
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
+.stat-pill {
+    background: #ffffff;
+    border: 1px solid #d3e4f8;
+    border-radius: 12px;
+    padding: 10px 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
+}
+
+.stat-label {
+    color: #5f7893;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: #0d2f54;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.subunit-card {
+    width: 100%;
+    min-height: 180px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.subunit-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(21, 59, 112, 0.15);
+}
+
+.subunit-card:hover .subunit-card-body {
+    background: linear-gradient(135deg, rgba(21, 59, 112, 0.03) 0%, rgba(34, 102, 168, 0.06) 100%);
+}
+
+.subunit-card:hover .subunit-card-footer {
+    background: linear-gradient(90deg, #153b70, #2266a8);
+}
+
+.subunit-card:hover .subunit-card-footer .explore-text,
+.subunit-card:hover .subunit-card-footer i {
+    color: #ffffff;
+}
+
+.subunit-card:hover .subunit-icon {
+    color: #153b70;
+    transform: scale(1.1);
+}
+
+.subunit-card-body {
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #ffffff;
+    transition: all 0.3s ease;
+    min-height: 130px;
+}
+
+.subunit-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8f2ff 0%, #d0e4f8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.subunit-icon {
+    font-size: 1.5rem;
+    color: #2266a8;
+    transition: all 0.3s ease;
+}
+
+.subunit-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #153b70;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.subunit-card-footer {
+    padding: 12px 16px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border-top: 1px solid #e2e8f0;
+}
+
+.explore-text {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.subunit-card-footer i {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-back {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    padding: 12px 32px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    color: #334155;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+@media (max-width: 992px) {
+    .subunits-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .subunits-stats {
+        width: 100%;
+        justify-content: flex-start;
+    }
 }
 </style>
-
 
