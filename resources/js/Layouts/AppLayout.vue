@@ -13,7 +13,7 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
-const sidebarCollapsed = ref(false);
+const sidebarHovered = ref(false);
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -27,6 +27,10 @@ const logout = () => {
     router.post('/logout');
 };
 
+const onSidebarHover = (isHovering) => {
+    sidebarHovered.value = isHovering;
+};
+
 </script>
 
 <template>
@@ -36,11 +40,35 @@ const logout = () => {
         <Banner />
 
         <div class="d-flex" style="min-height: 100vh;">
-            <!-- Sidebar (Full Height from Top) -->
-            <nav id="sidebar" :class="{'sidebar-collapsed': sidebarCollapsed}" style="position: fixed; top: 0; left: 0; height: 100vh; width: 250px; z-index: 1;">
+            <!-- Sidebar (Full Height from Top) - Expands on hover -->
+            <nav
+                id="sidebar"
+                :class="{'sidebar-expanded': sidebarHovered}"
+                @mouseenter="onSidebarHover(true)"
+                @mouseleave="onSidebarHover(false)"
+                :style="{
+                    position: 'fixed',
+                    top: '0',
+                    left: '0',
+                    height: '100vh',
+                    width: sidebarHovered ? '250px' : '70px',
+                    zIndex: 1,
+                    transition: 'width 0.3s ease'
+                }"
+            >
 
             <!-- Top Navigation Bar (Remaining Width After Sidebar) -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm position-fixed" style="top: 0; left: 250px; width: calc(100% - 250px); height: 60px; z-index: 100;">
+            <nav
+                class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm position-fixed"
+                :style="{
+                    top: '0',
+                    left: sidebarHovered ? '250px' : '70px',
+                    width: sidebarHovered ? 'calc(100% - 250px)' : 'calc(100% - 70px)',
+                    height: '60px',
+                    zIndex: 100,
+                    transition: 'left 0.3s ease, width 0.3s ease'
+                }"
+            >
                 <div class="container-fluid d-flex align-items-center">
                   
                  
@@ -77,29 +105,26 @@ const logout = () => {
                 <div class="sidebar-header position-relative">
                     <Link href="/dashboard" class="navbar-brand">
                         <ApplicationMark class="application-mark" />
-                        <span v-if="!sidebarCollapsed" class="brand-text">CRMS</span>
+                        <span v-if="sidebarHovered" class="brand-text">CRMS</span>
                     </Link>
-                    <button class="toggle-btn position-absolute top-0 end-0 m-2" @click="sidebarCollapsed = !sidebarCollapsed">
-                        <Icon :name="sidebarCollapsed ? 'chevron-right' : 'chevron-left'" class="icon" />
-                    </button>
                 </div>
                 <ul class="components">
                     <li>
-                        <NavLink href="/dashboard" active="/dashboard" :class="{'active': $page.url === '/dashboard'}">
+                        <NavLink href="/dashboard" active="/dashboard" :class="{'active': $page.url === '/dashboard'}" data-title="Dashboard">
                             <Icon name="dashboard" class="icon" />
-                            <span v-if="!sidebarCollapsed" class="nav-text">Dashboard</span>
+                            <span v-if="sidebarHovered" class="nav-text">Dashboard</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink href="/service_units" active="/service_units" :class="{'active': $page.url.startsWith('/service_units')}">
+                        <NavLink href="/service_units" active="/service_units" :class="{'active': $page.url.startsWith('/service_units')}" data-title="Service Units">
                             <Icon name="office" class="icon" />
-                            <span v-if="!sidebarCollapsed" class="nav-text">Service Units</span>
+                            <span v-if="sidebarHovered" class="nav-text">Service Units</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink href="/libraries" active="/libraries" :class="{'active': $page.url.startsWith('/libraries')}">
+                        <NavLink href="/libraries" active="/libraries" :class="{'active': $page.url.startsWith('/libraries')}" data-title="Libraries">
                             <Icon name="users" class="icon" />
-                            <span v-if="!sidebarCollapsed" class="nav-text">Libraries</span>
+                            <span v-if="sidebarHovered" class="nav-text">Libraries</span>
                         </NavLink>
                     </li>
                 </ul>
@@ -107,7 +132,7 @@ const logout = () => {
             </nav>
 
             <!-- Main Content Area -->
-            <div class="flex-grow-1 bg-light" :style="{ marginLeft: sidebarCollapsed ? '70px' : '250px', marginTop: '60px', transition: 'margin-left 0.3s ease', minHeight: 'calc(100vh - 60px)', position: 'relative' }">
+            <div class="flex-grow-1 bg-light" :style="{ marginLeft: sidebarHovered ? '250px' : '70px', marginTop: '60px', transition: 'margin-left 0.3s ease', minHeight: 'calc(100vh - 60px)', position: 'relative' }">
 
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="bg-white shadow">
@@ -234,7 +259,6 @@ const logout = () => {
     border-color: #e2e8f0;
 }
 </style>
-
 
 
 

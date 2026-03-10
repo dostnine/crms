@@ -1,13 +1,13 @@
 // Sidebar Styles
 #sidebar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  min-width: 250px;
-  max-width: 250px;
+  min-width: 70px;
+  max-width: 70px;
   min-height: 100vh;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15), 0 0 40px rgba(102, 126, 234, 0.1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   &::before {
     content: '';
@@ -20,56 +20,29 @@
     pointer-events: none;
   }
 
-  &.sidebar-collapsed {
-    min-width: 70px;
-    max-width: 70px;
-  }
-
+  // Default collapsed state
   .sidebar-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    display: flex;
+    justify-content: center;
 
     .navbar-brand {
       display: flex;
       align-items: center;
+      justify-content: center;
       color: white;
       text-decoration: none;
 
       .application-mark {
-        margin-right: 0.5rem;
         height: 2.25rem;
         width: auto;
       }
 
       .brand-text {
+        display: none;
         font-weight: bold;
         font-size: 1.25rem;
-      }
-    }
-
-    .toggle-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 8px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(10px);
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.4);
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      .icon {
-        font-size: 1.25rem;
-        transition: transform 0.3s ease;
-      }
-
-      &:hover .icon {
-        transform: rotate(180deg);
       }
     }
   }
@@ -83,13 +56,14 @@
       a {
         display: flex;
         align-items: center;
-        padding: 1rem;
+        justify-content: center;
+        padding: 1rem 0.5rem;
         color: white;
         text-decoration: none;
         border-left: 3px solid transparent;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s ease;
         position: relative;
-        overflow: hidden;
+        overflow: visible;
 
         &::before {
           content: '';
@@ -120,9 +94,10 @@
         }
 
         .icon {
-          margin-right: 1rem;
           font-size: 1.25rem;
           transition: transform 0.3s ease;
+          flex-shrink: 0;
+          margin-right: 0;
         }
 
         &:hover .icon {
@@ -130,8 +105,86 @@
         }
 
         .nav-text {
+          display: none;
           font-weight: 500;
           transition: opacity 0.3s ease;
+          white-space: nowrap;
+        }
+
+        // Tooltip on hover when collapsed
+        &:hover::after {
+          content: attr(data-title);
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.85);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          white-space: nowrap;
+          margin-left: 10px;
+          z-index: 1000;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          animation: tooltip-fade 0.2s ease;
+        }
+      }
+    }
+  }
+
+  @keyframes tooltip-fade {
+    from {
+      opacity: 0;
+      transform: translateY(-50%) translateX(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+  }
+
+  // Expanded state (on hover)
+  &.sidebar-expanded {
+    min-width: 250px;
+    max-width: 250px;
+    overflow: hidden;
+
+    .sidebar-header {
+      padding: 1rem;
+      justify-content: flex-start;
+
+      .navbar-brand {
+        justify-content: flex-start;
+
+        .application-mark {
+          margin-right: 0.5rem;
+        }
+
+        .brand-text {
+          display: inline-block;
+        }
+      }
+    }
+
+    .components {
+      li {
+        a {
+          justify-content: flex-start;
+          padding: 1rem;
+
+          .icon {
+            margin-right: 1rem;
+          }
+
+          .nav-text {
+            display: inline-block;
+          }
+
+          // Hide tooltip when expanded
+          &:hover::after {
+            display: none;
+          }
         }
       }
     }
@@ -231,3 +284,4 @@
     }
   }
 }
+

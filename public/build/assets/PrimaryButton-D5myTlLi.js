@@ -1,0 +1,1 @@
+import{_ as r}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{o,e as s,r as a}from"./app-Zcv0E_xx.js";const n=["type"],p={__name:"PrimaryButton",props:{type:{type:String,default:"submit"}},setup(t){return(e,c)=>(o(),s("button",{type:t.type,class:"primary-button"},[a(e.$slots,"default",{},void 0,!0)],8,n))}},m=r(p,[["__scopeId","data-v-d35398e4"]]);export{m as P};

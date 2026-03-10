@@ -9,12 +9,13 @@ use App\Models\Region;
 use App\Models\Services;
 use App\Models\Unit;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $totalSurveys = CSFForm::count();
         $activeUsers = User::count();
@@ -31,11 +32,25 @@ class DashboardController extends Controller
             ->distinct('f.customer_id')
             ->count('f.customer_id');
 
-        $totalRatings = CustomerAttributeRating::count();
-        $verySatisfied = CustomerAttributeRating::where('rate_score', 5)->count();
-        $satisfied = CustomerAttributeRating::where('rate_score', 4)->count();
-        $neutral = CustomerAttributeRating::where('rate_score', 3)->count();
-        $dissatisfied = CustomerAttributeRating::whereIn('rate_score', [1, 2])->count();
+        $ratingFilter = $request->query('rating_filter', 'all');
+        if (!in_array($ratingFilter, ['all', 'positive', 'neutral', 'negative'], true)) {
+            $ratingFilter = 'all';
+        }
+
+        $ratingsQuery = CustomerAttributeRating::query();
+        if ($ratingFilter === 'positive') {
+            $ratingsQuery->whereIn('rate_score', [4, 5]);
+        } elseif ($ratingFilter === 'neutral') {
+            $ratingsQuery->where('rate_score', 3);
+        } elseif ($ratingFilter === 'negative') {
+            $ratingsQuery->whereIn('rate_score', [1, 2]);
+        }
+
+        $totalRatings = (clone $ratingsQuery)->count();
+        $verySatisfied = (clone $ratingsQuery)->where('rate_score', 5)->count();
+        $satisfied = (clone $ratingsQuery)->where('rate_score', 4)->count();
+        $neutral = (clone $ratingsQuery)->where('rate_score', 3)->count();
+        $dissatisfied = (clone $ratingsQuery)->whereIn('rate_score', [1, 2])->count();
 
         $distribution = [
             'very_satisfied' => [
@@ -72,7 +87,9 @@ class DashboardController extends Controller
                 'services' => Services::count(),
             ],
             'distribution' => $distribution,
+            'filters' => [
+                'rating_filter' => $ratingFilter,
+            ],
         ]);
     }
 }
-
