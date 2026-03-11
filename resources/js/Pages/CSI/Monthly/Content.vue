@@ -53,6 +53,11 @@
                             <td class="text-center" v-if="data.cc_data?.cc1_data?.cc1_ans4 > 0">{{data.cc_data.cc1_data.cc1_ans4}}</td>
                         </tr>
                         <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ data.cc_data?.cc1_data?.cc1_total || 0 }}</strong></td>
+                        </tr>
+                        <tr class="bg-blue-200">
                             <th>CC2</th>
                             <th colspan="2" class="text-left" >If aware of CC (answered 1-3 in CC1), would say that the CC of this was...?</th>
                         </tr>
@@ -82,6 +87,11 @@
                             <td class="text-center" v-if="data?.cc_data?.cc2_data.cc2_ans5 > 0">{{data.cc_data.cc2_data.cc2_ans5}}</td>
                         </tr>
                         <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ data.cc_data?.cc2_data?.cc2_total || 0 }}</strong></td>
+                        </tr>
+                        <tr class="bg-blue-200">
                             <th>CC3</th>
                             <th colspan="2" class="text-left">If aware of CC (answered 1-3 in CC1), how much did the CC help you in your transaction?</th>
                         </tr>
@@ -104,6 +114,11 @@
                             <td>4</td>
                             <td class="text-left">N/A</td>
                             <td class="text-center"><span v-if="data.cc_data?.cc3_data?.cc3_ans4">{{data.cc_data.cc3_data.cc3_ans4}}</span></td>
+                        </tr>
+                        <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ data.cc_data?.cc3_data?.cc3_total || 0 }}</strong></td>
                         </tr>
                     </tbody>
                 </table>

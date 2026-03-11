@@ -81,7 +81,7 @@
         return `${props.form?.selected_month || ''} ${props.form?.selected_year || ''}`.trim();
     });
 
-    const piePalette = ['#1f77b4', '#2ca02c', '#ffbf00', '#ff7f0e', '#d62728', '#8c8c8c'];
+    const piePalette = ['#1f77b4', '#2ca02c', '#ffbf00', '#ff7f0e', '#d62728'];
 
     const unitPieCharts = computed(() => {
         if (!props.data?.services_units?.data || !props.data?.all_units_data?.units_data) return [];
@@ -99,9 +99,8 @@
                     Number(unitData.neither_count || 0),
                     Number(unitData.disagree_count || 0),
                     Number(unitData.strongly_disagree_count || 0),
-                    Number(unitData.na_count || 0),
                 ];
-                const labels = ['Strongly Agree', 'Agree', 'Neither', 'Disagree', 'Strongly Disagree', 'N/A'];
+                const labels = ['Strongly Agree', 'Agree', 'Neither', 'Disagree', 'Strongly Disagree'];
                 const total = counts.reduce((a, b) => a + b, 0);
                 if (total <= 0) continue;
 
@@ -132,6 +131,50 @@
     });
 
     const showPieCharts = ref(true);
+
+    const getServiceTotals = (serviceId) => {
+        const unitsData = props.data?.all_units_data?.units_data?.[serviceId] || {};
+        const totals = {
+            respo: 0,
+            strongly: 0,
+            agree: 0,
+            neither: 0,
+            disagree: 0,
+            stronglyDisagree: 0,
+            na: 0,
+        };
+
+        Object.values(unitsData).forEach((unit) => {
+            if (!unit) return;
+            totals.respo += Number(unit.total_respo || 0);
+            totals.strongly += Number(unit.strongly_agree_count || 0);
+            totals.agree += Number(unit.agree_count || 0);
+            totals.neither += Number(unit.neither_count || 0);
+            totals.disagree += Number(unit.disagree_count || 0);
+            totals.stronglyDisagree += Number(unit.strongly_disagree_count || 0);
+            totals.na += Number(unit.na_count || 0);
+        });
+
+        const totalRatings = Math.max(totals.respo - totals.na, 0);
+
+        return {
+            ...totals,
+            pctStrongly: totalRatings > 0 ? (totals.strongly / totalRatings) * 100 : 0,
+            pctAgree: totalRatings > 0 ? (totals.agree / totalRatings) * 100 : 0,
+            pctNeither: totalRatings > 0 ? (totals.neither / totalRatings) * 100 : 0,
+            pctDisagree: totalRatings > 0 ? (totals.disagree / totalRatings) * 100 : 0,
+            pctStronglyDisagree: totalRatings > 0 ? (totals.stronglyDisagree / totalRatings) * 100 : 0,
+            pctNa: 0,
+        };
+    };
+
+    const shouldShowServiceUnit = (serviceId, unit) => {
+        const totalRespo = props.data?.all_units_data?.units_data?.[serviceId]?.[unit.id]?.total_respo || 0;
+        if (unit.unit_name === 'Research and Development Support' && totalRespo <= 0) {
+            return false;
+        }
+        return totalRespo > 0 || (unit.sub_units && unit.sub_units.length > 0);
+    };
 
 </script>
 <template>
@@ -175,6 +218,12 @@
                 <td>{{ props.data.cc_data.cc1_data?.cc1_ans4 || 0 }}</td>
                 <td>{{ props.data.cc_data.cc1_data?.cc1_ans4_pct || 0 }}%</td>
             </tr>
+            <tr class="bg-blue-200">
+                <td></td>
+                <td class="text-left"><strong>Total</strong></td>
+                <td><strong>{{ props.data.cc_data.cc1_data?.cc1_total || 0 }}</strong></td>
+                <td><strong>{{ (props.data.cc_data.cc1_data?.cc1_total || 0) > 0 ? '100%' : '0%' }}</strong></td>
+            </tr>
             <tr class="bg-blue-200" >
                 <th >CC2</th>
                 <th colspan="3" class="text-left">If aware of CC (answered 1-3 in CC1), would say that the CC of this was...?</th>
@@ -210,6 +259,12 @@
                 <td>{{ props.data.cc_data.cc2_data?.cc2_ans5_pct || 0 }}%</td>
             </tr>
             <tr class="bg-blue-200">
+                <td></td>
+                <td class="text-left"><strong>Total</strong></td>
+                <td><strong>{{ props.data.cc_data.cc2_data?.cc2_total || 0 }}</strong></td>
+                <td><strong>{{ (props.data.cc_data.cc2_data?.cc2_total || 0) > 0 ? '100%' : '0%' }}</strong></td>
+            </tr>
+            <tr class="bg-blue-200">
                 <th >CC3</th>
                 <th colspan="3" class="text-left">If aware of CC (answered 1-3 in CC1), how much did the CC help you in your transaction?</th>
             </tr>
@@ -237,6 +292,12 @@
                 <td>{{ props.data.cc_data.cc3_data?.cc3_ans4 || 0 }}</td>
                 <td>{{ props.data.cc_data.cc3_data?.cc3_ans4_pct || 0 }}%</td>
             </tr>
+            <tr class="bg-blue-200">
+                <td></td>
+                <td class="text-left"><strong>Total</strong></td>
+                <td><strong>{{ props.data.cc_data.cc3_data?.cc3_total || 0 }}</strong></td>
+                <td><strong>{{ (props.data.cc_data.cc3_data?.cc3_total || 0) > 0 ? '100%' : '0%' }}</strong></td>
+            </tr>
         </table>
     </v-card>
 
@@ -256,7 +317,6 @@
                         <th>% of Neither Agree Nor Disagree</th>
                         <th>% of Disagree</th>
                         <th>% of Strongly Disagree</th>
-                        <th>% of N/A</th>
 
                     </tr>
                 </thead>
@@ -268,7 +328,7 @@
                         </tr>
                         <template v-for="(unit, unitIndex) in service.units" :key="unitIndex">
                             <!-- Show unit if it has respondents OR has sub-units -->
-                            <template v-if="props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo > 0 || (unit.sub_units && unit.sub_units.length > 0)">
+                            <template v-if="shouldShowServiceUnit(service.id, unit)">
                             <tr>
                                 <td class="pl-5">{{ unit.unit_name }}</td>
                                 <td class="text-center">
@@ -288,9 +348,6 @@
                                 </td>
                                 <td class="text-center">
                                     {{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.pct_strongly_disagree > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.pct_strongly_disagree + '%' : '-' }}
-                                </td>
-                                <td class="text-center">
-                                    {{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.pct_na > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.pct_na + '%' : '-' }}
                                 </td>
                             </tr>
                             <!-- Display unit-level PSTOs under each unit (Region IX filtered) - shown as bullet/nested -->
@@ -314,9 +371,6 @@
                                     </td>
                                     <td class="text-center">
                                         {{ unitPsto.pct_strongly_disagree > 0 ? unitPsto.pct_strongly_disagree + '%' : '-' }}
-                                    </td>
-                                    <td class="text-center">
-                                        {{ unitPsto.pct_na > 0 ? unitPsto.pct_na + '%' : '-' }}
                                     </td>
                                 </tr>
                             </template>
@@ -345,9 +399,6 @@
                                     <td class="text-center">
                                         {{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pct_strongly_disagree > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pct_strongly_disagree + '%' : '-' }}
                                     </td>
-                                    <td class="text-center">
-                                        {{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pct_na > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pct_na + '%' : '-' }}
-                                    </td>
                                 </tr>
                                 </template>
                                 <!-- Display sub-unit types under each sub-unit -->
@@ -371,9 +422,6 @@
                                         </td>
                                         <td class="text-center">
                                             {{ subUnitType.pct_strongly_disagree > 0 ? subUnitType.pct_strongly_disagree + '%' : '-' }}
-                                        </td>
-                                        <td class="text-center">
-                                            {{ subUnitType.pct_na > 0 ? subUnitType.pct_na + '%' : '-' }}
                                         </td>
                                     </tr>
                                 </template>
@@ -399,15 +447,23 @@
                                         <td class="text-center">
                                             {{ (props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pstos_data?.[subUnitPsto.id]?.pct_strongly_disagree || 0) > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pstos_data?.[subUnitPsto.id]?.pct_strongly_disagree + '%' : '-' }}
                                         </td>
-                                        <td class="text-center">
-                                            {{ (props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pstos_data?.[subUnitPsto.id]?.pct_na || 0) > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.pstos_data?.[subUnitPsto.id]?.pct_na + '%' : '-' }}
-                                        </td>
                                     </tr>
                                 </template>
                                 </template>
                             </template>
                             </template>
                         </template>
+                        <tr class="bg-yellow-50">
+                            <td class="pl-5">
+                                <strong>{{ ['OFFICE OF THE REGIONAL DIRECTOR', 'FINANCE AND ADMINISTRATIVE SUPPORT SERVICES', 'TECHNICAL OPERATION SERVICES'].includes(service.services_name) ? '' : service.services_name + ' TOTAL' }}</strong>
+                            </td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).respo || '-' }}</strong></td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).pctStrongly > 0 ? getServiceTotals(service.id).pctStrongly.toFixed(2) + '%' : '-' }}</strong></td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).pctAgree > 0 ? getServiceTotals(service.id).pctAgree.toFixed(2) + '%' : '-' }}</strong></td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).pctNeither > 0 ? getServiceTotals(service.id).pctNeither.toFixed(2) + '%' : '-' }}</strong></td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).pctDisagree > 0 ? getServiceTotals(service.id).pctDisagree.toFixed(2) + '%' : '-' }}</strong></td>
+                            <td class="text-center"><strong>{{ getServiceTotals(service.id).pctStronglyDisagree > 0 ? getServiceTotals(service.id).pctStronglyDisagree.toFixed(2) + '%' : '-' }}</strong></td>
+                        </tr>
                         </template>
                     </template>
                 
@@ -419,7 +475,6 @@
                         <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_neither > 0 ? props.data.all_units_data?.grand_pct_neither + '%' : '-' }}</strong></td>
                         <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_disagree > 0 ? props.data.all_units_data?.grand_pct_disagree + '%' : '-' }}</strong></td>
                         <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_strongly_disagree > 0 ? props.data.all_units_data?.grand_pct_strongly_disagree + '%' : '-' }}</strong></td>
-                        <td class="text-center"><strong>{{ props.data.all_units_data?.grand_pct_na > 0 ? props.data.all_units_data?.grand_pct_na + '%' : '-' }}</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -586,7 +641,7 @@
                                         {{ item.label }}
                                     </td>
                                     <td class="text-center">{{ item.count }}</td>
-                                    <td class="text-center">{{ item.pct }}%</td>
+                                    <td class="text-center">{{ Number(item.pct) > 0 ? item.pct + '%' : '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

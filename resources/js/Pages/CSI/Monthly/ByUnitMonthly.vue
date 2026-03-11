@@ -81,6 +81,11 @@
                             <td style="text-align: left">I do not know what a CC is and I did not see one in this office. (Answer 'N/A' on CC2 and CC3)</td>
                             <td><span v-if="data.cc_data.cc1_data.cc1_ans4 > 0">{{data.cc_data.cc1_data.cc1_ans4}}</span></td>
                         </tr>
+                        <tr class="bg-blue-200">
+                            <td></td>
+                            <td style="text-align: left"><strong>Total</strong></td>
+                            <td><strong>{{ data.cc_data?.cc1_data?.cc1_total || 0 }}</strong></td>
+                        </tr>
                         <tr class="bg-blue-200" >
                             <th >CC2</th>
                             <th colspan="2" style="text-align: left">If aware of CC (answered 1-3 in CC1), would say that the CC of this was...?</th>
@@ -111,6 +116,11 @@
                             <td><span v-if="data.cc_data.cc2_data.cc2_ans5 > 0">{{data.cc_data.cc2_data.cc2_ans5}}</span></td>
                         </tr>
                         <tr class="bg-blue-200">
+                            <td></td>
+                            <td style="text-align: left"><strong>Total</strong></td>
+                            <td><strong>{{ data.cc_data?.cc2_data?.cc2_total || 0 }}</strong></td>
+                        </tr>
+                        <tr class="bg-blue-200">
                             <th >CC3</th>
                             <th colspan="2" style="text-align: left">If aware of CC (answered 1-3 in CC1), how much did the CC help you in your transaction?</th>
                         </tr>
@@ -133,6 +143,11 @@
                             <td>4</td>
                             <td style="text-align: left">N/A</td>
                             <td><span v-if="data.cc_data.cc3_data.cc3_ans4 > 0">{{data.cc_data.cc3_data.cc3_ans4}}</span></td>
+                        </tr>
+                        <tr class="bg-blue-200">
+                            <td></td>
+                            <td style="text-align: left"><strong>Total</strong></td>
+                            <td><strong>{{ data.cc_data?.cc3_data?.cc3_total || 0 }}</strong></td>
                         </tr>
                     </table>
                 </div>

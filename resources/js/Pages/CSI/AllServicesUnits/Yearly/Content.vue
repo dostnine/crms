@@ -8,6 +8,26 @@
         },
     });
 
+    const getServiceOverviewTotals = (serviceId) => {
+        const unitsData = props.data?.all_units_data?.units_data?.[serviceId] || {};
+        let totalRespondents = 0;
+        let totalVssRespondents = 0;
+
+        Object.values(unitsData).forEach((unit) => {
+            if (!unit) return;
+            totalRespondents += Number(unit.total_respo || 0);
+            totalVssRespondents += Number(unit.total_vss_respo || 0);
+        });
+
+        const percentage = totalRespondents > 0 ? (totalVssRespondents / totalRespondents) * 100 : 0;
+
+        return {
+            totalRespondents,
+            totalVssRespondents,
+            percentage,
+        };
+    };
+
 </script>
 <template>
     <div class="card mb-3 shadow-lg mx-3" v-if="props.data && props.data.cc_data">
@@ -57,6 +77,11 @@
                             <td class="text-center" v-else>0</td>
                         </tr>
                         <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ props.data.cc_data?.cc1_data?.cc1_total || 0 }}</strong></td>
+                        </tr>
+                        <tr class="bg-blue-200">
                             <th>CC2</th>
                             <th colspan="2" class="text-left">If aware of CC (answered 1-3 in CC1), would say that the CC of this was...?</th>
                         </tr>
@@ -91,6 +116,11 @@
                             <td class="text-center" v-else>0</td>
                         </tr>
                         <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ props.data.cc_data?.cc2_data?.cc2_total || 0 }}</strong></td>
+                        </tr>
+                        <tr class="bg-blue-200">
                             <th>CC3</th>
                             <th colspan="2" class="text-left">If aware of CC (answered 1-3 in CC1), how much did the CC help you in your transaction?</th>
                         </tr>
@@ -117,6 +147,11 @@
                             <td class="text-left">N/A</td>
                             <td class="text-center" v-if="props.data.cc_data?.cc3_data?.cc3_ans4 > 0">{{props.data.cc_data.cc3_data.cc3_ans4}}</td>
                             <td class="text-center" v-else>0</td>
+                        </tr>
+                        <tr class="bg-blue-200">
+                            <td></td>
+                            <td class="text-left"><strong>Total</strong></td>
+                            <td class="text-center"><strong>{{ props.data.cc_data?.cc3_data?.cc3_total || 0 }}</strong></td>
                         </tr>
                     </tbody>
                 </table>
@@ -187,6 +222,18 @@
                                         <td class="text-center">0</td>
                                     </tr>
                                 </template>
+                                <tr class="bg-yellow-50">
+                                    <td class="pl-4">
+                                        <strong>{{ ['OFFICE OF THE REGIONAL DIRECTOR', 'FINANCE AND ADMINISTRATIVE SUPPORT SERVICES', 'TECHNICAL OPERATION SERVICES'].includes(service.services_name) ? '' : service.services_name + ' TOTAL' }}</strong>
+                                    </td>
+                                    <td class="text-center"><strong>{{ getServiceOverviewTotals(service.id).totalRespondents || 0 }}</strong></td>
+                                    <td class="text-center"><strong>{{ getServiceOverviewTotals(service.id).totalVssRespondents || 0 }}</strong></td>
+                                    <td class="text-center"><strong>{{ getServiceOverviewTotals(service.id).percentage > 0 ? getServiceOverviewTotals(service.id).percentage.toFixed(2) + '%' : '0%' }}</strong></td>
+                                    <td class="text-center"><strong>{{ getServiceOverviewTotals(service.id).percentage > 0 ? getServiceOverviewTotals(service.id).percentage.toFixed(2) + '%' : '0%' }}</strong></td>
+                                    <td class="text-center"><strong>{{ props.data?.csi_total || 0 }}</strong></td>
+                                    <td class="text-center"><strong>0</strong></td>
+                                    <td class="text-center"><strong>0</strong></td>
+                                </tr>
                             </template>
                         </template>
                         <tr v-else>

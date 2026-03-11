@@ -96,6 +96,11 @@
                             </span>
                         </td>
                     </tr>
+                    <tr class="bg-blue-200">
+                        <td></td>
+                        <td style="text-align: left"><strong>Total</strong></td>
+                        <td><strong>{{ data.cc_data?.cc1_data?.cc1_total || 0 }}</strong></td>
+                    </tr>
                     <tr class="bg-blue-200" >
                         <th >CC2</th>
                         <th colspan="2" style="text-align: left">If aware of CC (answered 1-3 in CC1), would say that the CC of this was...?</th>
@@ -146,6 +151,11 @@
                         </td>
                     </tr>
                     <tr class="bg-blue-200">
+                        <td></td>
+                        <td style="text-align: left"><strong>Total</strong></td>
+                        <td><strong>{{ data.cc_data?.cc2_data?.cc2_total || 0 }}</strong></td>
+                    </tr>
+                    <tr class="bg-blue-200">
                         <th >CC3</th>
                         <th colspan="2" style="text-align: left">If aware of CC (answered 1-3 in CC1), how much did the CC help you in your transaction?</th>
                     </tr>
@@ -184,6 +194,11 @@
                                 {{data.cc_data.cc3_data.cc3_ans4}}
                             </span>
                         </td>
+                    </tr>
+                    <tr class="bg-blue-200">
+                        <td></td>
+                        <td style="text-align: left"><strong>Total</strong></td>
+                        <td><strong>{{ data.cc_data?.cc3_data?.cc3_total || 0 }}</strong></td>
                     </tr>
                 </table>
         </div>

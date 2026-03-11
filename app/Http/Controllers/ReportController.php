@@ -3072,8 +3072,6 @@ class ReportController extends Controller
 
         $customers = Customer::whereIn('id', $ids)->select('sex', 'age_group', 'client_type')->get();
 
-        $externalTypes = ['General Public', 'Government Employees', 'Business/Organization'];
-
         $normalizeSex = function ($sex) {
             $value = strtolower(trim((string) $sex));
             if ($value === 'male') {
@@ -3150,7 +3148,7 @@ class ReportController extends Controller
             if ($customer->client_type === 'Internal Employees') {
                 $group = 'internal';
                 $internalTotal++;
-            } elseif (in_array($customer->client_type, $externalTypes, true)) {
+            } else {
                 $group = 'external';
                 $externalTotal++;
             }
@@ -3203,6 +3201,178 @@ class ReportController extends Controller
         ];
     }
 
+    private function getRespondentProfileSummaryFromUnitCustomers($unitCustomers)
+    {
+        $unitCustomers = collect($unitCustomers);
+        if ($unitCustomers->isEmpty()) {
+            return [
+                'total' => 0,
+                'male' => 0,
+                'female' => 0,
+                'prefer_not_to_say' => 0,
+                'internal' => 0,
+                'external' => 0,
+                'totals' => [
+                    'external' => 0,
+                    'internal' => 0,
+                    'overall' => 0,
+                ],
+                'sex_table' => [],
+                'age_table' => [],
+            ];
+        }
+
+        $uniqueCustomerIds = $unitCustomers->pluck('customer_id')->unique()->values();
+        $customersById = Customer::whereIn('id', $uniqueCustomerIds)
+            ->select('id', 'sex', 'age_group', 'client_type')
+            ->get()
+            ->keyBy('id');
+
+        $normalizeSex = function ($sex) {
+            $value = strtolower(trim((string) $sex));
+            if ($value === 'male') {
+                return 'Male';
+            }
+            if ($value === 'female') {
+                return 'Female';
+            }
+            return 'Did not specify';
+        };
+
+        $normalizeAge = function ($ageGroup) {
+            $raw = strtolower(trim((string) $ageGroup));
+            if ($raw === '' || str_contains($raw, 'prefer') || str_contains($raw, 'did not')) {
+                return 'Did not specify';
+            }
+
+            if ($raw === '19 or lower') {
+                return '19 or lower';
+            }
+            if ($raw === '20-34') {
+                return '20-34';
+            }
+            if ($raw === '35-49') {
+                return '35-49';
+            }
+            if ($raw === '50-64') {
+                return '50-64';
+            }
+            if ($raw === '60+') {
+                return '60+';
+            }
+
+            preg_match_all('/\d+/', $raw, $matches);
+            $nums = array_map('intval', $matches[0] ?? []);
+            if (count($nums) === 0) {
+                return 'Did not specify';
+            }
+
+            $low = min($nums);
+            $high = max($nums);
+
+            if ($high <= 19) {
+                return '19 or lower';
+            }
+            if ($low <= 34 && $high >= 20) {
+                return '20-34';
+            }
+            if ($low <= 49 && $high >= 35) {
+                return '35-49';
+            }
+            if ($low <= 64 && $high >= 50) {
+                return '50-64';
+            }
+            if ($high >= 60) {
+                return '60+';
+            }
+
+            return 'Did not specify';
+        };
+
+        $sexLabels = ['Male', 'Female', 'Did not specify'];
+        $ageLabels = ['19 or lower', '20-34', '35-49', '50-64', '60+', 'Did not specify'];
+
+        $sexCounts = ['external' => array_fill_keys($sexLabels, 0), 'internal' => array_fill_keys($sexLabels, 0), 'overall' => array_fill_keys($sexLabels, 0)];
+        $ageCounts = ['external' => array_fill_keys($ageLabels, 0), 'internal' => array_fill_keys($ageLabels, 0), 'overall' => array_fill_keys($ageLabels, 0)];
+
+        $externalTotal = 0;
+        $internalTotal = 0;
+        $overallTotal = 0;
+
+        foreach ($unitCustomers as $row) {
+            $customer = $customersById[$row->customer_id] ?? null;
+            $overallTotal++;
+
+            if (!$customer) {
+                $sexKey = 'Did not specify';
+                $ageKey = 'Did not specify';
+                $group = 'external';
+                $externalTotal++;
+
+                $sexCounts['overall'][$sexKey]++;
+                $ageCounts['overall'][$ageKey]++;
+                $sexCounts[$group][$sexKey]++;
+                $ageCounts[$group][$ageKey]++;
+                continue;
+            }
+
+            $group = null;
+            if ($customer->client_type === 'Internal Employees') {
+                $group = 'internal';
+                $internalTotal++;
+            } else {
+                $group = 'external';
+                $externalTotal++;
+            }
+
+            $sexKey = $normalizeSex($customer->sex);
+            $ageKey = $normalizeAge($customer->age_group);
+
+            $sexCounts['overall'][$sexKey]++;
+            $ageCounts['overall'][$ageKey]++;
+
+            if ($group !== null) {
+                $sexCounts[$group][$sexKey]++;
+                $ageCounts[$group][$ageKey]++;
+            }
+        }
+
+        $buildRows = function ($labels, $counts) use ($externalTotal, $internalTotal, $overallTotal) {
+            return collect($labels)->map(function ($label) use ($counts, $externalTotal, $internalTotal, $overallTotal) {
+                $extCount = (int) ($counts['external'][$label] ?? 0);
+                $intCount = (int) ($counts['internal'][$label] ?? 0);
+                $overallCount = (int) ($counts['overall'][$label] ?? 0);
+
+                $extPct = $extCount > 0 && $externalTotal > 0 ? number_format(($extCount / $externalTotal) * 100, 2) : '-';
+                $intPct = $intCount > 0 && $internalTotal > 0 ? number_format(($intCount / $internalTotal) * 100, 2) : '-';
+                $overallPct = $overallCount > 0 && $overallTotal > 0 ? number_format(($overallCount / $overallTotal) * 100, 2) : '-';
+
+                return [
+                    'label' => $label,
+                    'external' => ['pct' => $extPct, 'count' => $extCount],
+                    'internal' => ['pct' => $intPct, 'count' => $intCount],
+                    'overall' => ['pct' => $overallPct, 'count' => $overallCount],
+                ];
+            })->values()->all();
+        };
+
+        return [
+            'total' => $overallTotal,
+            'male' => $sexCounts['overall']['Male'],
+            'female' => $sexCounts['overall']['Female'],
+            'prefer_not_to_say' => $sexCounts['overall']['Did not specify'],
+            'internal' => $internalTotal,
+            'external' => $externalTotal,
+            'totals' => [
+                'external' => $externalTotal,
+                'internal' => $internalTotal,
+                'overall' => $overallTotal,
+            ],
+            'sex_table' => $buildRows($sexLabels, $sexCounts),
+            'age_table' => $buildRows($ageLabels, $ageCounts),
+        ];
+    }
+
     private function buildServiceCategoryTotals($region_id, $startDate, $endDate, $customerFilterIds = null)
     {
         $serviceCustomerBase = CsfForm::query()
@@ -3220,14 +3390,18 @@ class ReportController extends Controller
             ->groupBy('service_id')
             ->get();
 
-        $vssRows = CustomerAttributeRating::query()
+        $averageRows = CustomerAttributeRating::query()
             ->joinSub(clone $serviceCustomerBase, 'sc', function ($join) {
                 $join->on('customer_attribute_ratings.customer_id', '=', 'sc.customer_id');
             })
             ->whereBetween('customer_attribute_ratings.created_at', [$startDate, $endDate])
-            ->whereIn('customer_attribute_ratings.rate_score', [4, 5])
-            ->select('sc.service_id', DB::raw('COUNT(DISTINCT customer_attribute_ratings.customer_id) as total_vss'))
-            ->groupBy('sc.service_id')
+            ->where('customer_attribute_ratings.rate_score', '!=', 6)
+            ->select(
+                'sc.service_id',
+                'customer_attribute_ratings.customer_id',
+                DB::raw('AVG(customer_attribute_ratings.rate_score) as avg_score')
+            )
+            ->groupBy('sc.service_id', 'customer_attribute_ratings.customer_id')
             ->get();
 
         $service_totals = [];
@@ -3246,21 +3420,62 @@ class ReportController extends Controller
             }
         }
 
-        foreach ($vssRows as $row) {
-            if (isset($service_totals[$row->service_id])) {
-                $service_totals[$row->service_id]['strongly_agree_agree_count'] = (int) $row->total_vss;
-            }
+        $averageScoresByService = [];
+        foreach ($averageRows as $row) {
+            $averageScoresByService[$row->service_id][] = (float) $row->avg_score;
         }
 
         foreach ([1, 2, 3] as $serviceId) {
             $totalRespo = (int) $service_totals[$serviceId]['total_respo'];
-            $vssCount = (int) $service_totals[$serviceId]['strongly_agree_agree_count'];
-            $pct = $totalRespo > 0 ? ($vssCount / $totalRespo) * 100 : 0;
-            $service_totals[$serviceId]['total_ratings'] = $totalRespo;
+            $bucketData = $this->buildAverageBucketCounts($averageScoresByService[$serviceId] ?? []);
+            $bucketCounts = $bucketData['counts'];
+            $bucketTotal = $bucketData['total'];
+            $vssCount = (int) (($bucketCounts[5] ?? 0) + ($bucketCounts[4] ?? 0));
+            $pct = $bucketTotal > 0 ? ($vssCount / $bucketTotal) * 100 : 0;
+            $service_totals[$serviceId]['strongly_agree_agree_count'] = $vssCount;
+            $service_totals[$serviceId]['total_ratings'] = $bucketTotal;
             $service_totals[$serviceId]['pct_strongly_agree_agree'] = number_format($pct, 2);
         }
 
         return $service_totals;
+    }
+
+    private function bucketAverageScore($avgScore)
+    {
+        if ($avgScore >= 4.5) {
+            return 5;
+        }
+        if ($avgScore >= 3.5) {
+            return 4;
+        }
+        if ($avgScore >= 2.5) {
+            return 3;
+        }
+        if ($avgScore >= 1.5) {
+            return 2;
+        }
+        return 1;
+    }
+
+    private function buildAverageBucketCounts($averageScores)
+    {
+        $counts = [
+            5 => 0,
+            4 => 0,
+            3 => 0,
+            2 => 0,
+            1 => 0,
+        ];
+
+        foreach ($averageScores as $avgScore) {
+            $bucket = $this->bucketAverageScore((float) $avgScore);
+            $counts[$bucket]++;
+        }
+
+        return [
+            'counts' => $counts,
+            'total' => array_sum($counts),
+        ];
     }
 
 
@@ -3307,7 +3522,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereMonth('created_at', $numeric_month)
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         //PART I: Citizens Charter - filter by customer IDs in the region and by month/year
         $cc_query = CustomerCCRating::whereMonth('created_at', $numeric_month)
@@ -3381,7 +3606,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         // CC Data with sex and age_group filtering
         $cc_query = CustomerCCRating::whereBetween('created_at', [$startDate, $endDate])
@@ -3446,7 +3681,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         // CC Data with sex and age_group filtering
         $cc_query = CustomerCCRating::whereBetween('created_at', [$startDate, $endDate])
@@ -3511,7 +3756,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         // CC Data with sex and age_group filtering
         $cc_query = CustomerCCRating::whereBetween('created_at', [$startDate, $endDate])
@@ -3576,7 +3831,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         // CC Data with sex and age_group filtering
         $cc_query = CustomerCCRating::whereBetween('created_at', [$startDate, $endDate])
@@ -3641,7 +3906,17 @@ class ReportController extends Controller
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
-        $respondent_profile = $this->getRespondentProfileSummary($csf_forms);
+        $unit_customers = CSFForm::where('region_id', $user->region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+        $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         // CC Data with sex and age_group filtering
         $cc_query = CustomerCCRating::whereBetween('created_at', [$startDate, $endDate])
@@ -3718,9 +3993,24 @@ class ReportController extends Controller
                 'uc.service_id',
                 'uc.unit_id',
                 'customer_attribute_ratings.rate_score',
-                DB::raw('COUNT(*) as total')
+                DB::raw('COUNT(DISTINCT customer_attribute_ratings.customer_id) as total')
             )
             ->groupBy('uc.service_id', 'uc.unit_id', 'customer_attribute_ratings.rate_score')
+            ->get();
+
+        $averageRows = CustomerAttributeRating::query()
+            ->joinSub(clone $unitCustomersBase, 'uc', function ($join) {
+                $join->on('customer_attribute_ratings.customer_id', '=', 'uc.customer_id');
+            })
+            ->whereBetween('customer_attribute_ratings.created_at', [$startDate, $endDate])
+            ->where('customer_attribute_ratings.rate_score', '!=', 6)
+            ->select(
+                'uc.service_id',
+                'uc.unit_id',
+                'customer_attribute_ratings.customer_id',
+                DB::raw('AVG(customer_attribute_ratings.rate_score) as avg_score')
+            )
+            ->groupBy('uc.service_id', 'uc.unit_id', 'customer_attribute_ratings.customer_id')
             ->get();
 
         $vssRows = CustomerAttributeRating::query()
@@ -3747,10 +4037,30 @@ class ReportController extends Controller
             $ratingCountsByUnit[$row->service_id][$row->unit_id][(int) $row->rate_score] = (int) $row->total;
         }
 
+        $averageScoresByUnit = [];
+        foreach ($averageRows as $row) {
+            $averageScoresByUnit[$row->service_id][$row->unit_id][] = (float) $row->avg_score;
+        }
+
         $vssByUnit = [];
         foreach ($vssRows as $row) {
             $vssByUnit[$row->service_id][$row->unit_id] = (int) $row->total_vss_respo;
         }
+
+        // Get all customer IDs from CSF forms for CC calculation
+        $allCustomerIds = CsfForm::where('region_id', $region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->pluck('customer_id')
+            ->unique()
+            ->values();
+
+        // Get all CC ratings for these customers in one query
+        $allCCRatings = CustomerCCRating::whereIn('customer_id', $allCustomerIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
 
         $services = Services::all();
         $units_data = [];
@@ -3781,20 +4091,21 @@ class ReportController extends Controller
             ];
         }
 
-        // Grand CC totals are provided by dedicated CC query in controller actions.
-        $grand_cc1_ans1 = 0;
-        $grand_cc1_ans2 = 0;
-        $grand_cc1_ans3 = 0;
-        $grand_cc1_ans4 = 0;
-        $grand_cc2_ans1 = 0;
-        $grand_cc2_ans2 = 0;
-        $grand_cc2_ans3 = 0;
-        $grand_cc2_ans4 = 0;
-        $grand_cc2_ans5 = 0;
-        $grand_cc3_ans1 = 0;
-        $grand_cc3_ans2 = 0;
-        $grand_cc3_ans3 = 0;
-        $grand_cc3_ans4 = 0;
+        // Grand CC totals - Calculate from ALL customer IDs (same as calculateCC function)
+        // NOT by summing per-unit values, as that would miss customers who don't have unit-specific forms
+        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->count();
+        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->count();
+        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->count();
+        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->count();
+        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->count();
+        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->count();
+        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->count();
+        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->count();
+        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->count();
+        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->count();
+        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->count();
+        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->count();
+        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->count();
 
         foreach ($services as $service) {
             $service_units = Unit::where('services_id', $service->id)->get();
@@ -3803,24 +4114,28 @@ class ReportController extends Controller
                 $serviceId = $service->id;
                 $unitId = $unit->id;
                 $unitScoreCounts = $ratingCountsByUnit[$serviceId][$unitId] ?? [];
+                $averageScores = $averageScoresByUnit[$serviceId][$unitId] ?? [];
+                $bucketData = $this->buildAverageBucketCounts($averageScores);
+                $bucketCounts = $bucketData['counts'];
+                $bucketTotal = $bucketData['total'];
 
                 // Total number of respondents (unique customers)
                 $total_respo = (int) ($respondentsByUnit[$serviceId][$unitId] ?? 0);
 
-                // Total number of respondents who rated 5 or 4
-                $strongly_agree_count = (int) ($unitScoreCounts[5] ?? 0);
-                $agree_count = (int) ($unitScoreCounts[4] ?? 0);
-                $neither_count = (int) ($unitScoreCounts[3] ?? 0);
-                $disagree_count = (int) ($unitScoreCounts[2] ?? 0);
-                $strongly_disagree_count = (int) ($unitScoreCounts[1] ?? 0);
-                $na_count = (int) ($unitScoreCounts[6] ?? 0);
+                // Total number of respondents by average rating bucket (exclude N/A)
+                $strongly_agree_count = (int) ($bucketCounts[5] ?? 0);
+                $agree_count = (int) ($bucketCounts[4] ?? 0);
+                $neither_count = (int) ($bucketCounts[3] ?? 0);
+                $disagree_count = (int) ($bucketCounts[2] ?? 0);
+                $strongly_disagree_count = (int) ($bucketCounts[1] ?? 0);
+                $na_count = max($total_respo - $bucketTotal, 0);
                 $total_vss_respo = (int) ($vssByUnit[$serviceId][$unitId] ?? 0);
                 $percentage_vss_respo = $total_respo > 0
                     ? ($total_vss_respo / $total_respo) * 100
                     : 0;
 
-                // Total count for percentage calculation
-                $total_ratings = $strongly_agree_count + $agree_count + $neither_count + $disagree_count + $strongly_disagree_count + $na_count;
+                // Total count for percentage calculation (respondent-based, exclude N/A)
+                $total_ratings = $bucketTotal;
 
                 // Calculate percentages
                 $pct_strongly_agree = $total_ratings > 0 ? ($strongly_agree_count / $total_ratings) * 100 : 0;
@@ -3828,7 +4143,7 @@ class ReportController extends Controller
                 $pct_neither = $total_ratings > 0 ? ($neither_count / $total_ratings) * 100 : 0;
                 $pct_disagree = $total_ratings > 0 ? ($disagree_count / $total_ratings) * 100 : 0;
                 $pct_strongly_disagree = $total_ratings > 0 ? ($strongly_disagree_count / $total_ratings) * 100 : 0;
-                $pct_na = $total_ratings > 0 ? ($na_count / $total_ratings) * 100 : 0;
+                $pct_na = 0;
 
                 $cc1_ans1 = 0;
                 $cc1_ans2 = 0;
@@ -3887,20 +4202,6 @@ class ReportController extends Controller
                     ],
                 ];
 
-                $grand_cc1_ans1 += $cc1_ans1;
-                $grand_cc1_ans2 += $cc1_ans2;
-                $grand_cc1_ans3 += $cc1_ans3;
-                $grand_cc1_ans4 += $cc1_ans4;
-                $grand_cc2_ans1 += $cc2_ans1;
-                $grand_cc2_ans2 += $cc2_ans2;
-                $grand_cc2_ans3 += $cc2_ans3;
-                $grand_cc2_ans4 += $cc2_ans4;
-                $grand_cc2_ans5 += $cc2_ans5;
-                $grand_cc3_ans1 += $cc3_ans1;
-                $grand_cc3_ans2 += $cc3_ans2;
-                $grand_cc3_ans3 += $cc3_ans3;
-                $grand_cc3_ans4 += $cc3_ans4;
-                
                 $grand_total_respondents += $total_respo;
                 $grand_total_vss_respondents += $total_vss_respo;
                 $grand_total_promoters += 0;
@@ -3941,8 +4242,8 @@ class ReportController extends Controller
         $grand_cc2_total = $grand_cc2_ans1 + $grand_cc2_ans2 + $grand_cc2_ans3 + $grand_cc2_ans4 + $grand_cc2_ans5;
         $grand_cc3_total = $grand_cc3_ans1 + $grand_cc3_ans2 + $grand_cc3_ans3 + $grand_cc3_ans4;
 
-        // Grand total ratings for percentage calculation
-        $grand_total_ratings = $grand_strongly_agree_count + $grand_agree_count + $grand_neither_count + $grand_disagree_count + $grand_strongly_disagree_count + $grand_na_count;
+        // Grand total ratings for percentage calculation (respondent-based)
+        $grand_total_ratings = max($grand_total_respondents - $grand_na_count, 0);
         
         // Grand percentages for rating categories
         $grand_pct_strongly_agree = $grand_total_ratings > 0 ? ($grand_strongly_agree_count / $grand_total_ratings) * 100 : 0;
@@ -3950,13 +4251,15 @@ class ReportController extends Controller
         $grand_pct_neither = $grand_total_ratings > 0 ? ($grand_neither_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_disagree = $grand_total_ratings > 0 ? ($grand_disagree_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_strongly_disagree = $grand_total_ratings > 0 ? ($grand_strongly_disagree_count / $grand_total_ratings) * 100 : 0;
-        $grand_pct_na = $grand_total_ratings > 0 ? ($grand_na_count / $grand_total_ratings) * 100 : 0;
+        $grand_pct_na = 0;
 
         // Recalculate service category summary using unique respondents per service
         $service_totals = $this->buildServiceCategoryTotals($region_id, $startDate, $endDate, $customerFilterIds);
         $grand_strongly_agree_agree_count = 0;
+        $grand_total_non_na_respondents = 0;
         foreach ([1, 2, 3] as $serviceId) {
             $grand_strongly_agree_agree_count += (int) ($service_totals[$serviceId]['strongly_agree_agree_count'] ?? 0);
+            $grand_total_non_na_respondents += (int) ($service_totals[$serviceId]['total_ratings'] ?? 0);
         }
         $grand_pct_strongly_agree_agree = $grand_total_respondents > 0
             ? ($grand_strongly_agree_agree_count / $grand_total_respondents) * 100
@@ -3995,6 +4298,7 @@ class ReportController extends Controller
             'service_totals' => $service_totals,
             'grand_strongly_agree_agree_count' => $grand_strongly_agree_agree_count,
             'grand_pct_strongly_agree_agree' => number_format($grand_pct_strongly_agree_agree, 2),
+            'grand_total_non_na_respondents' => $grand_total_non_na_respondents,
         ];
     }
 
@@ -4197,9 +4501,11 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
                 $query->whereIn('customer_id', $customerFilterIds);
             })
+            ->select('service_id', 'unit_id', 'customer_id')
+            ->distinct()
             ->get()
             ->groupBy(function($form) {
-                return $form->service_id . '_' . $form->unit_id . '_' . ($form->sub_unit_id ?? 'null');
+                return $form->service_id . '_' . $form->unit_id;
             });
 
         // Get all customer IDs from CSF forms
@@ -4257,20 +4563,21 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             ];
         }
 
-        // Grand CC totals
-        $grand_cc1_ans1 = 0;
-        $grand_cc1_ans2 = 0;
-        $grand_cc1_ans3 = 0;
-        $grand_cc1_ans4 = 0;
-        $grand_cc2_ans1 = 0;
-        $grand_cc2_ans2 = 0;
-        $grand_cc2_ans3 = 0;
-        $grand_cc2_ans4 = 0;
-        $grand_cc2_ans5 = 0;
-        $grand_cc3_ans1 = 0;
-        $grand_cc3_ans2 = 0;
-        $grand_cc3_ans3 = 0;
-        $grand_cc3_ans4 = 0;
+        // Grand CC totals - Calculate from ALL customer IDs (same as calculateCC function)
+        // NOT by summing per-unit values, as that would miss customers who don't have unit-specific forms
+        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->count();
+        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->count();
+        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->count();
+        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->count();
+        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->count();
+        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->count();
+        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->count();
+        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->count();
+        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->count();
+        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->count();
+        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->count();
+        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->count();
+        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->count();
 
         $dimensions = Dimension::all();
         $dimension_count = $dimensions->count();
@@ -4280,7 +4587,7 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
 
             foreach ($service_units as $unit) {
                 // Get customer IDs for this unit from pre-fetched data
-                $key = $service->id . '_' . $unit->id . '_null';
+                $key = $service->id . '_' . $unit->id;
                 $unitForms = $allCsfForms->get($key, collect());
                 $customer_ids = $unitForms->pluck('customer_id')->unique()->values();
                 
@@ -4324,22 +4631,33 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                 // Calculate CSI per unit
                 $unit_csi = $this->calculateUnitCSI($attribute_ratings, $total_respo, $dimension_count);
 
-                // Calculate percentage breakdown for each rating
-                $strongly_agree_count = $attribute_ratings->where('rate_score', 5)->count();
-                $agree_count = $attribute_ratings->where('rate_score', 4)->count();
-                $neither_count = $attribute_ratings->where('rate_score', 3)->count();
-                $disagree_count = $attribute_ratings->where('rate_score', 2)->count();
-                $strongly_disagree_count = $attribute_ratings->where('rate_score', 1)->count();
-                $na_count = $attribute_ratings->where('rate_score', 6)->count();
+                // Calculate percentage breakdown using respondent average scores (exclude N/A)
+                $averageScores = $attribute_ratings
+                    ->where('rate_score', '!=', 6)
+                    ->groupBy('customer_id')
+                    ->map(function ($rows) {
+                        return $rows->avg('rate_score');
+                    })
+                    ->values();
+                $bucketData = $this->buildAverageBucketCounts($averageScores);
+                $bucketCounts = $bucketData['counts'];
+                $bucketTotal = $bucketData['total'];
 
-                $total_ratings = $strongly_agree_count + $agree_count + $neither_count + $disagree_count + $strongly_disagree_count + $na_count;
+                $strongly_agree_count = (int) ($bucketCounts[5] ?? 0);
+                $agree_count = (int) ($bucketCounts[4] ?? 0);
+                $neither_count = (int) ($bucketCounts[3] ?? 0);
+                $disagree_count = (int) ($bucketCounts[2] ?? 0);
+                $strongly_disagree_count = (int) ($bucketCounts[1] ?? 0);
+                $na_count = max($total_respo - $bucketTotal, 0);
+
+                $total_ratings = $bucketTotal;
 
                 $pct_strongly_agree = $total_ratings > 0 ? ($strongly_agree_count / $total_ratings) * 100 : 0;
                 $pct_agree = $total_ratings > 0 ? ($agree_count / $total_ratings) * 100 : 0;
                 $pct_neither = $total_ratings > 0 ? ($neither_count / $total_ratings) * 100 : 0;
                 $pct_disagree = $total_ratings > 0 ? ($disagree_count / $total_ratings) * 100 : 0;
                 $pct_strongly_disagree = $total_ratings > 0 ? ($strongly_disagree_count / $total_ratings) * 100 : 0;
-                $pct_na = $total_ratings > 0 ? ($na_count / $total_ratings) * 100 : 0;
+                $pct_na = 0;
 
                 // Get CC data from pre-fetched data
                 $cc_ratings = $allCCRatings->whereIn('customer_id', $customer_ids);
@@ -4401,20 +4719,6 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                     ],
                 ];
 
-                $grand_cc1_ans1 += $cc1_ans1;
-                $grand_cc1_ans2 += $cc1_ans2;
-                $grand_cc1_ans3 += $cc1_ans3;
-                $grand_cc1_ans4 += $cc1_ans4;
-                $grand_cc2_ans1 += $cc2_ans1;
-                $grand_cc2_ans2 += $cc2_ans2;
-                $grand_cc2_ans3 += $cc2_ans3;
-                $grand_cc2_ans4 += $cc2_ans4;
-                $grand_cc2_ans5 += $cc2_ans5;
-                $grand_cc3_ans1 += $cc3_ans1;
-                $grand_cc3_ans2 += $cc3_ans2;
-                $grand_cc3_ans3 += $cc3_ans3;
-                $grand_cc3_ans4 += $cc3_ans4;
-
                 $grand_total_respondents += $total_respo;
                 $grand_total_vss_respondents += $total_vss_respo;
                 $grand_total_promoters += $promoters;
@@ -4456,20 +4760,22 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
         $grand_cc2_total = $grand_cc2_ans1 + $grand_cc2_ans2 + $grand_cc2_ans3 + $grand_cc2_ans4 + $grand_cc2_ans5;
         $grand_cc3_total = $grand_cc3_ans1 + $grand_cc3_ans2 + $grand_cc3_ans3 + $grand_cc3_ans4;
 
-        $grand_total_ratings = $grand_strongly_agree_count + $grand_agree_count + $grand_neither_count + $grand_disagree_count + $grand_strongly_disagree_count + $grand_na_count;
+        $grand_total_ratings = max($grand_total_respondents - $grand_na_count, 0);
 
         $grand_pct_strongly_agree = $grand_total_ratings > 0 ? ($grand_strongly_agree_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_agree = $grand_total_ratings > 0 ? ($grand_agree_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_neither = $grand_total_ratings > 0 ? ($grand_neither_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_disagree = $grand_total_ratings > 0 ? ($grand_disagree_count / $grand_total_ratings) * 100 : 0;
         $grand_pct_strongly_disagree = $grand_total_ratings > 0 ? ($grand_strongly_disagree_count / $grand_total_ratings) * 100 : 0;
-        $grand_pct_na = $grand_total_ratings > 0 ? ($grand_na_count / $grand_total_ratings) * 100 : 0;
+        $grand_pct_na = 0;
 
         // Recalculate service category summary using unique respondents per service
         $service_totals = $this->buildServiceCategoryTotals($region_id, $startDate, $endDate, $customerFilterIds);
         $grand_strongly_agree_agree_count = 0;
+        $grand_total_non_na_respondents = 0;
         foreach ([1, 2, 3] as $serviceId) {
             $grand_strongly_agree_agree_count += (int) ($service_totals[$serviceId]['strongly_agree_agree_count'] ?? 0);
+            $grand_total_non_na_respondents += (int) ($service_totals[$serviceId]['total_ratings'] ?? 0);
         }
         $grand_pct_strongly_agree_agree = $grand_total_respondents > 0
             ? ($grand_strongly_agree_agree_count / $grand_total_respondents) * 100
@@ -4508,6 +4814,7 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             'service_totals' => $service_totals,
             'grand_strongly_agree_agree_count' => $grand_strongly_agree_agree_count,
             'grand_pct_strongly_agree_agree' => number_format($grand_pct_strongly_agree_agree, 2),
+            'grand_total_non_na_respondents' => $grand_total_non_na_respondents,
         ];
     }
 
