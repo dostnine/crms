@@ -178,6 +178,7 @@
 
 </script>
 <template>
+
     <!-- PART I: Citizen's Charter -->
     <v-card class="mb-3" v-if="hasAnyCCData()">
         <v-card-title class="bg-gray-500 text-white">
@@ -323,13 +324,14 @@
                 <tbody>
                     <template v-for="(service, index) in props.data.services_units.data" :key="index">
                         <template v-if="service.units && service.units.length > 0">
+
                         <tr class="bg-blue-200">
-                            <td colspan="8"><strong>{{ service.services_name }}</strong></td>
+                            <td colspan="7"><strong>{{ service.services_name }}</strong></td>
                         </tr>
                         <template v-for="(unit, unitIndex) in service.units" :key="unitIndex">
                             <!-- Show unit if it has respondents OR has sub-units -->
                             <template v-if="shouldShowServiceUnit(service.id, unit)">
-                            <tr>
+                            <tr v-if="props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo > 0">
                                 <td class="pl-5">{{ unit.unit_name }}</td>
                                 <td class="text-center">
                                     {{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo > 0 ? props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo : '-' }}

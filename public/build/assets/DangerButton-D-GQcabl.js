@@ -1,0 +1,1 @@
+import{_ as o}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{o as n,e as r,r as s}from"./app-B5xFWbyn.js";const a=["type"],p={__name:"DangerButton",props:{type:{type:String,default:"button"}},setup(t){return(e,c)=>(n(),r("button",{type:t.type,class:"danger-button"},[s(e.$slots,"default",{},void 0,!0)],8,a))}},d=o(p,[["__scopeId","data-v-cd9468df"]]);export{d as D};

@@ -1,1 +1,0 @@
-import{_ as o}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{o as n,e as r,r as a}from"./app-Zcv0E_xx.js";const s=["type"],c={__name:"SecondaryButton",props:{type:{type:String,default:"button"}},setup(t){return(e,d)=>(n(),r("button",{type:t.type,class:"secondary-button"},[a(e.$slots,"default",{},void 0,!0)],8,s))}},_=o(c,[["__scopeId","data-v-afdda6d6"]]);export{_ as S};

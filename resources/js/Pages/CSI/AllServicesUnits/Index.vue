@@ -5,6 +5,7 @@ import { router } from '@inertiajs/vue3'
 import { Printd } from "printd";
 import Swal from 'sweetalert2';
 import MonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/Content.vue';
+import AltMonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/AltContent.vue';
 import VueMultiselect from "vue-multiselect";
 import AOS from 'aos'
 import 'aos/dist/aos.css'
@@ -14,12 +15,16 @@ const props = defineProps({
   services_units: Object,
   cc_data: Object,
   all_units_data: Object,
+  region: Object,
   csi_total: Number,
   nps_total: Number,
   lsr_total: Number,
   total_respondents: Number,
   total_vss_respondents: Number,
   percentage_vss_respondents: Number,
+  total_comments: Number,
+  total_complaints: Number,
+  comments: Object,
   respondent_profile: Object,
   request: Object,
 });
@@ -72,6 +77,7 @@ function getCurrentMonth() {
 }
 
 const generated = ref(false); 
+const report_format = ref('standard');
 onMounted(() => {
     const previousRequest = props.request || {};
     form.csi_type = previousRequest.csi_type || null;
@@ -207,11 +213,14 @@ const generateCSIReport = async () => {
             padding: 5px;
             vertical-align: middle;
             word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
           }
           thead th {
             background: #1f3b6e !important;
             color: #ffffff !important;
             font-weight: 700;
+            white-space: normal;
           }
           .bg-blue-200 {
             background-color: #e3f2fd !important;
@@ -237,6 +246,15 @@ const generateCSIReport = async () => {
             display: grid !important;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+          }
+          .print-only {
+            display: block !important;
+          }
+          .alt-header,
+          .alt-title,
+          .alt-subtitle {
+            text-align: center !important;
+            width: 100%;
           }
           .pie-chart-collapsible {
             display: grid !important;
@@ -267,14 +285,21 @@ const generateCSIReport = async () => {
             line-height: 1.2 !important;
             text-align: center !important;
             vertical-align: middle !important;
-            word-break: keep-all !important;
+            word-break: break-word !important;
             white-space: normal !important;
           }
           .service-category-summary thead th {
             background: #1f3b6e !important;
             color: #ffffff !important;
             font-weight: 700 !important;
-            white-space: nowrap !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+          }
+          .service-overview-table th,
+          .service-overview-table td {
+            font-size: 9.5px !important;
+            line-height: 1.2 !important;
+            padding: 4px !important;
           }
           .service-category-summary tr > th:nth-child(1),
           .service-category-summary tr > td:nth-child(1) {
@@ -365,6 +390,10 @@ const generateCSIReport = async () => {
                                 </p>
                             </div>
                             <div class="summary-stats">
+                                <div class="stat-pill">
+                                    <span class="stat-label">CSAT</span>
+                                    <span class="stat-value">{{ Number(props.percentage_vss_respondents || 0).toFixed(2) }}%</span>
+                                </div>
                                 <div class="stat-pill">
                                     <span class="stat-label">CSI</span>
                                     <span class="stat-value">{{ Number(props.csi_total || 0).toFixed(2) }}%</span>
@@ -487,24 +516,58 @@ const generateCSIReport = async () => {
                                 </h5>
                                 <p class="mb-0 preview-period text-white-50">{{ reportPeriodLabel }}</p>
                             </div>
-                            <button @click="printCSIReport" class="btn btn-light preview-print-btn">
-                                <i class="ri-printer-line me-2"></i>
-                                Print Report
-                            </button>
+                            <div class="d-flex align-items-center gap-3">
+                                <select v-model="report_format" class="form-select form-select-sm preview-format-select">
+                                    <option value="standard">Current Format</option>
+                                    <option value="alternative">Alternative Format</option>
+                                </select>
+                                <button @click="printCSIReport" class="btn btn-light preview-print-btn">
+                                    <i class="ri-printer-line me-2"></i>
+                                    Print Report
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body print-id">
-                            <MonthlyContent :form="form" :data="{
-                                services_units: props.services_units,
-                                all_units_data: props.all_units_data,
-                                cc_data: props.cc_data,
-                                total_respondents: props.total_respondents,
-                                total_vss_respondents: props.total_vss_respondents,
-                                percentage_vss_respondents: props.percentage_vss_respondents,
-                                respondent_profile: props.respondent_profile,
-                                csi_total: props.csi_total,
-                                nps_total: props.nps_total,
-                                lsr_total: props.lsr_total
-                            }" />
+                            <MonthlyContent
+                                v-if="report_format === 'standard'"
+                                :form="form"
+                                :data="{
+                                    services_units: props.services_units,
+                                    all_units_data: props.all_units_data,
+                                    cc_data: props.cc_data,
+                                    total_respondents: props.total_respondents,
+                                    total_vss_respondents: props.total_vss_respondents,
+                                    percentage_vss_respondents: props.percentage_vss_respondents,
+                                    respondent_profile: props.respondent_profile,
+                                    total_comments: props.total_comments,
+                                    total_complaints: props.total_complaints,
+                                    comments: props.comments,
+                                    csi_total: props.csi_total,
+                                    nps_total: props.nps_total,
+                                lsr_total: props.lsr_total,
+                                region: props.region
+                            }"
+                            />
+                            <AltMonthlyContent
+                                v-else
+                                :form="form"
+                                :data="{
+                                    services_units: props.services_units,
+                                    all_units_data: props.all_units_data,
+                                    cc_data: props.cc_data,
+                                    total_respondents: props.total_respondents,
+                                    total_vss_respondents: props.total_vss_respondents,
+                                    percentage_vss_respondents: props.percentage_vss_respondents,
+                                    respondent_profile: props.respondent_profile,
+                                    total_comments: props.total_comments,
+                                    total_complaints: props.total_complaints,
+                                    comments: props.comments,
+                                    csi_total: props.csi_total,
+                                    nps_total: props.nps_total,
+                                lsr_total: props.lsr_total,
+                                region: props.region
+                            }"
+                            />
                         </div>
                     </div>
 
@@ -685,6 +748,12 @@ const generateCSIReport = async () => {
 .preview-print-btn {
     font-weight: 700;
     border: none;
+    min-width: 170px;
+}
+.preview-format-select {
+    min-width: 170px;
+    border: none;
+    font-weight: 600;
 }
 
 .empty-state-card {

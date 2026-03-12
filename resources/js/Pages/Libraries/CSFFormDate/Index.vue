@@ -8,25 +8,40 @@
         date_display: String, 
     });
 
-    const show_modal = ref(false);
+    const is_updating = ref(false);
     
-    const showDateDisplayModal = async (is_show) => {
-        show_modal.value = is_show;
+    const updateDateDisplay = async () => {
+        const currentValue = props.date_display[0].is_displayed;
+        const action = currentValue === 1 ? 'hide' : 'show';
+        
+        Swal.fire({
+            title: 'Confirm Change',
+            text: `Do you want to ${action} the date field in the CSF form?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, update it',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const newValue = currentValue === 1 ? 0 : 1;
+                router.post('/show-date-csf-form/update', { value: newValue });
+            }
+        });
     };
 
-    const reloadDateDisplay = async () => {
-        date_display.value = {};
-    };
-
+    // Auto-save when toggle changes (for immediate feedback)
     watch(
         () => props.date_display[0].is_displayed,
-        (value) => {
-            router.post('/show-date-csf-form/update', { value } );
+        (newValue, oldValue) => {
+            if (oldValue !== null && newValue !== oldValue) {
+                router.post('/show-date-csf-form/update', { value: newValue });
+            }
         }
     );
 
 </script>
-
 
 <template>
     <AppLayout title="CSF Form Date Display">
@@ -76,8 +91,8 @@
                             </div>
 
                             <div class="mt-4">
-                                <button @click="showDateDisplayModal(true)" class="btn btn-primary btn-lg px-5" style="border-radius: 25px;">
-                                    <i class="ri-edit-line me-2"></i> Update Settings
+                                <button @click="updateDateDisplay" class="btn btn-primary btn-lg px-5" style="border-radius: 25px;">
+                                    <i class="ri-edit-line me-2"></i> {{ date_display[0].is_displayed == 1 ? 'Hide Date' : 'Show Date' }}
                                 </button>
                             </div>
                         </div>

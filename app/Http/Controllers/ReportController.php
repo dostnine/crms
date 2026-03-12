@@ -3404,6 +3404,19 @@ class ReportController extends Controller
             ->groupBy('sc.service_id', 'customer_attribute_ratings.customer_id')
             ->get();
 
+        $recommendationRows = CustomerRecommendationRating::query()
+            ->joinSub(clone $serviceCustomerBase, 'sc', function ($join) {
+                $join->on('customer_recommendation_ratings.customer_id', '=', 'sc.customer_id');
+            })
+            ->whereBetween('customer_recommendation_ratings.created_at', [$startDate, $endDate])
+            ->select(
+                'sc.service_id',
+                'customer_recommendation_ratings.recommend_rate_score',
+                DB::raw('COUNT(DISTINCT customer_recommendation_ratings.customer_id) as total')
+            )
+            ->groupBy('sc.service_id', 'customer_recommendation_ratings.recommend_rate_score')
+            ->get();
+
         $service_totals = [];
         foreach ([1, 2, 3] as $serviceId) {
             $service_totals[$serviceId] = [
@@ -3411,6 +3424,8 @@ class ReportController extends Controller
                 'strongly_agree_agree_count' => 0,
                 'total_ratings' => 0,
                 'pct_strongly_agree_agree' => '0.00',
+                'nps' => '0.00',
+                'lsr' => '0.00',
             ];
         }
 
@@ -3425,6 +3440,11 @@ class ReportController extends Controller
             $averageScoresByService[$row->service_id][] = (float) $row->avg_score;
         }
 
+        $recommendationCountsByService = [];
+        foreach ($recommendationRows as $row) {
+            $recommendationCountsByService[$row->service_id][(int) $row->recommend_rate_score] = (int) $row->total;
+        }
+
         foreach ([1, 2, 3] as $serviceId) {
             $totalRespo = (int) $service_totals[$serviceId]['total_respo'];
             $bucketData = $this->buildAverageBucketCounts($averageScoresByService[$serviceId] ?? []);
@@ -3435,6 +3455,29 @@ class ReportController extends Controller
             $service_totals[$serviceId]['strongly_agree_agree_count'] = $vssCount;
             $service_totals[$serviceId]['total_ratings'] = $bucketTotal;
             $service_totals[$serviceId]['pct_strongly_agree_agree'] = number_format($pct, 2);
+
+            $recommendationCounts = $recommendationCountsByService[$serviceId] ?? [];
+            $recommendationTotal = array_sum($recommendationCounts);
+            $promoters = 0;
+            $detractors = 0;
+            foreach ($recommendationCounts as $score => $count) {
+                if ($score >= 7 && $score <= 10) {
+                    $promoters += $count;
+                } elseif ($score >= 0 && $score <= 6) {
+                    $detractors += $count;
+                }
+            }
+            $nps = 0;
+            if ($recommendationTotal > 0) {
+                $percentage_promoters = ($promoters / $recommendationTotal) * 100;
+                $percentage_detractors = ($detractors / $recommendationTotal) * 100;
+                $nps = $percentage_promoters - $percentage_detractors;
+            }
+            $service_totals[$serviceId]['nps'] = number_format($nps, 2);
+
+            $avgScores = $averageScoresByService[$serviceId] ?? [];
+            $lsr = count($avgScores) > 0 ? (array_sum($avgScores) / count($avgScores)) : 0;
+            $service_totals[$serviceId]['lsr'] = number_format($lsr, 2);
         }
 
         return $service_totals;
@@ -3582,6 +3625,7 @@ class ReportController extends Controller
                     ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
                     ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
                     ->with('respondent_profile', $respondent_profile)
+                    ->with('region', $user->region)
                     ->with('request', $request);
     }
 
@@ -3657,6 +3701,7 @@ class ReportController extends Controller
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
             ->with('respondent_profile', $respondent_profile)
+            ->with('region', $user->region)
             ->with('request', $request);
     }
 
@@ -3732,6 +3777,7 @@ class ReportController extends Controller
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
             ->with('respondent_profile', $respondent_profile)
+            ->with('region', $user->region)
             ->with('request', $request);
     }
 
@@ -3807,6 +3853,7 @@ class ReportController extends Controller
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
             ->with('respondent_profile', $respondent_profile)
+            ->with('region', $user->region)
             ->with('request', $request);
     }
 
@@ -3882,6 +3929,7 @@ class ReportController extends Controller
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
             ->with('respondent_profile', $respondent_profile)
+            ->with('region', $user->region)
             ->with('request', $request);
     }
 
@@ -3957,6 +4005,7 @@ class ReportController extends Controller
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
             ->with('respondent_profile', $respondent_profile)
+            ->with('region', $user->region)
             ->with('request', $request);
     }
 
@@ -4027,6 +4076,20 @@ class ReportController extends Controller
             ->groupBy('uc.service_id', 'uc.unit_id')
             ->get();
 
+        $recommendationRows = CustomerRecommendationRating::query()
+            ->joinSub(clone $unitCustomersBase, 'uc', function ($join) {
+                $join->on('customer_recommendation_ratings.customer_id', '=', 'uc.customer_id');
+            })
+            ->whereBetween('customer_recommendation_ratings.created_at', [$startDate, $endDate])
+            ->select(
+                'uc.service_id',
+                'uc.unit_id',
+                'customer_recommendation_ratings.recommend_rate_score',
+                DB::raw('COUNT(DISTINCT customer_recommendation_ratings.customer_id) as total')
+            )
+            ->groupBy('uc.service_id', 'uc.unit_id', 'customer_recommendation_ratings.recommend_rate_score')
+            ->get();
+
         $respondentsByUnit = [];
         foreach ($respondentRows as $row) {
             $respondentsByUnit[$row->service_id][$row->unit_id] = (int) $row->total_respo;
@@ -4045,6 +4108,11 @@ class ReportController extends Controller
         $vssByUnit = [];
         foreach ($vssRows as $row) {
             $vssByUnit[$row->service_id][$row->unit_id] = (int) $row->total_vss_respo;
+        }
+
+        $recommendationCountsByUnit = [];
+        foreach ($recommendationRows as $row) {
+            $recommendationCountsByUnit[$row->service_id][$row->unit_id][(int) $row->recommend_rate_score] = (int) $row->total;
         }
 
         // Get all customer IDs from CSF forms for CC calculation
@@ -4068,6 +4136,8 @@ class ReportController extends Controller
         $grand_total_vss_respondents = 0;
         $grand_total_promoters = 0;
         $grand_total_detractors = 0;
+        $grand_total_recommendation_respondents = 0;
+        $grand_total_recommendation_respondents = 0;
         
         // Grand totals for rating percentages
         $grand_strongly_agree_count = 0;
@@ -4134,6 +4204,29 @@ class ReportController extends Controller
                     ? ($total_vss_respo / $total_respo) * 100
                     : 0;
 
+                $recommendationCounts = $recommendationCountsByUnit[$serviceId][$unitId] ?? [];
+                $recommendation_total = array_sum($recommendationCounts);
+                $promoters = 0;
+                $detractors = 0;
+                foreach ($recommendationCounts as $score => $count) {
+                    if ($score >= 7 && $score <= 10) {
+                        $promoters += $count;
+                    } elseif ($score >= 0 && $score <= 6) {
+                        $detractors += $count;
+                    }
+                }
+                $nps = 0;
+                if ($recommendation_total > 0) {
+                    $percentage_promoters = ($promoters / $recommendation_total) * 100;
+                    $percentage_detractors = ($detractors / $recommendation_total) * 100;
+                    $nps = $percentage_promoters - $percentage_detractors;
+                }
+
+                $lsr = 0;
+                if (count($averageScores) > 0) {
+                    $lsr = array_sum($averageScores) / count($averageScores);
+                }
+
                 // Total count for percentage calculation (respondent-based, exclude N/A)
                 $total_ratings = $bucketTotal;
 
@@ -4170,8 +4263,8 @@ class ReportController extends Controller
                     'total_vss_respo' => $total_vss_respo,
                     'percentage_vss_respo' => number_format($percentage_vss_respo, 2),
                     'csi' => number_format(0, 2),
-                    'nps' => number_format(0, 2),
-                    'lsr' => number_format(0, 2),
+                    'nps' => number_format($nps, 2),
+                    'lsr' => number_format($lsr, 2),
                     'strongly_agree_count' => $strongly_agree_count,
                     'agree_count' => $agree_count,
                     'neither_count' => $neither_count,
@@ -4204,8 +4297,9 @@ class ReportController extends Controller
 
                 $grand_total_respondents += $total_respo;
                 $grand_total_vss_respondents += $total_vss_respo;
-                $grand_total_promoters += 0;
-                $grand_total_detractors += 0;
+                $grand_total_promoters += $promoters;
+                $grand_total_detractors += $detractors;
+                $grand_total_recommendation_respondents += $recommendation_total;
                 
                 $grand_strongly_agree_count += $strongly_agree_count;
                 $grand_agree_count += $agree_count;
@@ -4231,9 +4325,9 @@ class ReportController extends Controller
 
         // Grand NPS
         $grand_nps = 0;
-        if ($grand_total_respondents > 0) {
-            $grand_percentage_promoters = ($grand_total_promoters / $grand_total_respondents) * 100;
-            $grand_percentage_detractors = ($grand_total_detractors / $grand_total_respondents) * 100;
+        if ($grand_total_recommendation_respondents > 0) {
+            $grand_percentage_promoters = ($grand_total_promoters / $grand_total_recommendation_respondents) * 100;
+            $grand_percentage_detractors = ($grand_total_detractors / $grand_total_recommendation_respondents) * 100;
             $grand_nps = $grand_percentage_promoters - $grand_percentage_detractors;
         }
 
@@ -4379,7 +4473,11 @@ class ReportController extends Controller
 
         $avgScore = CustomerAttributeRating::whereIn('customer_id', $customer_ids)
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->avg('rate_score');
+            ->where('rate_score', '!=', 6)
+            ->select('customer_id', DB::raw('AVG(rate_score) as avg_score'))
+            ->groupBy('customer_id')
+            ->get()
+            ->avg('avg_score');
 
         return number_format($avgScore ?: 0, 2);
     }
@@ -4609,23 +4707,30 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                 // Get recommendation ratings from pre-fetched data
                 $recommendation_ratings = $allRecommendationRatings->whereIn('customer_id', $customer_ids);
 
+                $recommendation_respondents = $recommendation_ratings->groupBy('customer_id')->count();
+
                 // Calculate NPS per unit
                 $promoters = $recommendation_ratings->whereBetween('recommend_rate_score', [7, 10])->groupBy('customer_id')->count();
                 $detractors = $recommendation_ratings->whereBetween('recommend_rate_score', [0, 6])->groupBy('customer_id')->count();
-                
+
                 $nps = 0;
-                if ($total_respo > 0) {
-                    $percentage_promoters = ($promoters / $total_respo) * 100;
-                    $percentage_detractors = ($detractors / $total_respo) * 100;
+                if ($recommendation_respondents > 0) {
+                    $percentage_promoters = ($promoters / $recommendation_respondents) * 100;
+                    $percentage_detractors = ($detractors / $recommendation_respondents) * 100;
                     $nps = $percentage_promoters - $percentage_detractors;
                 }
 
                 // Calculate LSR per unit
                 $lsr = 0;
-                if ($attribute_ratings->count() > 0) {
-                    $total_score = $attribute_ratings->sum('rate_score');
-                    $total_responses = $attribute_ratings->count();
-                    $lsr = $total_score / $total_responses;
+                $lsr_ratings = $attribute_ratings->where('rate_score', '!=', 6);
+                if ($lsr_ratings->count() > 0) {
+                    $average_scores = $lsr_ratings
+                        ->groupBy('customer_id')
+                        ->map(function ($rows) {
+                            return $rows->avg('rate_score');
+                        })
+                        ->values();
+                    $lsr = $average_scores->count() > 0 ? $average_scores->avg() : 0;
                 }
 
                 // Calculate CSI per unit
@@ -4723,6 +4828,7 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                 $grand_total_vss_respondents += $total_vss_respo;
                 $grand_total_promoters += $promoters;
                 $grand_total_detractors += $detractors;
+                $grand_total_recommendation_respondents += $recommendation_respondents;
 
                 $grand_strongly_agree_count += $strongly_agree_count;
                 $grand_agree_count += $agree_count;
@@ -4749,9 +4855,9 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
 
         // Grand NPS
         $grand_nps = 0;
-        if ($grand_total_respondents > 0) {
-            $grand_percentage_promoters = ($grand_total_promoters / $grand_total_respondents) * 100;
-            $grand_percentage_detractors = ($grand_total_detractors / $grand_total_respondents) * 100;
+        if ($grand_total_recommendation_respondents > 0) {
+            $grand_percentage_promoters = ($grand_total_promoters / $grand_total_recommendation_respondents) * 100;
+            $grand_percentage_detractors = ($grand_total_detractors / $grand_total_recommendation_respondents) * 100;
             $grand_nps = $grand_percentage_promoters - $grand_percentage_detractors;
         }
 
@@ -4964,33 +5070,16 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             })
             ->pluck('customer_id');
 
-        // Get attribute ratings for the month
-        $attribute_ratings = CustomerAttributeRating::whereIn('customer_id', $customer_ids)
+        $avgScore = CustomerAttributeRating::whereIn('customer_id', $customer_ids)
             ->whereMonth('created_at', $numeric_month)
             ->whereYear('created_at', $request->selected_year)
-            ->get();
+            ->where('rate_score', '!=', 6)
+            ->select('customer_id', DB::raw('AVG(rate_score) as avg_score'))
+            ->groupBy('customer_id')
+            ->get()
+            ->avg('avg_score');
 
-        $dimensions = Dimension::all();
-        $dimension_count = $dimensions->count();
-
-        $grand_total_score = 0;
-        $grand_total_responses = 0;
-
-        foreach ($dimensions as $dimension) {
-            $dimension_ratings = $attribute_ratings->where('dimension_id', $dimension->id);
-            
-            foreach ($dimension_ratings as $rating) {
-                $grand_total_score += $rating->rate_score;
-                $grand_total_responses++;
-            }
-        }
-
-        $lsr = 0;
-        if ($grand_total_responses > 0) {
-            $lsr = $grand_total_score / $grand_total_responses;
-        }
-
-        return number_format($lsr, 2);
+        return number_format($avgScore ?: 0, 2);
     }
 
     public function getAllUnitMonthlyCSI($request, $region_id, $numeric_month)
