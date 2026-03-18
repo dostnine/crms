@@ -1,6 +1,6 @@
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import VueMultiselect from 'vue-multiselect';
+import VueMultiselect from '@/Components/VueMultiselect.vue';
     import { router } from '@inertiajs/vue3';
     import { reactive, ref, watch } from 'vue';
     import QrcodeVue from 'qrcode.vue';
@@ -22,11 +22,11 @@
 
     const form = reactive({
         generated_url: null,
-        selected_sub_unit: '',
-        selected_unit_psto: '',
-        selected_sub_unit_psto: '',
-        sub_unit_type: '',
-        client_type: ''
+        selected_sub_unit: null,
+        selected_unit_psto: null,
+        selected_sub_unit_psto: null,
+        sub_unit_type: null,
+        client_type: null
     });
 
     const qr_link_type = ref(null);
@@ -214,68 +214,31 @@
                         <div class="card-body">
                             <div class="row g-3 align-items-end">
                                 <!-- Sub Unit Selection -->
+
+
+
                                 <div class="col-md-4" v-if="unit.data[0].sub_units && unit.data[0].sub_units.length > 0">
-                                    <label class="form-label fw-semibold">Select Sub Unit</label>
-                                    <vue-multiselect
-                                        v-model="form.selected_sub_unit"
-                                        :options="unit.data[0].sub_units || []"
-                                        :multiple="false"
-                                        placeholder="Select Sub Unit*"
-                                        label="sub_unit_name"
-                                        track-by="sub_unit_name"
-                                        :allow-empty="false"
-                                        class="custom-multiselect"
-                                    >
-                                    </vue-multiselect>
+<VueMultiselect v-model="form.selected_sub_unit" :options="unit.data[0].sub_units.map(u => ({ id: u.id, name: u.sub_unit_name }))" />
                                 </div>
 
                                 <!-- Unit PSTO Selection -->
+
                                 <div class="col-md-4" v-if="unit_pstos.length > 0">
-                                    <label class="form-label fw-semibold">Select Unit PSTO</label>
-                                    <vue-multiselect
-                                        v-model="form.selected_unit_psto"
-                                        :options="unit_pstos"
-                                        :multiple="false"
-                                        placeholder="Select Unit PSTO"
-                                        label="psto_name"
-                                        track-by="psto_name"
-                                        :allow-empty="false"
-                                        class="custom-multiselect"
-                                    >
-                                    </vue-multiselect>
+                                    <VueMultiselect v-model="form.selected_unit_psto" :options="unit_pstos.map(p => ({ id: p.id, name: p.psto_name }))" />
                                 </div>
+
+
+
 
                                 <!-- Sub Unit PSTO Selection -->
-                                <div class="col-md-4" v-if="sub_unit_pstos.length > 0">
-                                    <label class="form-label fw-semibold">Select Sub Unit PSTO</label>
-                                    <vue-multiselect
-                                        v-model="form.selected_sub_unit_psto"
-                                        :options="sub_unit_pstos"
-                                        :multiple="false"
-                                        placeholder="Select Sub Unit PSTO"
-                                        label="psto_name"
-                                        track-by="psto_name"
-                                        :allow-empty="false"
-                                        class="custom-multiselect"
-                                    >
-                                    </vue-multiselect>
-                                </div>
+<div class="col-md-4" v-if="sub_unit_pstos.length > 0">
+    <VueMultiselect v-model="form.selected_sub_unit_psto" :options="sub_unit_pstos.map(p => ({ id: p.id, name: p.psto_name }))" label="name" placeholder="Select Sub Unit PSTO" />
+</div>
 
                                 <!-- Sub Unit Type Selection -->
-                                <div class="col-md-4" v-if="sub_unit_types.length > 0 && form.selected_sub_unit">
-                                    <label class="form-label fw-semibold">Select Sub Unit Type</label>
-                                    <vue-multiselect
-                                        v-model="form.sub_unit_type"
-                                        :options="sub_unit_types"
-                                        :multiple="false"
-                                        placeholder="Select Sub Unit Type"
-                                        label="type_name"
-                                        track-by="type_name"
-                                        :allow-empty="false"
-                                        class="custom-multiselect"
-                                    >
-                                    </vue-multiselect>
-                                </div>
+<div class="col-md-4" v-if="sub_unit_types.length > 0 && form.selected_sub_unit">
+    <VueMultiselect v-model="form.sub_unit_type" :options="sub_unit_types.map(t => ({ id: t.id, name: t.type_name }))" label="name" placeholder="Select Sub Unit Type" />
+</div>
 
                                 <!-- Generate Button -->
                                 <div class="col-md-4 d-flex align-items-end">
@@ -363,7 +326,7 @@
                                     <QrcodeVue
                                         v-if="qr_link_type == 1.1"
                                         :render-as="'svg'"
-                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_idk=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}`"
+                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_id=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}`"
                                         :size="200"
                                         :foreground="'#000'"
                                         level="L"
@@ -423,7 +386,7 @@
     </AppLayout>
 </template>
 
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>
+
 
 <style scoped>
     .view-service-unit-page {
@@ -559,6 +522,11 @@
     }
 
     /* Custom Multiselect */
+    .custom-multiselect {
+        position: relative;
+        z-index: 100;
+    }
+
     .custom-multiselect :deep(.multiselect__tags) {
         min-height: 40px;
         border-color: #b8cfe8;
@@ -575,6 +543,37 @@
     .custom-multiselect :deep(.multiselect__input),
     .custom-multiselect :deep(.multiselect__single) {
         font-size: 0.95rem;
+    }
+
+    /* Fix for dropdown being hidden behind cards */
+.multiselect__dropdown {
+    z-index: 99999 !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.multiselect__content-wrapper {
+    z-index: 99999 !important;
+}
+
+.filter-card {
+    overflow: visible !important;
+}
+
+.filter-card .card-body {
+    overflow: visible !important;
+}
+
+.filter-card .row {
+    overflow: visible !important;
+}
+
+    .filter-card .card-body {
+        overflow: visible !important;
+    }
+
+    /* Ensure the row allows overflow */
+    .filter-card .row {
+        overflow: visible !important;
     }
 
     /* Generate Button */

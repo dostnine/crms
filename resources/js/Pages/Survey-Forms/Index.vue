@@ -5,7 +5,7 @@ import SignaturePad from "signature_pad";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Swal from "sweetalert2";
-import Multiselect from "@/Components/Multiselect.vue";
+/* Native selects used - Multiselect removed */
 
 const props = defineProps({
   cc_questions: Object,
@@ -682,18 +682,15 @@ watch(
                         <label for="client_type" class="form-label"
                           >Client Type <span class="text-danger">*</span></label
                         >
-                        <Multiselect
-                          id="client_type"
-                          v-model="form.client_type"
-                          placeholder="Please select your client type"
-                          :options="[
-                            'General Public',
-                            'Internal Employees',
-                            'Business/Organization',
-                            'Government Employees',
-                          ]"
-                          required
-                        />
+<select id="client_type" v-model="form.client_type" class="form-select" required>
+                          <option value="">Select Client Type</option>
+                          <option>General Public</option>
+                          <option>Internal Employees</option>
+                          <option>Business/Organization</option>
+                          <option>Government Employees</option>
+                        </select>
+
+
                         <div
                           class="invalid-feedback"
                           v-if="formSubmitted && !form.client_type"
@@ -706,13 +703,14 @@ watch(
                         <label for="sex" class="form-label"
                           >Sex <span class="text-danger">*</span></label
                         >
-                        <Multiselect
-                          id="sex"
-                          v-model="form.sex"
-                          placeholder="Please select your sex"
-                          :options="['Male', 'Female', 'Prefer not to say']"
-                          required
-                        />
+<select id="sex" v-model="form.sex" class="form-select" required>
+                          <option value="">Select Sex</option>
+                          <option>Male</option>
+                          <option>Female</option>
+                          <option>Prefer not to say</option>
+                        </select>
+
+
                         <div class="invalid-feedback" v-if="formSubmitted && !form.sex">
                           This field is required
                         </div>
@@ -722,21 +720,17 @@ watch(
                         <label for="age_group" class="form-label"
                           >Age Group <span class="text-danger">*</span></label
                         >
-                        <Multiselect
-                          id="age_group"
-                          v-model="form.age_group"
-                          placeholder="Please select your age group"
-                          :options="[
-                            '19 or lower',
-                            '20-34',
-                            '35-49',
-                            '50-64',
-                            '65+',
-                            'Prefer not to say',
-                          ]"
-                          label="value"
-                          required
-                        />
+<select id="age_group" v-model="form.age_group" class="form-select" required>
+                          <option value="">Select Age Group</option>
+                          <option>19 or lower</option>
+                          <option>20-34</option>
+                          <option>35-49</option>
+                          <option>50-64</option>
+                          <option>65+</option>
+                          <option>Prefer not to say</option>
+                        </select>
+
+
 
                         <div
                           class="invalid-feedback"
@@ -1008,20 +1002,22 @@ watch(
                   </h5>
 
                   <div class="mb-3">
-                    <textarea
+                  <textarea
                       v-if="form.is_complaint == true"
                       v-model="form.comment"
                       class="form-control"
-                      rows="4"
-                      placeholder="Input here!"
+                      rows="10"
+                      style="min-height: 150px; resize: vertical;"
+                      placeholder="Enter your detailed comments/suggestions here"
                       required
                     ></textarea>
                     <textarea
                       v-else
                       v-model="form.comment"
                       class="form-control"
-                      rows="4"
-                      placeholder="Input here"
+                      rows="10"
+                      style="min-height: 150px; resize: vertical;"
+                      placeholder="Enter your comments/suggestions here (supports long text)"
                     ></textarea>
                   </div>
 

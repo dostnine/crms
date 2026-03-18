@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('customer_id')
                 ->references('id')
                 ->on('customers');
-            $table->string('comment')->nullable();
+            $table->text('comment')->nullable();
             $table->boolean('is_complaint');
             $table->timestamps();
         });

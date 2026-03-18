@@ -154,6 +154,12 @@ const generateCSIReport = async () => {
   const is_printing = ref(false);
   const printCSIReport = async () => {
       is_printing.value = true;
+      
+      // Add body class for alt format printing
+      if (report_format.value === 'alternative') {
+        document.body.classList.add('printing-alt');
+      }
+      
       //  router.get('/generate-pdf', form , { preserveState: true, preserveScroll: true})
       //Create an instance of Printd
         let d = await new Printd();
@@ -248,13 +254,25 @@ const generateCSIReport = async () => {
             gap: 10px;
           }
           .print-only {
-            display: block !important;
+            display: none !important;
           }
           .alt-header,
           .alt-title,
           .alt-subtitle {
-            text-align: center !important;
-            width: 100%;
+            display: none !important;
+          }
+          /* Show alt header only when printing alternative format */
+          body.printing-alt .alt-header,
+          body.printing-alt .alt-title,
+          body.printing-alt .alt-subtitle {
+            display: block !important;
+          }
+          body.printing-alt .print-only {
+            display: block !important;
+          }
+          /* Show standard print header when printing standard format */
+          body:not(.printing-alt) .print-only {
+            display: block !important;
           }
           .pie-chart-collapsible {
             display: grid !important;
@@ -335,6 +353,11 @@ const generateCSIReport = async () => {
             margin: 0 auto 8px auto;
             border: 1px solid #94a3b8;
           }
+          /* Ensure pie charts print with colors */
+          .pie-circle {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           .pie-total {
             text-align: center;
             font-size: 10px;
@@ -364,6 +387,9 @@ const generateCSIReport = async () => {
         `;
 
        d.print(document.querySelector(".print-id"), [css]);
+       
+       // Clean up body class after printing
+       document.body.classList.remove('printing-alt');
 };
 
 </script>

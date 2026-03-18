@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   data: {
@@ -71,12 +71,55 @@ const getUnitPstosWithData = (serviceId, unitId) => {
     .map(([pstoId, psto]) => ({ id: pstoId, ...psto }));
 };
 
+const isAdminSupportUnit = (unit) => {
+  const name = (unit?.unit_name || '').toLowerCase();
+  return (
+    name.includes('administrative support services') ||
+    name.includes('administrative support service') ||
+    (name.includes('administrative') && name.includes('support')) ||
+    name.includes('admin support') ||
+    name.includes('admin support services') ||
+    name.includes('admin support service')
+  );
+};
+
+const getVisibleUnits = (service) => {
+  const units = service?.units || [];
+  return units.filter((unit) => !isAdminSupportUnit(unit));
+};
+
 const shouldShowServiceUnit = (serviceId, unit) => {
+  if (isAdminSupportUnit(unit)) {
+    return true;
+  }
   const totalRespo = props.data?.all_units_data?.units_data?.[serviceId]?.[unit.id]?.total_respo || 0;
   if (unit.unit_name === 'Research and Development Support' && totalRespo <= 0) {
     return false;
   }
   return totalRespo > 0 || (unit.sub_units && unit.sub_units.length > 0);
+};
+
+const showComments = ref(true);
+
+const normalizeComment = (item) => {
+  if (typeof item === 'string') {
+    return { text: item, unit: 'N/A', isComplaint: false, date: '' };
+  }
+  if (!item || typeof item !== 'object') {
+    return { text: '', unit: 'N/A', isComplaint: false, date: '' };
+  }
+  const rawDate = item.date || item.created_at || item['date'] || item['created_at'] || '';
+  const text = item.text ?? item.comment ?? item['text'] ?? item['comment'] ?? '';
+  const unit = item.unit_name ?? item.unit ?? item['unit_name'] ?? item['unit'] ?? 'N/A';
+  const isComplaint = Boolean(
+    item.is_complaint ?? item.isComplaint ?? item['is_complaint'] ?? item['isComplaint']
+  );
+  return {
+    text,
+    unit,
+    isComplaint,
+    date: rawDate || '',
+  };
 };
 
 const getRowVssCount = (row) => {
@@ -276,7 +319,7 @@ const formatNumberOrDash = (value) => {
             </tr>
             <template v-for="(unit, unitIndex) in service.units || []" :key="unitIndex">
               <template v-if="shouldShowServiceUnit(service.id, unit)">
-                <tr v-if="props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo > 0">
+                <tr v-if="!isAdminSupportUnit(unit) && props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo > 0">
                   <td class="pl-5">{{ unit.unit_name }}</td>
                   <td class="text-center">{{ props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.total_respo || '-' }}</td>
                   <td class="text-center">
@@ -295,8 +338,17 @@ const formatNumberOrDash = (value) => {
                     {{ formatNumberOrDash(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.lsr) }}
                   </td>
                 </tr>
+                <tr v-else-if="isAdminSupportUnit(unit)">
+                  <td class="pl-5">{{ unit.unit_name }}</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">-</td>
+                </tr>
 
-                <template v-if="getUnitPstosWithData(service.id, unit.id).length > 0">
+                <template v-if="!isAdminSupportUnit(unit) && getUnitPstosWithData(service.id, unit.id).length > 0">
                   <tr v-for="(unitPsto, unitPstoIndex) in getUnitPstosWithData(service.id, unit.id)" :key="'unitpsto-alt-' + unitPstoIndex" class="alt-sub-row">
                     <td class="pl-10">{{ unitPsto.psto_name || 'PSTO' }}</td>
                     <td class="text-center">{{ unitPsto.total_respo || '-' }}</td>
@@ -447,8 +499,13 @@ const formatNumberOrDash = (value) => {
 
     <!-- Comments and Complaints -->
     <div class="alt-section" v-if="(props.data?.total_respondents || 0) > 0 && (props.data?.total_comments || props.data?.total_complaints || (props.data?.comments && props.data.comments.length > 0))">
-      <div class="alt-assessment-title">COMMENTS AND COMPLAINTS:</div>
-      <div class="alt-comments-summary">
+      <div class="alt-assessment-title alt-comments-title">
+        <span>COMMENTS AND COMPLAINTS:</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary alt-toggle-btn" @click="showComments = !showComments">
+          {{ showComments ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+      <div v-show="showComments" class="alt-comments-summary">
         <div class="alt-comments-item">
           <span class="label">Comments:</span>
           <span class="value">{{ props.data.total_comments || 0 }}</span>
@@ -458,10 +515,35 @@ const formatNumberOrDash = (value) => {
           <span class="value">{{ props.data.total_complaints || 0 }}</span>
         </div>
       </div>
-      <div v-if="props.data.comments && props.data.comments.length > 0" class="alt-comments-list">
-        <div v-for="(comment, index) in props.data.comments" :key="'alt-comment-' + index" class="alt-comment-row">
-          <strong>[{{ index + 1 }}]</strong> {{ comment }}
-        </div>
+      <div v-show="showComments && props.data.comments && props.data.comments.length > 0" class="alt-comments-list">
+        <table class="table table-sm alt-comments-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Unit</th>
+                    <th>Comment</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(rawComment, index) in props.data.comments" :key="'alt-comment-' + index">
+                    <td><strong>{{ index + 1 }}</strong></td>
+                    <td>{{ normalizeComment(rawComment).unit }}</td>
+                    <td :class="normalizeComment(rawComment).isComplaint ? 'text-danger fw-semibold' : ''">
+                      {{ (normalizeComment(rawComment).text || '').substring(0, 80) + ((normalizeComment(rawComment).text || '').length > 80 ? '...' : '') }}
+                    </td>
+                    <td>{{ normalizeComment(rawComment).date }}</td>
+                    <td>
+                        <span v-if="normalizeComment(rawComment).isComplaint" style="color: red; font-weight: bold;">Complaint</span>
+                        <span v-else style="color: green;">Comment</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+      <div v-show="!showComments" class="alt-comments-collapsed">
+        Comments and complaints section is collapsed.
       </div>
     </div>
 
@@ -515,6 +597,21 @@ const formatNumberOrDash = (value) => {
   margin: 4px 0 0 0;
   font-size: 12px;
   font-weight: 600;
+}
+.alt-comments-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.alt-toggle-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.alt-comments-collapsed {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 12px;
 }
 .alt-title,
 .alt-subtitle {
@@ -642,12 +739,19 @@ const formatNumberOrDash = (value) => {
 .alt-comments-list {
   margin-top: 6px;
 }
-.alt-comment-row {
-  font-size: 10.5px;
-  padding: 4px 6px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 4px;
-  background: #f8fafc;
+.alt-comments-table {
+  font-size: 10px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.alt-comments-table th, .alt-comments-table td {
+  border: 1px solid #333;
+  padding: 3px;
+  text-align: left;
+}
+.alt-comments-table th {
+  background: #e3f2fd;
+  font-weight: bold;
 }
 .alt-assessment p {
   margin: 6px 0;

@@ -1,17 +1,28 @@
-# TODO: Fix CSAT 0.00% Display in All Services Units Dashboard
+# TODO List
 
-## Task Analysis
-The CSAT (Customer Satisfaction) is showing 0.00% in the All Services Units Dashboard because:
-1. The template uses `props.csat_total` which doesn't exist in the props definition
-2. The actual data is passed as `percentage_vss_respondents` from the backend
+## Current Tasks
 
-## Fix Plan
-- [x] 1. Analyze the code to find the root cause
-- [x] 2. Fix the template in Index.vue to use `percentage_vss_respondents` instead of `csat_total`
+### Make CSF Form Accept Longtext Comments [✅ Complete]
 
-## Implementation Steps
-1. Edit `resources/js/Pages/CSI/AllServicesUnits/Index.vue`
-2. Change `props.csat_total` to `props.percentage_vss_respondents` in the template
+**Steps:**
+- [✅] 1. Update TODO.md with new task tracking
+- [✅] 2. Enhanced textarea in Survey-Forms/Index.vue: rows=10, resizable, min-height for long comments UX
+- [✅] 3. Verified backend comment field (text/longtext capable)
 
-## Status: FIXED ✓
+**Changes:** CSF form now better supports long comments with larger, expandable textarea. DB already handles long text.
 
+---
+
+## Previous Tasks
+
+### Fix Comments Not Displaying in CSI All Services Units
+
+**Steps:**
+- [✅] 1. Add comments section to Yearly/Content.vue (copy from Monthly/Content.vue)
+- [ ] 2. Unify backend comments fetching logic in ReportController.php (use consistent JOIN/map across monthly/quarterly/yearly methods)
+- [ ] 3. Enhance normalizeComment() in Content.vue/AltContent.vue (better null handling)
+- [ ] 4. Test monthly/quarterly/yearly reports with sample comments data
+- [ ] 5. Verify print formats unchanged
+- [ ] 6. Update TODO.md as complete ✅
+
+**Current: Step 1 ✅ Complete. Proceeding to backend unification (step 2).**

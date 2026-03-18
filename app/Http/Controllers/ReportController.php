@@ -3558,13 +3558,22 @@ class ReportController extends Controller
         $numeric_month = Carbon::parse("1 {$request->selected_month}")->format('m');
 
         // Get customer IDs from CSFForm for the region filtered by month and year
-        $csf_forms = CSFForm::where('region_id', $user->region_id)
+$csf_forms = CSFForm::where('region_id', $user->region_id)
             ->whereMonth('created_at', $numeric_month)
             ->whereYear('created_at', $request->selected_year)
             ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
                 $query->whereIn('customer_id', $customerFilterIds);
             })
             ->pluck('customer_id');
+
+        $customerUnitMap = CSFForm::where('region_id', $user->region_id)
+            ->whereMonth('created_at', $numeric_month)
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->leftJoin('units', 'csf_forms.unit_id', '=', 'units.id')
+            ->pluck('units.unit_name', 'csf_forms.customer_id');
         $unit_customers = CSFForm::where('region_id', $user->region_id)
             ->whereMonth('created_at', $numeric_month)
             ->whereYear('created_at', $request->selected_year)
@@ -3613,6 +3622,31 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPS($request, $user->region_id, $numeric_month);
         $lsr_data = $this->getAllUnitLSR($request, $user->region_id, $numeric_month);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->leftJoin('csf_forms', 'customer_comments.customer_id', '=', 'csf_forms.customer_id')
+            ->leftJoin('units', 'csf_forms.unit_id', '=', 'units.id')
+            ->select(
+                'customer_comments.comment',
+                'customer_comments.is_complaint', 
+                'customer_comments.created_at',
+                'units.unit_name'
+            )
+            ->whereMonth('customer_comments.created_at', $numeric_month)
+            ->whereYear('customer_comments.created_at', $request->selected_year)
+            ->get();
+
+        $comments = $comment_list->filter(fn($item) => !empty(trim($item->comment)))
+            ->map(fn($item) => (object)[
+                'comment' => $item->comment,
+                'unit_name' => $item->unit_name ?? 'N/A',
+                'is_complaint' => (bool) $item->is_complaint,
+                'date' => \Carbon\Carbon::parse($item->created_at)->format('M d, Y')
+            ])->values();
+
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
          //send response to front end
          return Inertia::render('CSI/AllServicesUnits/Index')
                     ->with('services_units', $services_units)
@@ -3624,6 +3658,9 @@ class ReportController extends Controller
                     ->with('total_respondents', $all_units_data['grand_total_respondents'])
                     ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
                     ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+                    ->with('total_comments', $total_comments)
+                    ->with('total_complaints', $total_complaints)
+                    ->with('comments', $comments)
                     ->with('respondent_profile', $respondent_profile)
                     ->with('region', $user->region)
                     ->with('request', $request);
@@ -3690,6 +3727,31 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPSByQuarter($request, $user->region_id, $numeric_months);
         $lsr_data = $this->getAllUnitLSRByQuarter($request, $user->region_id, $numeric_months);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->leftJoin('csf_forms', 'customer_comments.customer_id', '=', 'csf_forms.customer_id')
+            ->leftJoin('units', 'csf_forms.unit_id', '=', 'units.id')
+            ->select(
+                'customer_comments.comment',
+                'customer_comments.is_complaint', 
+                'customer_comments.created_at',
+                'units.unit_name'
+            )
+            ->whereBetween('customer_comments.created_at', [$startDate, $endDate])
+            ->whereYear('customer_comments.created_at', $request->selected_year)
+            ->get();
+
+        $comments = $comment_list->filter(fn($item) => !empty(trim($item->comment)))
+            ->map(fn($item) => (object)[
+                'comment' => $item->comment,
+                'unit_name' => $item->unit_name ?? 'N/A',
+                'is_complaint' => (bool) $item->is_complaint,
+                'date' => \Carbon\Carbon::parse($item->created_at)->format('M d, Y')
+            ])->values();
+
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
         return Inertia::render('CSI/AllServicesUnits/Index')
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
@@ -3700,6 +3762,9 @@ class ReportController extends Controller
             ->with('total_respondents', $all_units_data['grand_total_respondents'])
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('respondent_profile', $respondent_profile)
             ->with('region', $user->region)
             ->with('request', $request);
@@ -3766,6 +3831,16 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPSByQuarter($request, $user->region_id, $numeric_months);
         $lsr_data = $this->getAllUnitLSRByQuarter($request, $user->region_id, $numeric_months);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->get();
+
+        $comments = $this->buildAllUnitsComments($comment_list, $csf_forms, $startDate, $endDate, null, $request->selected_year);
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
         return Inertia::render('CSI/AllServicesUnits/Index')
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
@@ -3776,6 +3851,9 @@ class ReportController extends Controller
             ->with('total_respondents', $all_units_data['grand_total_respondents'])
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('respondent_profile', $respondent_profile)
             ->with('region', $user->region)
             ->with('request', $request);
@@ -3842,6 +3920,16 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPSByQuarter($request, $user->region_id, $numeric_months);
         $lsr_data = $this->getAllUnitLSRByQuarter($request, $user->region_id, $numeric_months);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->get();
+
+        $comments = $this->buildAllUnitsComments($comment_list, $csf_forms, $startDate, $endDate, null, $request->selected_year);
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
         return Inertia::render('CSI/AllServicesUnits/Index')
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
@@ -3852,6 +3940,9 @@ class ReportController extends Controller
             ->with('total_respondents', $all_units_data['grand_total_respondents'])
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('respondent_profile', $respondent_profile)
             ->with('region', $user->region)
             ->with('request', $request);
@@ -3918,6 +4009,16 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPSByQuarter($request, $user->region_id, $numeric_months);
         $lsr_data = $this->getAllUnitLSRByQuarter($request, $user->region_id, $numeric_months);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereYear('created_at', $request->selected_year)
+            ->get();
+
+        $comments = $this->buildAllUnitsComments($comment_list, $csf_forms, $startDate, $endDate, null, $request->selected_year);
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
         return Inertia::render('CSI/AllServicesUnits/Index')
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
@@ -3928,6 +4029,9 @@ class ReportController extends Controller
             ->with('total_respondents', $all_units_data['grand_total_respondents'])
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('respondent_profile', $respondent_profile)
             ->with('region', $user->region)
             ->with('request', $request);
@@ -3994,6 +4098,15 @@ class ReportController extends Controller
         $nps_data = $this->getAllUnitNPSByQuarter($request, $user->region_id, $numeric_months);
         $lsr_data = $this->getAllUnitLSRByQuarter($request, $user->region_id, $numeric_months);
 
+        // Comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
+            ->whereYear('created_at', $request->selected_year)
+            ->get();
+
+        $comments = $this->buildAllUnitsComments($comment_list, $csf_forms, $startDate, $endDate, null, $request->selected_year);
+        $total_comments = $comments->count();
+        $total_complaints = $comments->where('is_complaint', true)->count();
+
         return Inertia::render('CSI/AllServicesUnits/Index')
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
@@ -4004,6 +4117,9 @@ class ReportController extends Controller
             ->with('total_respondents', $all_units_data['grand_total_respondents'])
             ->with('total_vss_respondents', $all_units_data['grand_total_vss_respondents'])
             ->with('percentage_vss_respondents', $all_units_data['grand_percentage_vss_respondents'])
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('respondent_profile', $respondent_profile)
             ->with('region', $user->region)
             ->with('request', $request);
@@ -4130,12 +4246,39 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
+        // Get all attribute ratings for sub-unit calculations
+        $allAttributeRatings = CustomerAttributeRating::whereIn('customer_id', $allCustomerIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // Get all sub-unit customers
+        $allSubUnitForms = CsfForm::where('region_id', $region_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNotNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'sub_unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+
+        $subUnitCustomerMap = $allSubUnitForms
+            ->groupBy(function ($form) {
+                return $form->service_id . '_' . $form->unit_id . '_' . $form->sub_unit_id;
+            })
+            ->map(function ($group) {
+                return $group->pluck('customer_id')->unique()->values();
+            });
+
         $services = Services::all();
         $units_data = [];
         $grand_total_respondents = 0;
         $grand_total_vss_respondents = 0;
         $grand_total_promoters = 0;
         $grand_total_detractors = 0;
+        $grand_total_recommendation_respondents = 0;
+        $grand_total_recommendation_respondents = 0;
+        $grand_total_recommendation_respondents = 0;
         $grand_total_recommendation_respondents = 0;
         $grand_total_recommendation_respondents = 0;
         
@@ -4163,19 +4306,19 @@ class ReportController extends Controller
 
         // Grand CC totals - Calculate from ALL customer IDs (same as calculateCC function)
         // NOT by summing per-unit values, as that would miss customers who don't have unit-specific forms
-        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->count();
-        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->count();
-        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->count();
-        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->count();
-        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->count();
-        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->count();
-        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->count();
-        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->count();
-        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->count();
-        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->count();
-        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->count();
-        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->count();
-        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->count();
+        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->unique('customer_id')->count();
+        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->unique('customer_id')->count();
+        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->unique('customer_id')->count();
+        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->unique('customer_id')->count();
 
         foreach ($services as $service) {
             $service_units = Unit::where('services_id', $service->id)->get();
@@ -4252,8 +4395,57 @@ class ReportController extends Controller
                 $cc3_ans3 = 0;
                 $cc3_ans4 = 0;
 
-                // Get sub-units for this unit (simplified for quarterly/yearly - no sub-unit data)
+                // Get sub-units for this unit (includes Administrative Support Services sub-units)
                 $sub_units_data = [];
+                if ($unit->sub_units && $unit->sub_units->count() > 0) {
+                    foreach ($unit->sub_units as $subUnit) {
+                        $subKey = $serviceId . '_' . $unitId . '_' . $subUnit->id;
+                        $subCustomerIds = $subUnitCustomerMap->get($subKey, collect());
+                        $subTotalRespo = $subCustomerIds->count();
+                        if ($subTotalRespo <= 0) {
+                            continue;
+                        }
+
+                        $subRatings = $allAttributeRatings->whereIn('customer_id', $subCustomerIds);
+                        $avgScores = $subRatings
+                            ->where('rate_score', '!=', 6)
+                            ->groupBy('customer_id')
+                            ->map(function ($rows) {
+                                return $rows->avg('rate_score');
+                            })
+                            ->values();
+
+                        $bucketData = $this->buildAverageBucketCounts($avgScores);
+                        $bucketCounts = $bucketData['counts'];
+                        $bucketTotal = $bucketData['total'];
+
+                        $stronglyAgree = (int) ($bucketCounts[5] ?? 0);
+                        $agree = (int) ($bucketCounts[4] ?? 0);
+                        $neither = (int) ($bucketCounts[3] ?? 0);
+                        $disagree = (int) ($bucketCounts[2] ?? 0);
+                        $stronglyDisagree = (int) ($bucketCounts[1] ?? 0);
+
+                        $pctStrongly = $bucketTotal > 0 ? ($stronglyAgree / $bucketTotal) * 100 : 0;
+                        $pctAgree = $bucketTotal > 0 ? ($agree / $bucketTotal) * 100 : 0;
+                        $pctNeither = $bucketTotal > 0 ? ($neither / $bucketTotal) * 100 : 0;
+                        $pctDisagree = $bucketTotal > 0 ? ($disagree / $bucketTotal) * 100 : 0;
+                        $pctStronglyDisagree = $bucketTotal > 0 ? ($stronglyDisagree / $bucketTotal) * 100 : 0;
+
+                        $sub_units_data[$subUnit->id] = [
+                            'total_respo' => $subTotalRespo,
+                            'strongly_agree_count' => $stronglyAgree,
+                            'agree_count' => $agree,
+                            'neither_count' => $neither,
+                            'disagree_count' => $disagree,
+                            'strongly_disagree_count' => $stronglyDisagree,
+                            'pct_strongly_agree' => number_format($pctStrongly, 2),
+                            'pct_agree' => number_format($pctAgree, 2),
+                            'pct_neither' => number_format($pctNeither, 2),
+                            'pct_disagree' => number_format($pctDisagree, 2),
+                            'pct_strongly_disagree' => number_format($pctStronglyDisagree, 2),
+                        ];
+                    }
+                }
 
                 $units_data[$serviceId][$unitId] = [
                     'unit_name' => $unit->unit_name,
@@ -4635,6 +4827,26 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             ->whereYear('created_at', $request->selected_year)
             ->get();
 
+        // Get all sub-unit customers
+        $allSubUnitForms = CsfForm::where('region_id', $region_id)
+            ->whereMonth('created_at', $numeric_month)
+            ->whereYear('created_at', $request->selected_year)
+            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
+                $query->whereIn('customer_id', $customerFilterIds);
+            })
+            ->whereNotNull('sub_unit_id')
+            ->select('service_id', 'unit_id', 'sub_unit_id', 'customer_id')
+            ->distinct()
+            ->get();
+
+        $subUnitCustomerMap = $allSubUnitForms
+            ->groupBy(function ($form) {
+                return $form->service_id . '_' . $form->unit_id . '_' . $form->sub_unit_id;
+            })
+            ->map(function ($group) {
+                return $group->pluck('customer_id')->unique()->values();
+            });
+
         $services = Services::all();
         $units_data = [];
         $grand_total_respondents = 0;
@@ -4663,19 +4875,19 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
 
         // Grand CC totals - Calculate from ALL customer IDs (same as calculateCC function)
         // NOT by summing per-unit values, as that would miss customers who don't have unit-specific forms
-        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->count();
-        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->count();
-        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->count();
-        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->count();
-        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->count();
-        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->count();
-        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->count();
-        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->count();
-        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->count();
-        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->count();
-        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->count();
-        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->count();
-        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->count();
+        $grand_cc1_ans1 = $allCCRatings->where('cc_id', 1)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc1_ans2 = $allCCRatings->where('cc_id', 1)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc1_ans3 = $allCCRatings->where('cc_id', 1)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc1_ans4 = $allCCRatings->where('cc_id', 1)->where('answer', 4)->unique('customer_id')->count();
+        $grand_cc2_ans1 = $allCCRatings->where('cc_id', 2)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc2_ans2 = $allCCRatings->where('cc_id', 2)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc2_ans3 = $allCCRatings->where('cc_id', 2)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc2_ans4 = $allCCRatings->where('cc_id', 2)->where('answer', 4)->unique('customer_id')->count();
+        $grand_cc2_ans5 = $allCCRatings->where('cc_id', 2)->where('answer', 5)->unique('customer_id')->count();
+        $grand_cc3_ans1 = $allCCRatings->where('cc_id', 3)->where('answer', 1)->unique('customer_id')->count();
+        $grand_cc3_ans2 = $allCCRatings->where('cc_id', 3)->where('answer', 2)->unique('customer_id')->count();
+        $grand_cc3_ans3 = $allCCRatings->where('cc_id', 3)->where('answer', 3)->unique('customer_id')->count();
+        $grand_cc3_ans4 = $allCCRatings->where('cc_id', 3)->where('answer', 4)->unique('customer_id')->count();
 
         $dimensions = Dimension::all();
         $dimension_count = $dimensions->count();
@@ -4767,22 +4979,71 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                 // Get CC data from pre-fetched data
                 $cc_ratings = $allCCRatings->whereIn('customer_id', $customer_ids);
 
-                $cc1_ans1 = $cc_ratings->where('cc_id', 1)->where('answer', 1)->count();
-                $cc1_ans2 = $cc_ratings->where('cc_id', 1)->where('answer', 2)->count();
-                $cc1_ans3 = $cc_ratings->where('cc_id', 1)->where('answer', 3)->count();
-                $cc1_ans4 = $cc_ratings->where('cc_id', 1)->where('answer', 4)->count();
-                $cc2_ans1 = $cc_ratings->where('cc_id', 2)->where('answer', 1)->count();
-                $cc2_ans2 = $cc_ratings->where('cc_id', 2)->where('answer', 2)->count();
-                $cc2_ans3 = $cc_ratings->where('cc_id', 2)->where('answer', 3)->count();
-                $cc2_ans4 = $cc_ratings->where('cc_id', 2)->where('answer', 4)->count();
-                $cc2_ans5 = $cc_ratings->where('cc_id', 2)->where('answer', 5)->count();
-                $cc3_ans1 = $cc_ratings->where('cc_id', 3)->where('answer', 1)->count();
-                $cc3_ans2 = $cc_ratings->where('cc_id', 3)->where('answer', 2)->count();
-                $cc3_ans3 = $cc_ratings->where('cc_id', 3)->where('answer', 3)->count();
-                $cc3_ans4 = $cc_ratings->where('cc_id', 3)->where('answer', 4)->count();
+                $cc1_ans1 = $cc_ratings->where('cc_id', 1)->where('answer', 1)->unique('customer_id')->count();
+                $cc1_ans2 = $cc_ratings->where('cc_id', 1)->where('answer', 2)->unique('customer_id')->count();
+                $cc1_ans3 = $cc_ratings->where('cc_id', 1)->where('answer', 3)->unique('customer_id')->count();
+                $cc1_ans4 = $cc_ratings->where('cc_id', 1)->where('answer', 4)->unique('customer_id')->count();
+                $cc2_ans1 = $cc_ratings->where('cc_id', 2)->where('answer', 1)->unique('customer_id')->count();
+                $cc2_ans2 = $cc_ratings->where('cc_id', 2)->where('answer', 2)->unique('customer_id')->count();
+                $cc2_ans3 = $cc_ratings->where('cc_id', 2)->where('answer', 3)->unique('customer_id')->count();
+                $cc2_ans4 = $cc_ratings->where('cc_id', 2)->where('answer', 4)->unique('customer_id')->count();
+                $cc2_ans5 = $cc_ratings->where('cc_id', 2)->where('answer', 5)->unique('customer_id')->count();
+                $cc3_ans1 = $cc_ratings->where('cc_id', 3)->where('answer', 1)->unique('customer_id')->count();
+                $cc3_ans2 = $cc_ratings->where('cc_id', 3)->where('answer', 2)->unique('customer_id')->count();
+                $cc3_ans3 = $cc_ratings->where('cc_id', 3)->where('answer', 3)->unique('customer_id')->count();
+                $cc3_ans4 = $cc_ratings->where('cc_id', 3)->where('answer', 4)->unique('customer_id')->count();
 
-                // Get sub-units - simplified for now (no detailed sub-unit data in optimized version)
+                // Get sub-units (includes Administrative Support Services sub-units)
                 $sub_units_data = [];
+                if ($unit->sub_units && $unit->sub_units->count() > 0) {
+                    foreach ($unit->sub_units as $subUnit) {
+                        $subKey = $service->id . '_' . $unit->id . '_' . $subUnit->id;
+                        $subCustomerIds = $subUnitCustomerMap->get($subKey, collect());
+                        $subTotalRespo = $subCustomerIds->count();
+                        if ($subTotalRespo <= 0) {
+                            continue;
+                        }
+
+                        $subRatings = $allAttributeRatings->whereIn('customer_id', $subCustomerIds);
+                        $avgScores = $subRatings
+                            ->where('rate_score', '!=', 6)
+                            ->groupBy('customer_id')
+                            ->map(function ($rows) {
+                                return $rows->avg('rate_score');
+                            })
+                            ->values();
+
+                        $bucketData = $this->buildAverageBucketCounts($avgScores);
+                        $bucketCounts = $bucketData['counts'];
+                        $bucketTotal = $bucketData['total'];
+
+                        $stronglyAgree = (int) ($bucketCounts[5] ?? 0);
+                        $agree = (int) ($bucketCounts[4] ?? 0);
+                        $neither = (int) ($bucketCounts[3] ?? 0);
+                        $disagree = (int) ($bucketCounts[2] ?? 0);
+                        $stronglyDisagree = (int) ($bucketCounts[1] ?? 0);
+
+                        $pctStrongly = $bucketTotal > 0 ? ($stronglyAgree / $bucketTotal) * 100 : 0;
+                        $pctAgree = $bucketTotal > 0 ? ($agree / $bucketTotal) * 100 : 0;
+                        $pctNeither = $bucketTotal > 0 ? ($neither / $bucketTotal) * 100 : 0;
+                        $pctDisagree = $bucketTotal > 0 ? ($disagree / $bucketTotal) * 100 : 0;
+                        $pctStronglyDisagree = $bucketTotal > 0 ? ($stronglyDisagree / $bucketTotal) * 100 : 0;
+
+                        $sub_units_data[$subUnit->id] = [
+                            'total_respo' => $subTotalRespo,
+                            'strongly_agree_count' => $stronglyAgree,
+                            'agree_count' => $agree,
+                            'neither_count' => $neither,
+                            'disagree_count' => $disagree,
+                            'strongly_disagree_count' => $stronglyDisagree,
+                            'pct_strongly_agree' => number_format($pctStrongly, 2),
+                            'pct_agree' => number_format($pctAgree, 2),
+                            'pct_neither' => number_format($pctNeither, 2),
+                            'pct_disagree' => number_format($pctDisagree, 2),
+                            'pct_strongly_disagree' => number_format($pctStronglyDisagree, 2),
+                        ];
+                    }
+                }
 
                 $units_data[$service->id][$unit->id] = [
                     'unit_name' => $unit->unit_name,
@@ -5091,40 +5352,43 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
 
     public function calculateCC($cc_query)
     {  
-           // Clone the original query builder instance
         $cc_query_clone = clone $cc_query;
+        $is_collection = $cc_query_clone instanceof \Illuminate\Support\Collection;
 
-        // CC 1 
-        $cc_query = clone $cc_query_clone;
-        $cc1_ans4 = $cc_query->where('cc_id', 1)->where('answer', 4)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc1_ans3 = $cc_query->where('cc_id', 1)->where('answer', 3)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc1_ans2 = $cc_query->where('cc_id', 1)->where('answer', 2)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc1_ans1 = $cc_query->where('cc_id', 1)->where('answer', 1)->count();
+        $countDistinct = function (int $ccId, int $answer) use ($cc_query_clone, $is_collection) {
+            if ($is_collection) {
+                return $cc_query_clone
+                    ->where('cc_id', $ccId)
+                    ->where('answer', $answer)
+                    ->unique('customer_id')
+                    ->count();
+            }
 
-        // CC 2 
-        $cc_query = clone $cc_query_clone;
-        $cc2_ans5 = $cc_query->where('cc_id', 2)->where('answer', 5)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc2_ans4 = $cc_query->where('cc_id', 2)->where('answer', 4)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc2_ans3 = $cc_query->where('cc_id', 2)->where('answer', 3)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc2_ans2 = $cc_query->where('cc_id', 2)->where('answer', 2)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc2_ans1 = $cc_query->where('cc_id', 2)->where('answer', 1)->count();
+            return (clone $cc_query_clone)
+                ->where('cc_id', $ccId)
+                ->where('answer', $answer)
+                ->distinct('customer_id')
+                ->count('customer_id');
+        };
+
+        // CC 1
+        $cc1_ans4 = $countDistinct(1, 4);
+        $cc1_ans3 = $countDistinct(1, 3);
+        $cc1_ans2 = $countDistinct(1, 2);
+        $cc1_ans1 = $countDistinct(1, 1);
+
+        // CC 2
+        $cc2_ans5 = $countDistinct(2, 5);
+        $cc2_ans4 = $countDistinct(2, 4);
+        $cc2_ans3 = $countDistinct(2, 3);
+        $cc2_ans2 = $countDistinct(2, 2);
+        $cc2_ans1 = $countDistinct(2, 1);
 
         // CC 3
-        $cc_query = clone $cc_query_clone;
-        $cc3_ans4 = $cc_query->where('cc_id', 3)->where('answer', 4)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc3_ans3 = $cc_query->where('cc_id', 3)->where('answer', 3)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc3_ans2 = $cc_query->where('cc_id', 3)->where('answer', 2)->count();
-        $cc_query = clone $cc_query_clone;
-        $cc3_ans1 = $cc_query->where('cc_id', 3)->where('answer', 1)->count();
+        $cc3_ans4 = $countDistinct(3, 4);
+        $cc3_ans3 = $countDistinct(3, 3);
+        $cc3_ans2 = $countDistinct(3, 2);
+        $cc3_ans1 = $countDistinct(3, 1);
 
         // Calculate total counts for percentage calculation
         $cc1_total = $cc1_ans1 + $cc1_ans2 + $cc1_ans3 + $cc1_ans4;
@@ -5196,6 +5460,43 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
         ];
 
         return $cc_data;
+    }
+
+    private function buildAllUnitsComments($comment_list, $customer_ids, $startDate = null, $endDate = null, $month = null, $year = null)
+    {
+        $csfQuery = CSFForm::whereIn('customer_id', $customer_ids);
+        if ($startDate && $endDate) {
+            $csfQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        if ($month) {
+            $csfQuery->whereMonth('created_at', $month);
+        }
+        if ($year) {
+            $csfQuery->whereYear('created_at', $year);
+        }
+
+        $csfRows = $csfQuery
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('customer_id');
+
+        $unitNames = Unit::whereIn('id', $csfRows->pluck('unit_id')->filter())
+            ->pluck('unit_name', 'id');
+
+        $customerUnitMap = $csfRows->mapWithKeys(function ($row) use ($unitNames) {
+            return [$row->customer_id => $unitNames[$row->unit_id] ?? null];
+        });
+
+        return $comment_list
+            ->where('comment', '!=', '')
+            ->values()
+            ->map(function ($comment) use ($customerUnitMap) {
+                return [
+                    'text' => (string) $comment->comment,
+                    'is_complaint' => (int) $comment->is_complaint === 1,
+                    'unit_name' => $customerUnitMap[$comment->customer_id] ?? null,
+                ];
+            });
     }
 
 }

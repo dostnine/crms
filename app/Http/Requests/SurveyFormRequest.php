@@ -21,6 +21,7 @@ class SurveyFormRequest extends FormRequest
      */
     public function rules(): array
     {
+
         return [
             //
             'region_id' => 'required|integer|exists:regions,id',
@@ -45,7 +46,7 @@ class SurveyFormRequest extends FormRequest
             'answer' => 'nullable|integer|max:255',
 
             //customer comment validation
-            'comment' => 'nullable|string|max:255',
+            'comment' => 'nullable|string',
             'is_complaint' => 'boolean',
 
             //customer toher data validation

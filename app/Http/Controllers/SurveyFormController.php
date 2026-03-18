@@ -131,6 +131,7 @@ class SurveyFormController extends Controller
             // Save csf form
             $this->saveCSFForm($request, $customer);
 
+
             DB::commit();
            
             return Inertia::render('Survey-Forms/ThankYou')
@@ -144,6 +145,7 @@ class SurveyFormController extends Controller
             DB::rollBack();
             //return $e;
             $msg = $e->getMessage();
+     
             return back()->with([
                 'message' => $msg ,
                 'status' => "error",
