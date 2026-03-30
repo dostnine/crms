@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   data: {
@@ -99,8 +99,6 @@ const shouldShowServiceUnit = (serviceId, unit) => {
   return totalRespo > 0 || (unit.sub_units && unit.sub_units.length > 0);
 };
 
-const showComments = ref(true);
-
 const normalizeComment = (item) => {
   if (typeof item === 'string') {
     return { text: item, unit: 'N/A', isComplaint: false, date: '' };
@@ -117,10 +115,26 @@ const normalizeComment = (item) => {
   return {
     text,
     unit,
+    subUnit: item.sub_unit_name ?? item.subUnit ?? item['sub_unit_name'] ?? item['subUnit'] ?? 'N/A',
+    psto: item.psto_name ?? item.psto ?? item['psto_name'] ?? item['psto'] ?? 'N/A',
     isComplaint,
     date: rawDate || '',
   };
 };
+
+const normalizedComments = computed(() => {
+  return (props.data?.comments || [])
+    .map(normalizeComment)
+    .filter((item) => item.text);
+});
+
+const commentEntries = computed(() => {
+  return normalizedComments.value.filter((item) => !item.isComplaint);
+});
+
+const complaintEntries = computed(() => {
+  return normalizedComments.value.filter((item) => item.isComplaint);
+});
 
 const getRowVssCount = (row) => {
   return Number(row?.strongly_agree_count || 0) + Number(row?.agree_count || 0);
@@ -498,14 +512,11 @@ const formatNumberOrDash = (value) => {
     </div>
 
     <!-- Comments and Complaints -->
-    <div class="alt-section" v-if="(props.data?.total_respondents || 0) > 0 && (props.data?.total_comments || props.data?.total_complaints || (props.data?.comments && props.data.comments.length > 0))">
+    <div class="alt-section alt-comments-section" v-if="(props.data?.total_respondents || 0) > 0 && (props.data?.total_comments || props.data?.total_complaints || (props.data?.comments && props.data.comments.length > 0))">
       <div class="alt-assessment-title alt-comments-title">
         <span>COMMENTS AND COMPLAINTS:</span>
-        <button type="button" class="btn btn-sm btn-outline-secondary alt-toggle-btn" @click="showComments = !showComments">
-          {{ showComments ? 'Hide' : 'Show' }}
-        </button>
       </div>
-      <div v-show="showComments" class="alt-comments-summary">
+      <div class="alt-comments-summary">
         <div class="alt-comments-item">
           <span class="label">Comments:</span>
           <span class="value">{{ props.data.total_comments || 0 }}</span>
@@ -515,35 +526,62 @@ const formatNumberOrDash = (value) => {
           <span class="value">{{ props.data.total_complaints || 0 }}</span>
         </div>
       </div>
-      <div v-show="showComments && props.data.comments && props.data.comments.length > 0" class="alt-comments-list">
-        <table class="table table-sm alt-comments-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Unit</th>
-                    <th>Comment</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(rawComment, index) in props.data.comments" :key="'alt-comment-' + index">
-                    <td><strong>{{ index + 1 }}</strong></td>
-                    <td>{{ normalizeComment(rawComment).unit }}</td>
-                    <td :class="normalizeComment(rawComment).isComplaint ? 'text-danger fw-semibold' : ''">
-                      {{ (normalizeComment(rawComment).text || '').substring(0, 80) + ((normalizeComment(rawComment).text || '').length > 80 ? '...' : '') }}
-                    </td>
-                    <td>{{ normalizeComment(rawComment).date }}</td>
-                    <td>
-                        <span v-if="normalizeComment(rawComment).isComplaint" style="color: red; font-weight: bold;">Complaint</span>
-                        <span v-else style="color: green;">Comment</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-      </div>
-      <div v-show="!showComments" class="alt-comments-collapsed">
-        Comments and complaints section is collapsed.
+      <div v-if="normalizedComments.length > 0" class="alt-comments-list">
+        <div v-if="commentEntries.length > 0" class="alt-comment-print-section">
+          <div class="alt-section-title">COMMENTS LIST ({{ commentEntries.length }} TOTAL)</div>
+          <table class="table table-sm alt-comments-table">
+              <thead>
+                  <tr>
+                      <th>#</th>
+                      <th>Unit</th>
+                      <th>Sub Unit</th>
+                      <th>PSTO</th>
+                      <th>Comment</th>
+                      <th>Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr v-for="(entry, index) in commentEntries" :key="'alt-comment-only-' + index">
+                      <td><strong>{{ index + 1 }}</strong></td>
+                      <td>{{ entry.unit }}</td>
+                      <td>{{ entry.subUnit }}</td>
+                      <td>{{ entry.psto }}</td>
+                      <td>
+                        {{ entry.text || '' }}
+                      </td>
+                      <td>{{ entry.date }}</td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
+
+        <div v-if="complaintEntries.length > 0" class="alt-comment-print-section alt-complaint-print-section">
+          <div class="alt-section-title" style="color: #b91c1c;">COMPLAINTS LIST ({{ complaintEntries.length }} TOTAL)</div>
+          <table class="table table-sm alt-comments-table">
+              <thead>
+                  <tr>
+                      <th>#</th>
+                      <th>Unit</th>
+                      <th>Sub Unit</th>
+                      <th>PSTO</th>
+                      <th>Complaint</th>
+                      <th>Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr v-for="(entry, index) in complaintEntries" :key="'alt-complaint-only-' + index">
+                      <td><strong>{{ index + 1 }}</strong></td>
+                      <td>{{ entry.unit }}</td>
+                      <td>{{ entry.subUnit }}</td>
+                      <td>{{ entry.psto }}</td>
+                      <td style="color: red; font-weight: bold;">
+                        {{ entry.text || '' }}
+                      </td>
+                      <td>{{ entry.date }}</td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -604,15 +642,6 @@ const formatNumberOrDash = (value) => {
   justify-content: space-between;
   gap: 12px;
 }
-.alt-toggle-btn {
-  font-size: 11px;
-  padding: 2px 8px;
-}
-.alt-comments-collapsed {
-  margin-top: 6px;
-  color: #6b7280;
-  font-size: 12px;
-}
 .alt-title,
 .alt-subtitle {
   text-align: center;
@@ -624,6 +653,21 @@ const formatNumberOrDash = (value) => {
   .alt-subtitle {
     text-align: center !important;
     width: 100%;
+  }
+  .alt-comments-section {
+    display: block !important;
+    clear: both !important;
+    break-before: page;
+    page-break-before: always;
+  }
+  .alt-comment-print-section {
+    display: block !important;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+  .alt-complaint-print-section {
+    break-before: page;
+    page-break-before: always;
   }
 }
 .alt-section-title {
@@ -738,6 +782,9 @@ const formatNumberOrDash = (value) => {
 }
 .alt-comments-list {
   margin-top: 6px;
+}
+.alt-comment-print-section + .alt-comment-print-section {
+  margin-top: 12px;
 }
 .alt-comments-table {
   font-size: 10px;

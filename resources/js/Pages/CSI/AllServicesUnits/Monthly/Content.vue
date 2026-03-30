@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, ref } from 'vue'
+    import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
     
     const props = defineProps({
         data: {
@@ -266,6 +266,11 @@
     };
 
     const showComments = ref(true);
+    const commentFilter = ref('all');
+    const isPrinting = ref(false);
+    const isPrintMode = computed(() => {
+        return isPrinting.value || Boolean(props.data?.isPrinting?.value) || Boolean(props.data?.isPrinting);
+    });
 
     const normalizeComment = (item) => {
         if (typeof item === 'string') {
@@ -283,10 +288,54 @@
         return {
             text,
             unit,
+            subUnit: (item.sub_unit_name ?? item.subUnit ?? item['sub_unit_name'] ?? item['subUnit'] ?? 'N/A'),
+            psto: (item.psto_name ?? item.psto ?? item['psto_name'] ?? item['psto'] ?? 'N/A'),
             isComplaint,
             date: rawDate || '',
         };
     };
+
+    const normalizedComments = computed(() => {
+        return (props.data?.comments || [])
+            .map(normalizeComment)
+            .filter((item) => item.text);
+    });
+
+    const commentEntries = computed(() => {
+        return normalizedComments.value.filter((item) => !item.isComplaint);
+    });
+
+    const complaintEntries = computed(() => {
+        return normalizedComments.value.filter((item) => item.isComplaint);
+    });
+
+    const showCommentEntries = computed(() => {
+        return commentFilter.value === 'all' || commentFilter.value === 'comments';
+    });
+
+    const showComplaintEntries = computed(() => {
+        return commentFilter.value === 'all' || commentFilter.value === 'complaints';
+    });
+
+    const handleBeforePrint = () => {
+        isPrinting.value = true;
+    };
+
+    const handleAfterPrint = () => {
+        isPrinting.value = false;
+    };
+
+    onMounted(() => {
+        if (typeof window === 'undefined') return;
+        window.addEventListener('beforeprint', handleBeforePrint);
+        window.addEventListener('afterprint', handleAfterPrint);
+    });
+
+    onBeforeUnmount(() => {
+        if (typeof window === 'undefined') return;
+        window.removeEventListener('beforeprint', handleBeforePrint);
+        window.removeEventListener('afterprint', handleAfterPrint);
+    });
 
 </script>
 <template>
@@ -825,7 +874,7 @@
             <!-- Comments and Complaints -->
             <div
                 v-if="(props.data?.total_comments || 0) > 0 || (props.data?.total_complaints || 0) > 0 || (props.data?.comments && props.data.comments.length > 0)"
-                class="card mb-4 shadow-lg"
+                class="card mb-4 shadow-lg comments-section-card"
             >
                 <div class="card-header bg-light">
                     <div class="d-flex justify-content-between align-items-center">
@@ -833,13 +882,20 @@
                             <i class="ri-chat-1-line me-2"></i>
                             COMMENTS AND COMPLAINTS
                         </h5>
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            @click="showComments = !showComments"
-                        >
-                            {{ showComments ? 'Hide' : 'Show' }}
-                        </button>
+                        <div v-if="!isPrintMode" class="d-flex align-items-center gap-2 comment-controls print-hidden">
+                            <select v-model="commentFilter" class="form-select form-select-sm comment-filter-select print-hidden">
+                                <option value="all">All</option>
+                                <option value="complaints">Complaints only</option>
+                                <option value="comments">Comments only</option>
+                            </select>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="showComments = !showComments"
+                            >
+                                {{ showComments ? 'Hide' : 'Show' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div v-show="showComments" class="card-body">
@@ -857,42 +913,71 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="props.data.comments && props.data.comments.length > 0" class="mt-3">
-                        <h6 class="text-muted mb-3">
-                            <i class="ri-list-check me-1"></i>Comments List ({{ props.data.comments.length }} total)
-                        </h6>
+                    <div v-if="normalizedComments.length > 0" class="mt-3">
                         <div class="table-responsive">
-                            <table class="table table-hover table-sm comments-table">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 50px">#</th>
-                                        <th style="width: 150px">Unit</th>
-                                        <th>Comment</th>
-                                        <th style="width: 120px">Date</th>
-                                        <th style="width: 100px">Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(rawComment, index) in props.data.comments" :key="'comment-' + index" class="align-middle">
-                                        <td class="fw-bold text-muted">{{ index + 1 }}</td>
-                                        <td>
-                                            <span class="badge bg-info text-wrap">{{ normalizeComment(rawComment).unit }}</span>
-                                        </td>
-                                        <td :class="normalizeComment(rawComment).isComplaint ? 'text-danger fw-semibold' : ''">
-                                            <div v-if="(normalizeComment(rawComment).text || '').length > 100" class="comment-text">
-                                                <span>{{ (normalizeComment(rawComment).text || '').substring(0, 100) }}...</span>
-                                                <button class="btn btn-sm btn-link p-0 ms-1" @click.stop>Read more</button>
-                                            </div>
-                                            <div v-else>{{ normalizeComment(rawComment).text || '' }}</div>
-                                        </td>
-                                        <td><small class="text-muted">{{ normalizeComment(rawComment).date }}</small></td>
-                                        <td>
-                                            <span v-if="normalizeComment(rawComment).isComplaint" class="badge bg-danger">Complaint</span>
-                                            <span v-else class="badge bg-success">Comment</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div v-if="showCommentEntries && commentEntries.length > 0" class="comment-print-section">
+                                <h6 class="text-muted mb-3">
+                                    <i class="ri-chat-3-line me-1"></i>Comments List ({{ commentEntries.length }} total)
+                                </h6>
+                                <table class="table table-hover table-sm comments-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 50px">#</th>
+                                            <th style="width: 150px">Unit</th>
+                                            <th style="width: 150px">Sub Unit</th>
+                                            <th style="width: 120px">PSTO</th>
+                                            <th>Comment</th>
+                                            <th style="width: 120px">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(entry, index) in commentEntries" :key="'comment-only-' + index" class="align-middle">
+                                            <td class="fw-bold text-muted">{{ index + 1 }}</td>
+                                            <td>
+                                                <span class="badge bg-info text-wrap">{{ entry.unit }}</span>
+                                            </td>
+                                            <td>{{ entry.subUnit }}</td>
+                                            <td>{{ entry.psto }}</td>
+                                            <td>
+                                                {{ entry.text || '' }}
+                                            </td>
+                                            <td><small class="text-muted">{{ entry.date }}</small></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div v-if="showComplaintEntries && complaintEntries.length > 0" class="comment-print-section complaint-print-section">
+                                <h6 class="text-danger mb-3">
+                                    <i class="ri-alert-line me-1"></i>Complaints List ({{ complaintEntries.length }} total)
+                                </h6>
+                                <table class="table table-hover table-sm comments-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 50px">#</th>
+                                            <th style="width: 150px">Unit</th>
+                                            <th style="width: 150px">Sub Unit</th>
+                                            <th style="width: 120px">PSTO</th>
+                                            <th>Complaint</th>
+                                            <th style="width: 120px">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(entry, index) in complaintEntries" :key="'complaint-only-' + index" class="align-middle">
+                                            <td class="fw-bold text-muted">{{ index + 1 }}</td>
+                                            <td>
+                                                <span class="badge bg-info text-wrap">{{ entry.unit }}</span>
+                                            </td>
+                                            <td>{{ entry.subUnit }}</td>
+                                            <td>{{ entry.psto }}</td>
+                                            <td class="text-danger fw-semibold">
+                                                {{ entry.text || '' }}
+                                            </td>
+                                            <td><small class="text-muted">{{ entry.date }}</small></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -954,6 +1039,27 @@
     .pie-circle {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+    .comments-section-card {
+        display: block !important;
+        clear: both !important;
+        break-before: page;
+        page-break-before: always;
+    }
+    .comment-print-section {
+        display: block !important;
+        break-inside: auto;
+        page-break-inside: auto;
+    }
+    .complaint-print-section {
+        break-before: page;
+        page-break-before: always;
+    }
+    .comment-controls {
+        display: none !important;
+    }
+    .print-hidden {
+        display: none !important;
     }
 }
 
@@ -1061,6 +1167,14 @@ tr,th, td {
 
 .comment-text {
     cursor: pointer;
+}
+
+.comment-print-section + .comment-print-section {
+    margin-top: 1.5rem;
+}
+
+.comment-filter-select {
+    width: 170px;
 }
 
 .badge {

@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { Printd } from "printd";
 import Swal from 'sweetalert2';
@@ -154,6 +154,21 @@ const generateCSIReport = async () => {
   const is_printing = ref(false);
   const printCSIReport = async () => {
       is_printing.value = true;
+      await nextTick();
+
+      // Force-close any open native dropdown/focused control before cloning the DOM for print.
+      const activeElement = document.activeElement;
+      if (activeElement && typeof activeElement.blur === 'function') {
+        activeElement.blur();
+      }
+
+      document.querySelectorAll('select').forEach((select) => {
+        if (typeof select.blur === 'function') {
+          select.blur();
+        }
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
       
       // Add body class for alt format printing
       if (report_format.value === 'alternative') {
@@ -256,9 +271,14 @@ const generateCSIReport = async () => {
           .print-only {
             display: none !important;
           }
+          .print-header,
+          .print-title,
+          .print-subtitle,
           .alt-header,
           .alt-title,
           .alt-subtitle {
+            width: 100% !important;
+            text-align: center !important;
             display: none !important;
           }
           /* Show alt header only when printing alternative format */
@@ -271,14 +291,20 @@ const generateCSIReport = async () => {
             display: block !important;
           }
           /* Show standard print header when printing standard format */
-          body:not(.printing-alt) .print-only {
+          body:not(.printing-alt) .print-only,
+          body:not(.printing-alt) .print-header,
+          body:not(.printing-alt) .print-title,
+          body:not(.printing-alt) .print-subtitle {
             display: block !important;
           }
           .pie-chart-collapsible {
             display: grid !important;
           }
           .pie-toggle-btn,
-          .pie-collapsed-note {
+          .pie-collapsed-note,
+          .comment-controls,
+          .comment-filter-select,
+          .print-hidden {
             display: none !important;
           }
           .pie-card {
@@ -286,6 +312,36 @@ const generateCSIReport = async () => {
             border-radius: 6px;
             padding: 8px;
             page-break-inside: avoid;
+          }
+          .comments-section-card {
+            display: block !important;
+            clear: both !important;
+            break-before: page !important;
+            page-break-before: always !important;
+          }
+          .comment-print-section {
+            display: block !important;
+            break-inside: auto !important;
+            page-break-inside: auto !important;
+          }
+          .complaint-print-section {
+            break-before: page !important;
+            page-break-before: always !important;
+          }
+          .alt-comments-section {
+            display: block !important;
+            clear: both !important;
+            break-before: page !important;
+            page-break-before: always !important;
+          }
+          .alt-comment-print-section {
+            display: block !important;
+            break-inside: auto !important;
+            page-break-inside: auto !important;
+          }
+          .alt-complaint-print-section {
+            break-before: page !important;
+            page-break-before: always !important;
           }
           .service-category-summary {
             page-break-inside: avoid;
@@ -390,6 +446,7 @@ const generateCSIReport = async () => {
        
        // Clean up body class after printing
        document.body.classList.remove('printing-alt');
+       is_printing.value = false;
 };
 
 </script>
@@ -568,6 +625,7 @@ const generateCSIReport = async () => {
                                     total_comments: props.total_comments,
                                     total_complaints: props.total_complaints,
                                     comments: props.comments,
+                                    isPrinting: is_printing,
                                     csi_total: props.csi_total,
                                     nps_total: props.nps_total,
                                 lsr_total: props.lsr_total,
@@ -588,6 +646,7 @@ const generateCSIReport = async () => {
                                     total_comments: props.total_comments,
                                     total_complaints: props.total_complaints,
                                     comments: props.comments,
+                                    isPrinting: is_printing,
                                     csi_total: props.csi_total,
                                     nps_total: props.nps_total,
                                 lsr_total: props.lsr_total,
