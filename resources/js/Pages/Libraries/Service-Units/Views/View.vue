@@ -49,7 +49,9 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
     watch(
         () => form.selected_sub_unit,
         (value) => {
-            getSubUnitPSTO(value.id);
+            if (value?.id) {
+                getSubUnitPSTO(value.id);
+            }
         }
     );
 
@@ -217,37 +219,37 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
 
 
 
-                                <div class="col-md-4" v-if="unit.data[0].sub_units && unit.data[0].sub_units.length > 0">
-<VueMultiselect v-model="form.selected_sub_unit" :options="unit.data[0].sub_units.map(u => ({ id: u.id, name: u.sub_unit_name }))" />
+                                <div class="col-md-4 dropdown-field" v-if="unit.data[0].sub_units && unit.data[0].sub_units.length > 0">
+                                    <VueMultiselect v-model="form.selected_sub_unit" :options="unit.data[0].sub_units.map(u => ({ ...u, name: u.sub_unit_name }))" placeholder="Select Sub Unit" />
                                 </div>
 
                                 <!-- Unit PSTO Selection -->
 
-                                <div class="col-md-4" v-if="unit_pstos.length > 0">
-                                    <VueMultiselect v-model="form.selected_unit_psto" :options="unit_pstos.map(p => ({ id: p.id, name: p.psto_name }))" />
+                                <div class="col-md-4 dropdown-field" v-if="unit_pstos.length > 0">
+                                    <VueMultiselect v-model="form.selected_unit_psto" :options="unit_pstos.map(p => ({ ...p, name: p.psto_name }))" placeholder="Select Unit PSTO" />
                                 </div>
 
 
 
 
                                 <!-- Sub Unit PSTO Selection -->
-<div class="col-md-4" v-if="sub_unit_pstos.length > 0">
-    <VueMultiselect v-model="form.selected_sub_unit_psto" :options="sub_unit_pstos.map(p => ({ id: p.id, name: p.psto_name }))" label="name" placeholder="Select Sub Unit PSTO" />
+<div class="col-md-4 dropdown-field" v-if="sub_unit_pstos.length > 0">
+    <VueMultiselect v-model="form.selected_sub_unit_psto" :options="sub_unit_pstos.map(p => ({ ...p, name: p.psto_name }))" label="name" placeholder="Select Sub Unit PSTO" />
 </div>
 
                                 <!-- Sub Unit Type Selection -->
-<div class="col-md-4" v-if="sub_unit_types.length > 0 && form.selected_sub_unit">
-    <VueMultiselect v-model="form.sub_unit_type" :options="sub_unit_types.map(t => ({ id: t.id, name: t.type_name }))" label="name" placeholder="Select Sub Unit Type" />
+<div class="col-md-4 dropdown-field" v-if="sub_unit_types.length > 0 && form.selected_sub_unit">
+    <VueMultiselect v-model="form.sub_unit_type" :options="sub_unit_types.map(t => ({ ...t, name: t.type_name }))" label="name" placeholder="Select Sub Unit Type" />
 </div>
 
                                 <!-- Generate Button -->
                                 <div class="col-md-4 d-flex align-items-end">
                                     <button
                                         class="btn btn-primary w-100 generate-btn"
-                                        :disabled="(unit.data[0].sub_units && unit.data[0].sub_units.length > 0 && form.selected_sub_unit == '') ||
-                                            sub_unit_pstos.length > 0 && form.selected_sub_unit_psto == '' ||
-                                            unit_pstos.length > 0 && form.selected_unit_psto == '' ||
-                                            form.selected_sub_unit == 3 && form.sub_unit_type == ''"
+                                        :disabled="(unit.data[0].sub_units && unit.data[0].sub_units.length > 0 && !form.selected_sub_unit) ||
+                                            (sub_unit_pstos.length > 0 && !form.selected_sub_unit_psto) ||
+                                            (unit_pstos.length > 0 && !form.selected_unit_psto) ||
+                                            (form.selected_sub_unit?.id == 3 && !form.sub_unit_type)"
                                         @click="generateURL(form.selected_sub_unit, form.selected_unit_psto, form.selected_sub_unit_psto, form.sub_unit_type)"
                                     >
                                         <i class="ri-link me-2"></i>
@@ -326,7 +328,7 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
                                     <QrcodeVue
                                         v-if="qr_link_type == 1.1"
                                         :render-as="'svg'"
-                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_id=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}`"
+                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_id=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}&sub_unit_type=${form.sub_unit_type.type_name}`"
                                         :size="200"
                                         :foreground="'#000'"
                                         level="L"
@@ -335,7 +337,7 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
                                     <QrcodeVue
                                         v-if="qr_link_type == 1.2"
                                         :render-as="'svg'"
-                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_id=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}&sub_unit_type=${form.sub_unit_type.type_name}`"
+                                        :value="`${baseURL}/services/csf?region_id=${user.region_id}&service_id=${props.service.id}&unit_id=${unit.data[0].id }&sub_unit_id=${form.selected_sub_unit.id}`"
                                         :size="200"
                                         :foreground="'#000'"
                                         level="L"
@@ -495,6 +497,12 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
     .filter-card {
         border-radius: 14px;
         overflow: hidden;
+        position: relative;
+        z-index: 30;
+    }
+
+    .filter-card:focus-within {
+        z-index: 1000;
     }
 
     .filter-card-header {
@@ -527,32 +535,47 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
         z-index: 100;
     }
 
-    .custom-multiselect :deep(.multiselect__tags) {
+    .dropdown-field {
+        position: relative;
+        z-index: 1001;
+    }
+
+    .custom-multiselect :deep(.multiselect-tags) {
         min-height: 40px;
         border-color: #b8cfe8;
     }
 
-    .custom-multiselect :deep(.multiselect__tags-wrap) {
+    .custom-multiselect :deep(.multiselect-tags) {
         padding-top: 4px;
     }
 
-    .custom-multiselect :deep(.multiselect__single) {
+    .custom-multiselect :deep(.multiselect-single-label) {
         padding-top: 4px;
     }
 
-    .custom-multiselect :deep(.multiselect__input),
-    .custom-multiselect :deep(.multiselect__single) {
+    .custom-multiselect :deep(.multiselect-search),
+    .custom-multiselect :deep(.multiselect-single-label) {
         font-size: 0.95rem;
     }
 
     /* Fix for dropdown being hidden behind cards */
-.multiselect__dropdown {
-    z-index: 99999 !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+.view-service-unit-page :deep(.multiselect-dropdown) {
+    z-index: 1002 !important;
+    border: 1px solid #c7ddf4;
+    border-radius: 8px;
+    box-shadow: 0 16px 32px rgba(21, 59, 112, 0.14);
+    overflow: hidden;
 }
 
-.multiselect__content-wrapper {
-    z-index: 99999 !important;
+.view-service-unit-page :deep(.multiselect-options) {
+    z-index: 1002 !important;
+}
+
+.view-service-unit-page :deep(.multiselect-option) {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    font-size: 0.92rem;
 }
 
 .filter-card {
@@ -669,6 +692,8 @@ import VueMultiselect from '@/Components/VueMultiselect.vue';
         padding: 26px 16px;
         background: #f7fbff;
         color: #2d4e6e;
+        position: relative;
+        z-index: 1;
     }
 
     .empty-state-icon {

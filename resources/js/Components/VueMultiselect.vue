@@ -1,10 +1,18 @@
 <template>
-    <Multiselect class="form-control w-lg" 
-    v-model="selectedValues" 
-    :options="options" label="name"
-    :placeholder="placeholder" ref="multiselect"
-    @update:modelValue="emitSelectedValues" 
-   :style="'border-color: ' + (message ? '#f06548' : '#ced4da') + ' !important; '"/>
+    <Multiselect
+        class="form-control w-lg"
+        v-model="selectedValues"
+        :options="options"
+        label="name"
+        value-prop="id"
+        track-by="name"
+        :object="true"
+        :searchable="true"
+        :placeholder="placeholder || 'Select option'"
+        ref="multiselect"
+        @update:modelValue="emitSelectedValues"
+        :style="'border-color: ' + (message ? '#f06548' : '#ced4da') + ' !important; '"
+    />
 </template>
 <script>
 import Multiselect from "@vueform/multiselect";
@@ -15,6 +23,11 @@ export default {
         return {
             selectedValues: this.modelValue
         };
+    },
+    watch: {
+        modelValue(value) {
+            this.selectedValues = value;
+        },
     },
     methods: {
         emitSelectedValues(values) {
@@ -45,6 +58,12 @@ export default {
 
 /* Main container - clean, modern input look */
 :deep(.multiselect) {
+  --ms-option-bg-selected: #e8f2ff;
+  --ms-option-color-selected: #153b70;
+  --ms-option-bg-selected-pointed: #dcecff;
+  --ms-option-color-selected-pointed: #153b70;
+  --ms-option-bg-pointed: #f3f8ff;
+  --ms-option-color-pointed: #153b70;
   border: var(--ms-border);
   border-radius: var(--ms-radius);
   background: var(--ms-bg);
@@ -65,39 +84,40 @@ export default {
 /* Focus - blue ring, elevated */
 :deep(.multiselect.focused),
 :deep(.multiselect:focus-within) {
-  border-color: var(--ms-border-focus);
-  box-shadow: var(--ms-shadow-focus), 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #7fb7ea;
+  box-shadow: 0 0 0 3px rgba(34, 102, 168, 0.12);
   outline: none;
 }
 
 /* Single value display */
-:deep(.multiselect__single) {
+:deep(.multiselect-single-label) {
   color: var(--ms-text);
   font-weight: 500;
-  padding: 12px;
+  padding-left: 12px;
 }
 
 /* Placeholder - muted, italic */
-:deep(.multiselect__single span.placeholder) {
+:deep(.multiselect-placeholder) {
   color: var(--ms-text-muted);
   font-style: italic;
   opacity: 0.8;
+  padding-left: 12px;
 }
 
 /* Multi-select tags container */
-:deep(.multiselect__tags) {
+:deep(.multiselect-tags) {
   min-height: 42px;
   padding: 8px 12px;
 }
 
 /* Search input */
-:deep(.multiselect__input) {
+:deep(.multiselect-search) {
   font-size: 14px;
   min-height: 32px;
 }
 
 /* Dropdown - elevated panel */
-:deep(.multiselect__dropdown) {
+:deep(.multiselect-dropdown) {
   z-index: 99999 !important;
   border-radius: var(--ms-radius);
   border: var(--ms-border);
@@ -105,7 +125,7 @@ export default {
   box-shadow: var(--ms-dropdown-shadow);
   margin-top: 4px;
   max-height: 280px;
-  overflow: hidden;
+  overflow: auto;
   animation: dropdownAppear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -122,27 +142,36 @@ export default {
 }
 
 /* Option items - smooth hover */
-:deep(.multiselect__option) {
+:deep(.multiselect-option) {
   padding: 12px 16px;
   transition: all 0.15s ease;
   border-bottom: 1px solid #f9fafb;
   cursor: pointer;
   position: relative;
+  background: #ffffff;
+  color: #12243a;
 }
 
-:deep(.multiselect__option:hover) {
-  background: var(--ms-hover);
+:deep(.multiselect-option:hover),
+:deep(.multiselect-option.is-pointed) {
+  background: #f3f8ff;
+  color: #153b70;
 }
 
-:deep(.multiselect__option.is-selected) {
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--ms-selected);
+:deep(.multiselect-option.is-selected) {
+  background: #e8f2ff;
+  color: #153b70;
   font-weight: 500;
 }
 
+:deep(.multiselect-option.is-selected.is-pointed) {
+  background: #dcecff;
+  color: #153b70;
+}
+
 /* Selected option checkmark */
-:deep(.multiselect__option.is-selected::after) {
-  content: '✓';
+:deep(.multiselect-option.is-selected::after) {
+  content: 'Selected';
   position: absolute;
   right: 16px;
   color: var(--ms-selected);
@@ -150,7 +179,7 @@ export default {
 }
 
 /* Multi-select tags - pretty chips */
-:deep(.multiselect__tag) {
+:deep(.multiselect-tag) {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 1px solid rgba(37, 99, 235, 0.2);
   border-radius: 20px;
@@ -164,35 +193,35 @@ export default {
 }
 
 /* Tag remove button */
-:deep(.multiselect__tag__remove) {
+:deep(.multiselect-tag-remove) {
   color: var(--ms-selected);
   margin-left: 8px;
   font-size: 16px;
   line-height: 1;
 }
 
-:deep(.multiselect__tag__remove:hover) {
+:deep(.multiselect-tag-remove:hover) {
   background: none;
   color: var(--ms-selected);
   transform: scale(1.1);
 }
 
 /* Clear button */
-:deep(.multiselect__clear) {
+:deep(.multiselect-clear) {
   color: #9ca3af;
 }
 
-:deep(.multiselect__clear:hover) {
+:deep(.multiselect-clear:hover) {
   color: #6b7280;
 }
 
 /* Spinner */
-:deep(.multiselect__spinner) {
+:deep(.multiselect-spinner) {
   border-color: var(--ms-selected);
 }
 
 /* No results */
-:deep(.multiselect__option--no-result) {
+:deep(.multiselect-no-results) {
   color: #9ca3af;
   font-style: italic;
   padding: 16px;
@@ -200,7 +229,7 @@ export default {
 
 /* Responsive */
 @media (max-width: 576px) {
-  :deep(.multiselect__dropdown) {
+  :deep(.multiselect-dropdown) {
     left: 0 !important;
     right: 0 !important;
     border-radius: 8px 8px 0 0;
