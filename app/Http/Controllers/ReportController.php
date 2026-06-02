@@ -38,6 +38,11 @@ class ReportController extends Controller
     {
         $user = Auth::user();
 
+        // Resolve sub_unit_id from URL query param (GET) or selected_sub_unit object (POST)
+        $selectedSubUnit = $request->selected_sub_unit;
+        $sub_unit_id = $request->sub_unit_id
+            ?: (is_array($selectedSubUnit) ? ($selectedSubUnit['id'] ?? null) : null);
+
         $query = Unit::where('id', $request->unit_id);
         if ($withSubUnits) {
             $query->with('sub_units');
@@ -53,15 +58,15 @@ class ReportController extends Controller
                     ->get();
 
         //get sub unit pstos
-        $sub_unit_pstos = SubUnitPSTO::where('sub_unit_id', $request->sub_unit_id)->get();
+        $sub_unit_pstos = SubUnitPSTO::where('sub_unit_id', $sub_unit_id)->get();
         $psto_ids = $sub_unit_pstos->pluck('psto_id');
         $sub_unit_pstos = psto::whereIn('id', $psto_ids)
                     ->where('region_id', $user->region_id)
                     ->get();
 
-        $sub_unit_types = SubUnitType::where('sub_unit_id', $request->sub_unit_id)->get();
+        $sub_unit_types = SubUnitType::where('sub_unit_id', $sub_unit_id)->get();
 
-        $sub_unit = $request->sub_unit_id ? SubUnit::where('id', $request->sub_unit_id)->get() : collect();
+        $sub_unit = $sub_unit_id ? SubUnit::where('id', $sub_unit_id)->get() : collect();
 
         return [
             'unit' => $unit,
@@ -3562,18 +3567,10 @@ public function generateCSIAllUnitMonthly($request)
         $startDate = Carbon::create($request->selected_year, $numeric_month, 1)->startOfDay();
         $endDate = Carbon::create($request->selected_year, $numeric_month, 1)->endOfMonth()->endOfDay();
         $overall_summary = $this->getAllUnitsRespondentSummary($request, $user->region_id, $startDate, $endDate);
-
-        // Get CSFForm respondents for total_respondents
-        $csf_forms = CSFForm::where('region_id', $user->region_id)
-            ->whereMonth('created_at', $numeric_month)
-            ->whereYear('created_at', $request->selected_year)
-            ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
-                $query->whereIn('customer_id', $customerFilterIds);
-            });
         $total_respondents = $overall_summary['total_respondents'];
 
         // Get customer IDs from CSFForm for the region filtered by month and year
-$csf_forms = CSFForm::where('region_id', $user->region_id)
+        $csf_forms = CSFForm::where('region_id', $user->region_id)
             ->whereMonth('created_at', $numeric_month)
             ->whereYear('created_at', $request->selected_year)
             ->when($customerFilterIds !== null, function ($query) use ($customerFilterIds) {
@@ -3594,11 +3591,9 @@ $csf_forms = CSFForm::where('region_id', $user->region_id)
         $respondent_profile = $this->getRespondentProfileSummaryFromUnitCustomers($unit_customers);
 
         //PART I: Citizens Charter - filter by customer IDs in the region and by month/year
-        $cc_customer_ids = $csf_forms;
-
         $cc_query = CustomerCCRating::whereMonth('created_at', $numeric_month)
                                     ->whereYear('created_at', $request->selected_year)
-                                    ->whereIn('customer_id', $cc_customer_ids)
+                                    ->whereIn('customer_id', $csf_forms)
                                     ->when($request->sex, function ($query, $sex) {
                                         $query->whereHas('customer', function ($query) use ($sex) {
                                             $query->where('sex', $sex);
@@ -3632,7 +3627,7 @@ $csf_forms = CSFForm::where('region_id', $user->region_id)
         $lsr_data = $this->getAllUnitLSR($request, $user->region_id, $numeric_month);
 
         // Comments and complaints
-        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms->pluck('customer_id'))
+        $comment_list = CustomerComment::whereIn('customer_id', $csf_forms)
             ->whereMonth('customer_comments.created_at', $numeric_month)
             ->whereYear('customer_comments.created_at', $request->selected_year)
             ->get();
