@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import ActionMessage from '@/Components/ActionMessage.vue';
 import FormSection from '@/Components/FormSection.vue';
@@ -11,6 +11,17 @@ import TextInput from '@/Components/TextInput.vue';
 
 const props = defineProps({
     user: Object,
+});
+
+// Show the uploaded photo when there is one (and it loads); otherwise fall back
+// to a gradient initials avatar rather than Jetstream's broken default image.
+const photoFailed = ref(false);
+const hasPhoto = computed(() => !!props.user.profile_photo_path && !photoFailed.value);
+const userInitials = computed(() => {
+    const source = (props.user.name || props.user.email || '?').trim();
+    // First letter of every word: "Ren B. Tum" -> "RBT" (capped at 3).
+    const letters = source.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').toUpperCase().slice(0, 3);
+    return letters || '?';
 });
 
 const form = useForm({
@@ -93,37 +104,37 @@ const clearPhotoFileInput = () => {
                     id="photo"
                     ref="photoInput"
                     type="file"
-                    class="hidden"
+                    style="display: none;"
                     @change="updatePhotoPreview"
                 >
 
                 <InputLabel for="photo" value="Photo" />
 
-                <!-- Current Profile Photo -->
-                <div v-show="! photoPreview" class="mt-2">
-                    <img :src="user.profile_photo_url" :alt="user.name" class="rounded-full h-20 w-20 object-cover">
+                <div class="photo-field mt-2">
+                    <!-- Avatar: new selection preview, uploaded photo, or initials -->
+                    <div class="avatar-frame">
+                        <img v-if="photoPreview" :src="photoPreview" alt="New photo preview" class="avatar-media">
+                        <img v-else-if="hasPhoto" :src="user.profile_photo_url" :alt="user.name" class="avatar-media" @error="photoFailed = true">
+                        <span v-else class="avatar-letters">{{ userInitials }}</span>
+                    </div>
+
+                    <div class="photo-actions">
+                        <div class="photo-buttons">
+                            <SecondaryButton type="button" @click.prevent="selectNewPhoto">
+                                <i class="ri-upload-2-line me-1"></i>Select A New Photo
+                            </SecondaryButton>
+
+                            <SecondaryButton
+                                v-if="user.profile_photo_path"
+                                type="button"
+                                @click.prevent="deletePhoto"
+                            >
+                                <i class="ri-delete-bin-line me-1"></i>Remove Photo
+                            </SecondaryButton>
+                        </div>
+                        <p class="photo-hint">JPG, PNG or GIF — a square image works best.</p>
+                    </div>
                 </div>
-
-                <!-- New Profile Photo Preview -->
-                <div v-show="photoPreview" class="mt-2">
-                    <span
-                        class="block rounded-full w-20 h-20 bg-cover bg-no-repeat bg-center"
-                        :style="'background-image: url(\'' + photoPreview + '\');'"
-                    />
-                </div>
-
-                <SecondaryButton class="mt-2 me-2" type="button" @click.prevent="selectNewPhoto">
-                    Select A New Photo
-                </SecondaryButton>
-
-                <SecondaryButton
-                    v-if="user.profile_photo_path"
-                    type="button"
-                    class="mt-2"
-                    @click.prevent="deletePhoto"
-                >
-                    Remove Photo
-                </SecondaryButton>
 
                 <InputError :message="form.errors.photo" class="mt-2" />
             </div>
@@ -188,3 +199,53 @@ const clearPhotoFileInput = () => {
         </template>
     </FormSection>
 </template>
+
+<style scoped>
+.photo-field {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.avatar-frame {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28), 0 6px 16px rgba(13, 47, 84, 0.15);
+}
+.avatar-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.avatar-letters {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.9rem;
+    letter-spacing: 1px;
+}
+.photo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.photo-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.photo-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64789a;
+}
+</style>

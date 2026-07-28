@@ -21,9 +21,9 @@ const photoFailed = ref(false);
 const userInitials = computed(() => {
     const u = page.props.auth?.user;
     const source = (u?.name || u?.email || '?').trim();
-    const parts = source.split(/\s+/).filter(Boolean);
-    const letters = (parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
-    return (letters || source[0] || '?').toUpperCase();
+    // First letter of every word: "Ren B. Tum" -> "RBT" (capped at 3).
+    const letters = source.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').toUpperCase().slice(0, 3);
+    return letters || '?';
 });
 const showPhoto = computed(() =>
     page.props.jetstream?.managesProfilePhotos &&
