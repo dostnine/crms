@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm.vue';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.vue';
@@ -18,6 +19,21 @@ defineProps({
     confirmsTwoFactorAuthentication: Boolean,
     sessions: Array,
 });
+
+const page = usePage();
+const photoFailed = ref(false);
+const userInitials = computed(() => {
+    const u = page.props.auth?.user;
+    const source = (u?.name || u?.email || '?').trim();
+    const parts = source.split(/\s+/).filter(Boolean);
+    const letters = (parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+    return (letters || source[0] || '?').toUpperCase();
+});
+const showPhoto = computed(() =>
+    page.props.jetstream?.managesProfilePhotos &&
+    page.props.auth?.user?.profile_photo_url &&
+    !photoFailed.value
+);
 </script>
 
 <template>
@@ -34,36 +50,35 @@ defineProps({
                 <div class="col-12 col-xl-10">
                     <!-- Profile Summary Hero -->
                     <div class="summary-hero mb-4" data-aos="fade-up">
+                        <div class="hero-glow"></div>
                         <div class="summary-hero-content">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="profile-hero-avatar">
-                                    <img 
-                                        v-if="$page.props.jetstream.managesProfilePhotos && $page.props.auth.user.profile_photo_url" 
-                                        :src="$page.props.auth.user.profile_photo_url" 
-                                        :alt="$page.props.auth.user.name" 
-                                        class="rounded-circle"
-                                        style="width: 64px; height: 64px; object-fit: cover;"
+                                    <img
+                                        v-if="showPhoto"
+                                        :src="$page.props.auth.user.profile_photo_url"
+                                        :alt="$page.props.auth.user.name"
+                                        class="hero-avatar-img"
+                                        @error="photoFailed = true"
                                     >
-                                    <div v-else class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                                        <i class="ri-user-line text-primary fs-3"></i>
-                                    </div>
+                                    <span v-else class="hero-avatar-initials">{{ userInitials }}</span>
                                 </div>
                                 <div>
-                                    <p class="summary-kicker mb-1">User Profile</p>
-                                    <h3 class="summary-title mb-1">{{ $page.props.auth.user.name }}</h3>
+                                    <p class="summary-kicker mb-1"><i class="ri-verified-badge-line me-1"></i>User Profile</p>
+                                    <h3 class="summary-title mb-1">{{ $page.props.auth.user.name || 'Account' }}</h3>
                                     <p class="summary-text mb-0">
-                                        {{ $page.props.auth.user.email }}
+                                        <i class="ri-mail-line me-1"></i>{{ $page.props.auth.user.email }}
                                     </p>
                                 </div>
                             </div>
                             <div class="summary-stats">
                                 <div class="stat-pill">
                                     <span class="stat-label">Account</span>
-                                    <span class="stat-value">Active</span>
+                                    <span class="stat-value"><span class="status-dot"></span>Active</span>
                                 </div>
                                 <div class="stat-pill">
-                                    <span class="stat-label">Role</span>
-                                    <span class="stat-value">User</span>
+                                    <span class="stat-label">Active Sessions</span>
+                                    <span class="stat-value">{{ sessions?.length ?? 1 }}</span>
                                 </div>
                             </div>
                         </div>
@@ -163,38 +178,72 @@ defineProps({
 
 /* Summary Hero */
 .summary-hero {
-    border-radius: 16px;
-    border: 1px solid #d9e7f7;
-    background:
-        radial-gradient(circle at top right, rgba(71, 153, 233, 0.3) 0, rgba(71, 153, 233, 0) 45%),
-        linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
+    position: relative;
     overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(120deg, #10214a 0%, #123a6b 55%, #0d2f54 100%);
+    box-shadow: 0 18px 40px rgba(13, 47, 84, 0.28);
+}
+
+.hero-glow {
+    position: absolute;
+    top: -60%;
+    right: -8%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(56, 189, 248, 0) 65%);
+    pointer-events: none;
 }
 
 .summary-hero-content {
-    padding: 20px 24px;
+    position: relative;
+    padding: 24px 26px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
 }
 
+/* Hero avatar */
+.profile-hero-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.35);
+}
+.hero-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.hero-avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+}
+
 .summary-kicker {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #3f6c9e;
+    letter-spacing: 1.2px;
+    color: #7dd3fc;
     font-weight: 700;
 }
 
 .summary-title {
-    color: var(--text-strong);
-    font-size: 1.35rem;
+    color: #fff;
+    font-size: 1.45rem;
     font-weight: 800;
+    letter-spacing: -0.3px;
 }
 
 .summary-text {
-    color: #38506b;
+    color: #b7c6e6;
     font-size: 0.92rem;
 }
 
@@ -206,42 +255,55 @@ defineProps({
 }
 
 .stat-pill {
-    background: #ffffff;
-    border: 1px solid #d3e4f8;
-    border-radius: 12px;
-    min-width: 100px;
-    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(125, 211, 252, 0.22);
+    border-radius: 14px;
+    min-width: 118px;
+    padding: 10px 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
+    gap: 3px;
+    backdrop-filter: blur(6px);
 }
 
 .stat-label {
-    color: #5f7893;
-    font-size: 0.7rem;
+    color: #8fa6cf;
+    font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .stat-value {
-    color: #0d2f54;
-    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    font-size: 0.95rem;
     font-weight: 800;
     line-height: 1.2;
 }
 
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+    margin-right: 7px;
+}
+
 /* Profile Card */
 .profile-card {
-    border-radius: 14px;
+    border-radius: 18px;
     overflow: hidden;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2ecfa;
+    box-shadow: 0 10px 28px rgba(13, 47, 84, 0.08);
 }
 
 .profile-card-header {
-    background: linear-gradient(90deg, var(--brand-navy), var(--brand-blue));
+    background: linear-gradient(90deg, #10214a, #123a6b);
     border-bottom: none;
-    padding: 14px 20px;
+    padding: 15px 20px;
 }
 
 .profile-card-header-danger {

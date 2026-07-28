@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import NavLink from '@/Components/NavLink.vue';
@@ -13,6 +13,23 @@ defineProps({
 });
 
 const sidebarHovered = ref(false);
+
+// Profile avatar: fall back to initials when there is no photo, or when the
+// photo URL (Jetstream's default is an external service) fails to load.
+const page = usePage();
+const photoFailed = ref(false);
+const userInitials = computed(() => {
+    const u = page.props.auth?.user;
+    const source = (u?.name || u?.email || '?').trim();
+    const parts = source.split(/\s+/).filter(Boolean);
+    const letters = (parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+    return (letters || source[0] || '?').toUpperCase();
+});
+const showPhoto = computed(() =>
+    page.props.jetstream?.managesProfilePhotos &&
+    page.props.auth?.user?.profile_photo_url &&
+    !photoFailed.value
+);
 
 // Below this width the fixed hover-rail becomes an off-canvas drawer.
 const isMobile = ref(false);
@@ -143,17 +160,27 @@ const logout = () => {
                     <div class="dropdown profile-dropdown" style="z-index: 1000;">
                         <button class="btn profile-dropdown-btn d-flex align-items-center" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="z-index: 1001;">
                             <div class="profile-avatar me-2">
-                                <img v-if="$page.props.jetstream.managesProfilePhotos" class="rounded-circle" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name" style="width: 36px; height: 36px; object-fit: cover;">
-                                <div v-else class="bg-primary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                    <Icon name="user" class="text-primary fs-6" />
-                                </div>
+                                <img v-if="showPhoto" class="avatar-img" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name" @error="photoFailed = true">
+                                <span v-else class="avatar-initials">{{ userInitials }}</span>
                             </div>
-                            <span class="profile-name fw-medium d-none d-sm-inline">{{ $page.props.auth.user.name }}</span>
+                            <span class="profile-name fw-semibold d-none d-sm-inline">{{ $page.props.auth.user.name || 'Account' }}</span>
                             <Icon name="chevron-down" class="ms-2 dropdown-arrow" />
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu shadow" aria-labelledby="profileDropdown" style="z-index: 1002;">
-                            <li><h6 class="dropdown-header profile-dropdown-header">Manage Account</h6></li>
-                            <li><Link href="/profile" class="dropdown-item profile-dropdown-item"><Icon name="user" class="me-2" />Profile</Link></li>
+                            <li>
+                                <div class="dropdown-identity">
+                                    <div class="profile-avatar profile-avatar-lg">
+                                        <img v-if="showPhoto" class="avatar-img" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name" @error="photoFailed = true">
+                                        <span v-else class="avatar-initials">{{ userInitials }}</span>
+                                    </div>
+                                    <div class="identity-text">
+                                        <span class="identity-name">{{ $page.props.auth.user.name || 'Account' }}</span>
+                                        <span class="identity-email">{{ $page.props.auth.user.email }}</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><Link href="/profile" class="dropdown-item profile-dropdown-item"><Icon name="user" class="me-2" />My Profile</Link></li>
                             <li v-if="$page.props.jetstream.hasApiFeatures"><Link href="/api-tokens.index" class="dropdown-item profile-dropdown-item"><Icon name="key" class="me-2" />API Tokens</Link></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
@@ -216,35 +243,73 @@ const logout = () => {
 
 /* Profile Dropdown Styles */
 .profile-dropdown-btn {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 6px 14px;
-    color: #1e293b;
+    background: #fff;
+    border: 1px solid #dbe4f0;
+    border-radius: 999px;
+    padding: 5px 14px 5px 5px;
+    color: #10214a;
     text-decoration: none;
     transition: all 0.2s ease;
 }
 
 .profile-dropdown-btn:hover {
-    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-    border-color: #94a3b8;
+    border-color: #38bdf8;
     color: #0f172a;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 16px rgba(56, 189, 248, 0.18);
 }
 
 .profile-dropdown-btn:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
 }
 
 .profile-avatar {
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
 }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+.profile-avatar-lg { width: 44px; height: 44px; }
+.profile-avatar-lg .avatar-initials { font-size: 1.05rem; }
 
 .profile-name {
-    color: #1e293b;
+    color: #10214a;
     font-size: 0.95rem;
+}
+
+/* Identity block in the menu */
+.dropdown-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 10px;
+}
+.identity-text { display: flex; flex-direction: column; min-width: 0; }
+.identity-name { font-weight: 700; color: #10214a; font-size: 0.92rem; line-height: 1.2; }
+.identity-email {
+    color: #64789a;
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 190px;
 }
 
 .dropdown-arrow {
