@@ -21,6 +21,7 @@ export default {
         'user': 'ri-user-line',
         'key': 'ri-key-line',
         'logout': 'ri-logout-box-line',
+        'menu': 'ri-menu-line',
       };
       return iconMap[this.name] || 'ri-question-line';
     }

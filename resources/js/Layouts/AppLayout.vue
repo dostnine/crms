@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
@@ -12,25 +12,65 @@ defineProps({
     auth: Object,
 });
 
-const showingNavigationDropdown = ref(false);
 const sidebarHovered = ref(false);
 
-const switchToTeam = (team) => {
-    router.put(route('current-team.update'), {
-        team_id: team.id,
-    }, {
-        preserveState: false,
-    });
+// Below this width the fixed hover-rail becomes an off-canvas drawer.
+const isMobile = ref(false);
+const mobileOpen = ref(false);
+let mq;
+const applyMq = (e) => {
+    isMobile.value = e.matches;
+    if (!e.matches) mobileOpen.value = false; // leaving mobile closes the drawer
+};
+
+onMounted(() => {
+    mq = window.matchMedia('(max-width: 991px)');
+    isMobile.value = mq.matches;
+    mq.addEventListener('change', applyMq);
+});
+onBeforeUnmount(() => mq && mq.removeEventListener('change', applyMq));
+
+// On mobile the drawer is always full-width when open; on desktop it expands on hover.
+const expanded = computed(() => (isMobile.value ? true : sidebarHovered.value));
+
+const sidebarStyle = computed(() => ({
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    height: '100vh',
+    zIndex: isMobile.value ? 1050 : 1,
+    transform: isMobile.value && !mobileOpen.value ? 'translateX(-100%)' : 'translateX(0)',
+    transition: 'transform 0.3s ease, width 0.3s ease',
+}));
+
+const topbarStyle = computed(() => ({
+    top: '0',
+    left: isMobile.value ? '0' : expanded.value ? '250px' : '70px',
+    width: isMobile.value ? '100%' : expanded.value ? 'calc(100% - 250px)' : 'calc(100% - 70px)',
+    height: '60px',
+    zIndex: 100,
+    transition: 'left 0.3s ease, width 0.3s ease',
+}));
+
+const contentStyle = computed(() => ({
+    marginLeft: isMobile.value ? '0' : sidebarHovered.value ? '250px' : '70px',
+    marginTop: '60px',
+    transition: 'margin-left 0.3s ease',
+    minHeight: 'calc(100vh - 60px)',
+    position: 'relative',
+}));
+
+const onSidebarHover = (isHovering) => {
+    if (!isMobile.value) sidebarHovered.value = isHovering;
+};
+
+const closeOnMobile = () => {
+    if (isMobile.value) mobileOpen.value = false;
 };
 
 const logout = () => {
     router.post('/logout');
 };
-
-const onSidebarHover = (isHovering) => {
-    sidebarHovered.value = isHovering;
-};
-
 </script>
 
 <template>
@@ -40,38 +80,61 @@ const onSidebarHover = (isHovering) => {
         <Banner />
 
         <div class="d-flex" style="min-height: 100vh;">
-            <!-- Sidebar (Full Height from Top) - Expands on hover -->
+            <!-- Mobile drawer backdrop -->
+            <div v-if="isMobile && mobileOpen" class="sidebar-backdrop" @click="mobileOpen = false"></div>
+
+            <!-- Sidebar: hover-rail on desktop, off-canvas drawer on mobile -->
             <nav
                 id="sidebar"
-                :class="{'sidebar-expanded': sidebarHovered}"
+                :class="{'sidebar-expanded': expanded}"
                 @mouseenter="onSidebarHover(true)"
                 @mouseleave="onSidebarHover(false)"
-                :style="{
-                    position: 'fixed',
-                    top: '0',
-                    left: '0',
-                    height: '100vh',
-                    width: sidebarHovered ? '250px' : '70px',
-                    zIndex: 1,
-                    transition: 'width 0.3s ease'
-                }"
+                :style="sidebarStyle"
             >
+                <div class="sidebar-header position-relative">
+                    <Link href="/dashboard" class="navbar-brand" @click="closeOnMobile">
+                        <ApplicationMark class="application-mark" />
+                        <span v-if="expanded" class="brand-text">CRMS</span>
+                    </Link>
+                </div>
+                <ul class="components">
+                    <li>
+                        <NavLink href="/dashboard" active="/dashboard" :class="{'active': $page.url === '/dashboard'}" data-title="Dashboard" @click="closeOnMobile">
+                            <Icon name="dashboard" class="icon" />
+                            <span v-if="expanded" class="nav-text">Dashboard</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink href="/service_units" active="/service_units" :class="{'active': $page.url.startsWith('/service_units')}" data-title="Service Units" @click="closeOnMobile">
+                            <Icon name="office" class="icon" />
+                            <span v-if="expanded" class="nav-text">Service Units</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink href="/libraries" active="/libraries" :class="{'active': $page.url.startsWith('/libraries')}" data-title="Libraries" @click="closeOnMobile">
+                            <Icon name="users" class="icon" />
+                            <span v-if="expanded" class="nav-text">Libraries</span>
+                        </NavLink>
+                    </li>
+                </ul>
+            </nav>
 
-            <!-- Top Navigation Bar (Remaining Width After Sidebar) -->
+            <!-- Top navigation bar -->
             <nav
-                class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm position-fixed"
-                :style="{
-                    top: '0',
-                    left: sidebarHovered ? '250px' : '70px',
-                    width: sidebarHovered ? 'calc(100% - 250px)' : 'calc(100% - 70px)',
-                    height: '60px',
-                    zIndex: 100,
-                    transition: 'left 0.3s ease, width 0.3s ease'
-                }"
+                class="navbar navbar-light bg-white border-bottom shadow-sm position-fixed"
+                :style="topbarStyle"
             >
                 <div class="container-fluid d-flex align-items-center">
-                  
-                 
+                    <!-- Hamburger (mobile only) -->
+                    <button
+                        v-if="isMobile"
+                        class="btn hamburger-btn"
+                        type="button"
+                        aria-label="Toggle navigation"
+                        @click="mobileOpen = !mobileOpen"
+                    >
+                        <Icon name="menu" class="hamburger-icon" />
+                    </button>
 
                     <!-- Spacer to push profile to the right -->
                     <div class="flex-grow-1"></div>
@@ -85,7 +148,7 @@ const onSidebarHover = (isHovering) => {
                                     <Icon name="user" class="text-primary fs-6" />
                                 </div>
                             </div>
-                            <span class="profile-name fw-medium">{{ $page.props.auth.user.name }}</span>
+                            <span class="profile-name fw-medium d-none d-sm-inline">{{ $page.props.auth.user.name }}</span>
                             <Icon name="chevron-down" class="ms-2 dropdown-arrow" />
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu shadow" aria-labelledby="profileDropdown" style="z-index: 1002;">
@@ -102,37 +165,9 @@ const onSidebarHover = (isHovering) => {
                     </div>
                 </div>
             </nav>
-                <div class="sidebar-header position-relative">
-                    <Link href="/dashboard" class="navbar-brand">
-                        <ApplicationMark class="application-mark" />
-                        <span v-if="sidebarHovered" class="brand-text">CRMS</span>
-                    </Link>
-                </div>
-                <ul class="components">
-                    <li>
-                        <NavLink href="/dashboard" active="/dashboard" :class="{'active': $page.url === '/dashboard'}" data-title="Dashboard">
-                            <Icon name="dashboard" class="icon" />
-                            <span v-if="sidebarHovered" class="nav-text">Dashboard</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/service_units" active="/service_units" :class="{'active': $page.url.startsWith('/service_units')}" data-title="Service Units">
-                            <Icon name="office" class="icon" />
-                            <span v-if="sidebarHovered" class="nav-text">Service Units</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/libraries" active="/libraries" :class="{'active': $page.url.startsWith('/libraries')}" data-title="Libraries">
-                            <Icon name="users" class="icon" />
-                            <span v-if="sidebarHovered" class="nav-text">Libraries</span>
-                        </NavLink>
-                    </li>
-                </ul>
-              
-            </nav>
 
             <!-- Main Content Area -->
-            <div class="flex-grow-1 bg-light" :style="{ marginLeft: sidebarHovered ? '250px' : '70px', marginTop: '60px', transition: 'margin-left 0.3s ease', minHeight: 'calc(100vh - 60px)', position: 'relative' }">
+            <div class="flex-grow-1 bg-light" :style="contentStyle">
 
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="bg-white shadow">
@@ -142,7 +177,7 @@ const onSidebarHover = (isHovering) => {
                 </header>
 
                 <!-- Page Content -->
-                <main class="p-4">
+                <main class="p-3 p-md-4">
                     <slot />
                 </main>
             </div>
@@ -151,6 +186,34 @@ const onSidebarHover = (isHovering) => {
 </template>
 
 <style scoped>
+/* Mobile drawer backdrop */
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(5, 9, 24, 0.5);
+    backdrop-filter: blur(2px);
+    animation: fade-in 0.2s ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Hamburger */
+.hamburger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #10214a;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.hamburger-btn:hover { background: #f1f6fc; border-color: #cbd5e1; }
+.hamburger-icon { font-size: 1.35rem; line-height: 1; }
+
 /* Profile Dropdown Styles */
 .profile-dropdown-btn {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
