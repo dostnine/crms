@@ -1,5 +1,7 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import ScienceBackground from '@/Components/ScienceBackground.vue';
 
 defineProps({
     canResetPassword: Boolean,
@@ -11,6 +13,8 @@ const form = useForm({
     password: '',
     remember: false,
 });
+
+const showPassword = ref(false);
 
 const submit = () => {
     form.transform(data => ({
@@ -25,199 +29,307 @@ const submit = () => {
 <template>
     <Head title="Log in" />
 
-    <div class="vh-100 d-flex align-items-center justify-content-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #312e81 100%);">
-        <!-- Animated Background Elements -->
-        <div class="position-absolute w-100 h-100">
-            <div class="position-absolute bg-primary rounded-circle opacity-25 animate-pulse" style="top: 10%; left: 10%; width: 8rem; height: 8rem;"></div>
-            <div class="position-absolute bg-info rounded-circle opacity-25 animate-pulse" style="bottom: 10%; right: 10%; width: 6rem; height: 6rem; animation-delay: 1s;"></div>
-            <div class="position-absolute bg-warning rounded-circle opacity-25 animate-pulse" style="top: 50%; left: 50%; width: 4rem; height: 4rem; animation-delay: 2s; transform: translate(-50%, -50%);"></div>
-        </div>
+    <div class="auth">
+        <ScienceBackground />
 
-        <!-- Tech Animation Elements -->
-        <div class="position-absolute w-100 h-100 overflow-hidden">
-            <!-- Moving Circuit Lines -->
-            <div class="position-absolute w-100 h-100">
-                <svg class="w-100 h-100 opacity-25" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="circuit-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#0d6efd;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#6610f2;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <!-- Horizontal Lines -->
-                    <line x1="0" y1="200" x2="1000" y2="200" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="8s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="0" y1="400" x2="1000" y2="400" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="10s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="0" y1="600" x2="1000" y2="600" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="12s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="0" y1="800" x2="1000" y2="800" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="9s" repeatCount="indefinite"/>
-                    </line>
-                    <!-- Vertical Lines -->
-                    <line x1="200" y1="0" x2="200" y2="1000" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="11s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="400" y1="0" x2="400" y2="1000" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="13s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="600" y1="0" x2="600" y2="1000" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="7s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="800" y1="0" x2="800" y2="1000" stroke="url(#circuit-gradient)" stroke-width="2" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="15s" repeatCount="indefinite"/>
-                    </line>
-                    <!-- Diagonal Lines -->
-                    <line x1="0" y1="0" x2="1000" y2="1000" stroke="url(#circuit-gradient)" stroke-width="1" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1414;1414,0" dur="20s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="1000" y1="0" x2="0" y2="1000" stroke="url(#circuit-gradient)" stroke-width="1" class="animate-pulse">
-                        <animate attributeName="stroke-dasharray" values="0,1414;1414,0" dur="18s" repeatCount="indefinite"/>
-                    </line>
-                </svg>
-            </div>
+        <a href="/" class="auth-brand">
+            <img src="/images/dost-logo.png" alt="DOST Logo" class="brand-logo" />
+            <span>Department of Science and Technology</span>
+        </a>
 
-            <!-- Floating Geometric Shapes -->
-            <div class="position-absolute border border-info rotate-45 animate-bounce" style="top: 25%; left: 25%; width: 2rem; height: 2rem; animation-duration: 6s;"></div>
-            <div class="position-absolute border border-primary rounded-circle animate-spin" style="top: 75%; right: 25%; width: 1.5rem; height: 1.5rem; animation-duration: 8s; animation-delay: 2s;"></div>
-            <div class="position-absolute bg-warning opacity-50 animate-ping" style="top: 50%; left: 50%; width: 1rem; height: 1rem; animation-duration: 4s; animation-delay: 1s; transform: translate(-50%, -50%);"></div>
-            <div class="position-absolute border border-light opacity-50 rotate-12 animate-pulse" style="bottom: 25%; right: 33%; width: 2.5rem; height: 2.5rem; animation-duration: 5s; animation-delay: 3s;"></div>
-            <div class="position-absolute bg-light opacity-75 rounded-circle animate-bounce" style="top: 17%; right: 17%; width: 0.75rem; height: 0.75rem; animation-duration: 7s; animation-delay: 1.5s;"></div>
-        </div>
-
-        <!-- Login Card -->
-        <div class="position-relative z-index-10 w-100" style="max-width: 28rem;">
-            <div class="bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-20 rounded-3 p-5 shadow-lg">
-                <!-- Logo -->
-                <b-row>
-                 
-                <center class="mb-3"><h7 class="text-white text-center mb-3">Department of Science and Technology </h7> </center>
-                 
-                 </b-row>
-                <div class="text-center mb-4">
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 4rem; height: 4rem;">
-                        <svg class="text-white" style="width: 2rem; height: 2rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    
-                    <h1 class="h3 font-weight-bold text-white animate-fade-in">Welcome Back</h1>
-                    <p class="text-light animate-fade-in" style="animation-delay: 0.2s;">Sign in to your account</p>
+        <main class="auth-main">
+            <section class="auth-card">
+                <div class="auth-head">
+                    <img src="/images/dost-logo.png" alt="DOST Logo" class="card-logo" />
+                    <h1>Welcome back</h1>
+                    <p>Sign in to the Customer Relation Management System</p>
                 </div>
 
-                <!-- Status Message -->
-                <div v-if="status" class="mb-3 p-3 bg-success bg-opacity-25 border border-success border-opacity-50 rounded">
-                    <p class="text-success mb-0 small font-weight-medium">{{ status }}</p>
-                </div>
+                <div v-if="status" class="auth-status">{{ status }}</div>
 
-                <!-- Login Form -->
-                <form @submit.prevent="submit" class="mb-0">
-                    <!-- Email Field -->
-                    <div class="mb-3 animate-fade-in" style="animation-delay: 0.3s;">
-                        <label for="email" class="form-label text-light small font-weight-medium">Email Address</label>
-                        <div class="position-relative">
-                            <div class="position-absolute top-50 start-0 translate-middle-y ps-3">
-                                <svg class="text-muted" style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                                </svg>
-                            </div>
+                <form @submit.prevent="submit" novalidate>
+                    <div class="field">
+                        <label for="email">Email address</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <rect x="3" y="5" width="18" height="14" rx="2" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6" />
+                            </svg>
                             <input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
-                                class="form-control bg-white text-dark  border-secondary"
-                                placeholder="Enter your email"
+                                placeholder="you@dost.gov.ph"
                                 required
                                 autofocus
                                 autocomplete="username"
-                                style="padding-left: 2.5rem;"
+                                :class="{ 'has-error': form.errors.email }"
                             />
                         </div>
-                        <div v-if="form.errors.email" class="mt-2 text-danger small">
-                            {{ form.errors.email }}
-                        </div>
+                        <p v-if="form.errors.email" class="field-error">{{ form.errors.email }}</p>
                     </div>
 
-                    <!-- Password Field -->
-                    <div class="mb-3 animate-fade-in" style="animation-delay: 0.4s;">
-                        <label for="password" class="form-label text-light small font-weight-medium">Password</label>
-                        <div class="position-relative">
-                            <div class="position-absolute top-50 start-0 translate-middle-y ps-3">
-                                <svg class="text-muted" style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                </svg>
-                            </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <rect x="5" y="11" width="14" height="9" rx="2" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 018 0v3" />
+                            </svg>
                             <input
                                 id="password"
                                 v-model="form.password"
-                                type="password"
-                                class="form-control bg-white text-dark border-secondary"
+                                :type="showPassword ? 'text' : 'password'"
                                 placeholder="Enter your password"
                                 required
                                 autocomplete="current-password"
-                                style="padding-left: 2.5rem;"
+                                :class="{ 'has-error': form.errors.password }"
                             />
+                            <button
+                                type="button"
+                                class="toggle"
+                                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                                @click="showPassword = !showPassword"
+                            >
+                                <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 5.2A9.6 9.6 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 4M6.3 6.3A17 17 0 002 12s3.5 7 10 7a9.7 9.7 0 003.9-.8" />
+                                </svg>
+                            </button>
                         </div>
-                        <div v-if="form.errors.password" class="mt-2 text-danger small">
-                            {{ form.errors.password }}
-                        </div>
+                        <p v-if="form.errors.password" class="field-error">{{ form.errors.password }}</p>
                     </div>
 
-                    <!-- Remember Me -->
-                    <div class="form-check mb-3 animate-fade-in" style="animation-delay: 0.5s;">
-                        <input
-                            id="remember"
-                            v-model="form.remember"
-                            type="checkbox"
-                            class="form-check-input"
-                        />
-                        <label for="remember" class="form-check-label text-light small">
-                            Remember me
+                    <div class="field-row">
+                        <label class="remember">
+                            <input v-model="form.remember" type="checkbox" />
+                            <span>Remember me</span>
                         </label>
+                        <a v-if="canResetPassword" href="/forgot-password" class="forgot">Forgot password?</a>
                     </div>
 
-                    <!-- Submit Button -->
-                    <div class="animate-fade-in" style="animation-delay: 0.6s;">
-                        <button
-                            type="submit"
-                            :disabled="form.processing"
-                            class="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                            :class="{ 'disabled': form.processing }"
-                        >
-                            <span v-if="form.processing" class="d-flex align-items-center">
-                                <div class="spinner-border spinner-border-sm me-2" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                Signing in...
-                            </span>
-                            <span v-else>Sign In</span>
-                        </button>
-                    </div>
+                    <button type="submit" class="submit" :disabled="form.processing">
+                        <span v-if="form.processing" class="spinner" aria-hidden="true"></span>
+                        <span>{{ form.processing ? 'Signing in…' : 'Sign in' }}</span>
+                    </button>
                 </form>
+            </section>
 
-                <!-- Additional Links -->
-                <div class="mt-3 text-center animate-fade-in" style="animation-delay: 0.7s;">
-                    <a v-if="canResetPassword" href="/forgot-password" class="text-primary text-decoration-none small">
-                        Forgot your password?
-                    </a>
-                </div>
-            </div>
-        </div>
+            <p class="auth-foot">Authorized personnel only · Your data is protected under the DOST privacy policy.</p>
+        </main>
     </div>
 </template>
 
-<style>
-    .animate-fade-in {
-        animation: fadeIn 0.8s ease-out forwards;
-        opacity: 0;
-    }
+<style scoped>
+.auth {
+    position: relative;
+    min-height: 100vh;
+    color: #e7ecff;
+    background: radial-gradient(120% 120% at 50% 0%, #0d1533 0%, #070b1e 55%, #05060f 100%);
+    overflow-x: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 
-    @keyframes fadeIn {
-        to {
-            opacity: 1;
-        }
-    }
+.auth-brand {
+    position: fixed;
+    top: 22px;
+    left: 26px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-decoration: none;
+    color: #e7ecff;
+    font-weight: 700;
+    font-size: 0.98rem;
+}
+.brand-logo { height: 38px; width: 38px; object-fit: contain; }
+
+.auth-main {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 20px 48px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 40px 38px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 30px 80px rgba(3, 6, 20, 0.55);
+    animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-head { text-align: center; margin-bottom: 28px; }
+.card-logo { height: 62px; width: 62px; object-fit: contain; margin-bottom: 16px; }
+.auth-head h1 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    margin: 0 0 6px;
+}
+.auth-head p { color: #9fabd4; font-size: 0.96rem; margin: 0; }
+
+.auth-status {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.4);
+    color: #6ee7b7;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.field { margin-bottom: 18px; }
+.field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #b7c2e8;
+    margin-bottom: 8px;
+    letter-spacing: 0.2px;
+}
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-icon {
+    position: absolute;
+    left: 14px;
+    width: 20px;
+    height: 20px;
+    color: #7d88b0;
+    pointer-events: none;
+}
+.input-wrap input {
+    width: 100%;
+    padding: 13px 14px 13px 44px;
+    border-radius: 12px;
+    background: rgba(9, 13, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #eaf0ff;
+    font-size: 0.98rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.input-wrap input::placeholder { color: #6b76a0; }
+.input-wrap input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    background: rgba(9, 13, 30, 0.85);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.16);
+}
+.input-wrap input.has-error {
+    border-color: #f87171;
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.14);
+}
+.toggle {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    color: #8b97c2;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+.toggle:hover { color: #cdd6f5; background: rgba(255, 255, 255, 0.06); }
+.toggle svg { width: 20px; height: 20px; }
+
+.field-error { margin: 7px 2px 0; color: #fca5a5; font-size: 0.82rem; }
+
+.field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 6px 0 24px;
+}
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #b7c2e8;
+    cursor: pointer;
+}
+.remember input {
+    width: 16px;
+    height: 16px;
+    accent-color: #38bdf8;
+    cursor: pointer;
+}
+.forgot {
+    font-size: 0.9rem;
+    color: #7dd3fc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.forgot:hover { color: #bae6fd; text-decoration: underline; }
+
+.submit {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #06122b;
+    cursor: pointer;
+    background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 45%, #818cf8 100%);
+    box-shadow: 0 12px 34px rgba(56, 189, 248, 0.35);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+}
+.submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 46px rgba(56, 189, 248, 0.5); }
+.submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(6, 18, 43, 0.35);
+    border-top-color: #06122b;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+.auth-foot {
+    margin: 26px 0 0;
+    max-width: 420px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #6f7aa4;
+    line-height: 1.5;
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(26px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 560px) {
+    .auth-brand span { display: none; }
+    .auth-card { padding: 32px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-card { animation: none; }
+    .submit:hover:not(:disabled) { transform: none; }
+}
 </style>
