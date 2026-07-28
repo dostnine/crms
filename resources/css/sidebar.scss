@@ -1,11 +1,12 @@
-// Sidebar Styles
+// Sidebar Styles — DOST brand: deep navy with cyan accents
 #sidebar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(185deg, #10214a 0%, #0c1836 58%, #0a1330 100%);
   min-width: 70px;
   max-width: 70px;
   min-height: 100vh;
   transition: all 0.3s ease;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15), 0 0 40px rgba(102, 126, 234, 0.1);
+  box-shadow: 4px 0 24px rgba(3, 8, 24, 0.45), 0 0 60px rgba(56, 189, 248, 0.08);
+  border-right: 1px solid rgba(125, 211, 252, 0.12);
   position: relative;
   overflow: visible;
 
@@ -22,7 +23,7 @@
 
   // Default collapsed state
   .sidebar-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(125, 211, 252, 0.12);
     padding: 1rem 0.5rem;
     display: flex;
     justify-content: center;
@@ -41,8 +42,13 @@
 
       .brand-text {
         display: none;
-        font-weight: bold;
+        font-weight: 800;
         font-size: 1.25rem;
+        letter-spacing: 1px;
+        background: linear-gradient(120deg, #e7ecff, #7dd3fc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
     }
   }
@@ -77,10 +83,10 @@
         }
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.08);
-          border-left-color: rgba(255, 255, 255, 0.6);
+          background-color: rgba(56, 189, 248, 0.1);
+          border-left-color: rgba(125, 211, 252, 0.7);
           transform: translateX(4px);
-          box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+          box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.08);
 
           &::before {
             left: 100%;
@@ -88,20 +94,25 @@
         }
 
         &.active {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-          border-left-color: white;
-          box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.1);
+          background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(99, 102, 241, 0.12));
+          border-left-color: #38bdf8;
+          box-shadow: inset 0 0 25px rgba(56, 189, 248, 0.14);
+
+          .icon {
+            color: #7dd3fc;
+          }
         }
 
         .icon {
           font-size: 1.25rem;
-          transition: transform 0.3s ease;
+          transition: transform 0.3s ease, color 0.3s ease;
           flex-shrink: 0;
           margin-right: 0;
         }
 
         &:hover .icon {
           transform: scale(1.1);
+          color: #bae6fd;
         }
 
         .nav-text {
