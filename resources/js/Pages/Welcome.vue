@@ -418,7 +418,7 @@ onBeforeUnmount(() => {
         <!-- Navbar -->
         <nav class="nav" :class="{ 'is-scrolled': scrolled }">
             <a href="/" class="nav-brand">
-                <img src="/images/dost-logo.jpg" alt="DOST Logo" class="nav-logo" />
+                <img src="/images/dost-logo.png" alt="DOST Logo" class="nav-logo" />
                 <span class="nav-title">Department of Science and Technology</span>
             </a>
             <a href="/services/csf/regions" class="btn btn-ghost">Get Started</a>
@@ -433,8 +433,8 @@ onBeforeUnmount(() => {
                     <span class="line gradient">Management System</span>
                 </h1>
                 <p class="hero-sub">
-                    Transforming citizen feedback into science-driven insight — a unified
-                    platform for measuring service satisfaction across every DOST unit.
+                    Transforming citizen feedback into science-driven insight and a unified
+                    platform for measuring service satisfaction across every DOST unit and services.
                 </p>
                 <div class="hero-actions">
                     <a href="/services/csf/regions" class="btn btn-primary">
@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
         </section>
 
         <footer class="footer">
-            <img src="/images/dost-logo.jpg" alt="DOST Logo" class="footer-logo" />
+            <img src="/images/dost-logo.png" alt="DOST Logo" class="footer-logo" />
             <p>Department of Science and Technology — Customer Relation Management System</p>
             <span class="footer-note">For authorized use in citizen satisfaction measurement.</span>
         </footer>
@@ -573,11 +573,9 @@ onBeforeUnmount(() => {
     color: #fff;
 }
 .nav-logo {
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+    height: 42px;
+    width: 42px;
+    object-fit: contain;
 }
 .nav-title {
     font-weight: 700;
@@ -777,7 +775,7 @@ onBeforeUnmount(() => {
     background: rgba(5, 6, 15, 0.9);
     border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
-.footer-logo { height: 46px; width: 46px; border-radius: 50%; object-fit: cover; margin-bottom: 14px; }
+.footer-logo { height: 48px; width: 48px; object-fit: contain; margin-bottom: 14px; }
 .footer p { margin: 0 0 6px; font-weight: 600; color: #d7deff; }
 .footer-note { font-size: 0.85rem; color: #7d88b0; }
 
