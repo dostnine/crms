@@ -8,6 +8,14 @@ defineProps({
     services: Object,
 });
 
+// Give each card a distinct icon by cycling a themed set.
+const serviceIcons = [
+    'ri-briefcase-4-line', 'ri-line-chart-line', 'ri-flask-line', 'ri-lightbulb-flash-line',
+    'ri-microscope-line', 'ri-cpu-line', 'ri-award-line', 'ri-government-line',
+    'ri-service-line', 'ri-team-line',
+];
+const iconFor = (i) => serviceIcons[i % serviceIcons.length];
+
 const goBack = () => window.history.back();
 </script>
 
@@ -47,7 +55,7 @@ const goBack = () => window.history.back();
                     class="service-card"
                     :style="{ animationDelay: (index * 45) + 'ms' }"
                 >
-                    <div class="service-icon"><i class="ri-service-line"></i></div>
+                    <div class="service-icon"><i :class="iconFor(index)"></i></div>
                     <h3 class="service-name">{{ service.services_name }}</h3>
                     <span class="service-cta">Explore <i class="ri-arrow-right-line"></i></span>
                 </Link>
@@ -140,7 +148,8 @@ const goBack = () => window.history.back();
 /* Grid */
 .service-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    justify-content: center;
     gap: 18px;
 }
 

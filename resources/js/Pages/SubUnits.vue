@@ -1,11 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { reactive, watch, ref, onMounted } from "vue";
-import AOS from 'aos'
-import 'aos/dist/aos.css'
-import { router } from '@inertiajs/vue3'
-
-AOS.init();
+import ScienceBackground from '@/Components/ScienceBackground.vue';
 
 defineProps({
     region_id: Number,
@@ -13,282 +8,217 @@ defineProps({
     service_id: Number,
     unit_id: Number,
     unit: Object,
-    sub_units:Object,
+    sub_units: Object,
 });
 
-const goNext = async (region_id, service_id, unit_id, sub_unit_id) => {
-    if(sub_unit_id == 3){
-        router.get(`/services/csf/sub-unit/types?region_id=`+ region_id + 
-                                `&service_id=`+ service_id + 
-                                `&unit_id=`+ unit_id +
-                                `&sub_unit_id=` + sub_unit_id );   
-    }
-    else{
-        router.get(`/services/csf/sub-unit/pstos?region_id=`+ region_id + 
-                                `&service_id=`+ service_id + 
-                                `&unit_id=`+ unit_id +
-                                `&sub_unit_id=` + sub_unit_id );      
-    }
-}
+// Give each card a distinct icon by cycling a themed set.
+const subUnitIcons = [
+    'ri-node-tree', 'ri-git-branch-line', 'ri-focus-2-line', 'ri-price-tag-3-line',
+    'ri-shape-line', 'ri-layout-grid-line', 'ri-folders-line', 'ri-stack-line',
+    'ri-apps-2-line', 'ri-function-line',
+];
+const iconFor = (i) => subUnitIcons[i % subUnitIcons.length];
 
-const goBack = async () => {
-    window.history.back()
-}
-
+const goBack = () => window.history.back();
 </script>
 
 <template>
-    <Head title="Service Units" />   
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" data-aos="fade-down" data-aos-duration="500" data-aos-delay="500" style="backdrop-filter: blur(2px);">
-        <div class="container-fluid">
-            <a href="/" class="navbar-brand d-flex align-items-center">
-                <img src="../../../public/images/dost-logo.jpg" class="me-3" alt="DOST Logo" style="height: 2rem;">
-                <span class="fw-bold fs-4">DOST <span v-if="region">{{ region.code }}</span> Customer Relation Management System</span>
+    <Head title="Select Sub Unit" />
+
+    <div class="flow">
+        <ScienceBackground />
+
+        <nav class="rnav">
+            <a href="/" class="rnav-brand">
+                <img src="/images/dost-logo.png" alt="DOST Logo" class="rnav-logo" />
+                <span class="rnav-title">
+                    DOST <span v-if="region">{{ region.code }}</span> Customer Relation Management System
+                </span>
             </a>
-        </div>
-    </nav>  
-    <div class="min-vh-100 d-flex flex-column subunits-page">
-        <div class="mx-3" style="margin-top: 100px;">
-            <div class="subunits-hero" data-aos="fade-up">
-                <div class="subunits-hero-content">
-                    <div>
-                        <p class="subunits-kicker mb-1">Available</p>
-                        <h2 class="subunits-title mb-1">{{ unit?.unit_name || 'Sub Units' }}</h2>
-                        <p class="subunits-text mb-0">Select a sub unit to continue</p>
-                    </div>
-                    <div class="subunits-stats">
-                        <div class="stat-pill">
-                            <span class="stat-label">Sub Units</span>
-                            <span class="stat-value">{{ sub_units?.length || 0 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid mt-4">
-            <div class="row justify-content-center">
-                <div v-for="(sub_unit, index) in sub_units" :key="sub_unit.id" class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" :data-aos="'zoom-in'" :data-aos-delay="index * 10">
-                    <Link :href="sub_unit.id == 3 ? '/services/csf/sub-unit/types?region_id=' + region_id + '&service_id=' + service_id + '&unit_id=' + unit_id + '&sub_unit_id=' + sub_unit.id : '/services/csf/sub-unit/pstos?region_id=' + region_id + '&service_id=' + service_id + '&unit_id=' + unit_id + '&sub_unit_id=' + sub_unit.id" class="text-decoration-none">
-                        <div class="subunit-card">
-                            <div class="subunit-card-body">
-                                <div class="subunit-icon-wrapper">
-                                    <i class="ri-check-line subunit-icon"></i>
-                                </div>
-                                <h6 class="subunit-card-title">{{ sub_unit.sub_unit_name }}</h6>
-                            </div>
-                            <div class="subunit-card-footer">
-                                <span class="explore-text">Click to explore</span>
-                                <i class="ri-arrow-right-line"></i>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-            </div>
-        </div>
-        <div class="mt-auto text-center mb-4">
-            <button @click="goBack()" class="btn btn-back">
-                <i class="ri-arrow-left-line me-2"></i> Back
+            <button class="btn-ghost" @click="goBack">
+                <i class="ri-arrow-left-line me-1"></i> Back
             </button>
-        </div>
+        </nav>
+
+        <main class="rmain">
+            <header class="rhero">
+                <span class="rhero-kicker">
+                    <span v-if="region">{{ region.code }} · </span><span v-if="unit">{{ unit.unit_name }}</span>
+                </span>
+                <h1 class="rhero-title">Select a <span class="gradient">Sub Unit</span></h1>
+                <p class="rhero-sub">Choose the sub unit you transacted with to continue.</p>
+                <span class="rhero-count">{{ sub_units?.length || 0 }} sub units available</span>
+            </header>
+
+            <div class="card-grid">
+                <Link
+                    v-for="(sub_unit, index) in sub_units"
+                    :key="sub_unit.id"
+                    :href="(sub_unit.id == 3
+                        ? '/services/csf/sub-unit/types'
+                        : '/services/csf/sub-unit/pstos')
+                        + '?region_id=' + region_id + '&service_id=' + service_id + '&unit_id=' + unit_id + '&sub_unit_id=' + sub_unit.id"
+                    class="flow-card"
+                    :style="{ animationDelay: (index * 45) + 'ms' }"
+                >
+                    <div class="flow-icon"><i :class="iconFor(index)"></i></div>
+                    <h3 class="flow-name">{{ sub_unit.sub_unit_name }}</h3>
+                    <span class="flow-cta">Explore <i class="ri-arrow-right-line"></i></span>
+                </Link>
+            </div>
+        </main>
     </div>
 </template>
 
 <style scoped>
-.subunits-page {
-    background: linear-gradient(135deg, #f6f9fc 0%, #e8f0f8 100%);
+.flow {
+    position: relative;
     min-height: 100vh;
+    color: #e7ecff;
+    background: radial-gradient(120% 120% at 50% 0%, #0d1533 0%, #070b1e 55%, #05060f 100%);
+    overflow-x: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-.subunits-hero {
-    border-radius: 16px;
-    border: 1px solid #d9e7f7;
-    background: linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(21, 59, 112, 0.08);
-}
-
-.subunits-hero-content {
-    padding: 24px 28px;
+/* Nav */
+.rnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    padding: 14px 24px;
+    background: rgba(7, 11, 30, 0.72);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(125, 211, 252, 0.12);
 }
-
-.subunits-kicker {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #3f6c9e;
-    font-weight: 700;
-}
-
-.subunits-title {
-    color: #153b70;
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin: 0;
-}
-
-.subunits-text {
-    color: #38506b;
-    font-size: 1rem;
-}
-
-.subunits-stats {
-    display: flex;
-    gap: 12px;
-}
-
-.stat-pill {
-    background: #ffffff;
-    border: 1px solid #d3e4f8;
-    border-radius: 12px;
-    padding: 10px 18px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
-}
-
-.stat-label {
-    color: #5f7893;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.stat-value {
-    color: #0d2f54;
-    font-size: 1.25rem;
-    font-weight: 800;
-}
-
-.subunit-card {
-    width: 100%;
-    min-height: 180px;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.subunit-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(21, 59, 112, 0.15);
-}
-
-.subunit-card:hover .subunit-card-body {
-    background: linear-gradient(135deg, rgba(21, 59, 112, 0.03) 0%, rgba(34, 102, 168, 0.06) 100%);
-}
-
-.subunit-card:hover .subunit-card-footer {
-    background: linear-gradient(90deg, #153b70, #2266a8);
-}
-
-.subunit-card:hover .subunit-card-footer .explore-text,
-.subunit-card:hover .subunit-card-footer i {
-    color: #ffffff;
-}
-
-.subunit-card:hover .subunit-icon {
-    color: #153b70;
-    transform: scale(1.1);
-}
-
-.subunit-card-body {
-    padding: 28px 20px;
-    display: flex;
-    flex-direction: column;
+.rnav-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: #fff; }
+.rnav-logo { height: 40px; width: 40px; object-fit: contain; }
+.rnav-title { font-weight: 700; font-size: 1.02rem; }
+.btn-ghost {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: #ffffff;
-    transition: all 0.3s ease;
-    min-height: 130px;
-}
-
-.subunit-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #e8f2ff 0%, #d0e4f8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    transition: all 0.3s ease;
-}
-
-.subunit-icon {
-    font-size: 1.5rem;
-    color: #2266a8;
-    transition: all 0.3s ease;
-}
-
-.subunit-card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #153b70;
-    margin: 0;
-    line-height: 1.3;
-}
-
-.subunit-card-footer {
-    padding: 12px 16px;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    border-top: 1px solid #e2e8f0;
-}
-
-.explore-text {
-    color: #64748b;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.subunit-card-footer i {
-    color: #94a3b8;
+    border: 1px solid rgba(231, 236, 255, 0.28);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e7ecff;
+    border-radius: 999px;
+    padding: 8px 18px;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.btn-back {
-    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
-    padding: 12px 32px;
-    font-size: 1rem;
     font-weight: 600;
-    border-radius: 12px;
-    color: #334155;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(231, 236, 255, 0.5); }
+
+/* Main */
+.rmain {
+    position: relative;
+    z-index: 10;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 130px 24px 70px;
 }
 
-.btn-back:hover {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    color: #0f172a;
+.rhero { text-align: center; margin-bottom: 46px; animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rhero-kicker {
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #7dd3fc;
+    padding: 6px 15px;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.08);
+    margin-bottom: 18px;
+}
+.rhero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0 0 12px;
+}
+.rhero-title .gradient {
+    background: linear-gradient(120deg, #67e8f9 0%, #38bdf8 45%, #818cf8 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.rhero-sub { color: #b7c2e8; font-size: 1.05rem; margin: 0 0 14px; }
+.rhero-count { display: inline-block; font-size: 0.82rem; color: #8b97c2; font-weight: 600; }
+
+/* Grid (centered) */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    justify-content: center;
+    gap: 18px;
 }
 
-@media (max-width: 992px) {
-    .subunits-hero-content {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
+.flow-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 30px 22px;
+    border-radius: 18px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(10px);
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.flow-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(125, 211, 252, 0.55);
+    background: rgba(56, 189, 248, 0.08);
+    box-shadow: 0 16px 34px rgba(3, 8, 24, 0.5);
+}
+.flow-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.7rem;
+    color: #06122b;
+    background: linear-gradient(135deg, #67e8f9, #818cf8);
+    transition: transform 0.25s ease;
+}
+.flow-card:hover .flow-icon { transform: scale(1.07); }
+.flow-name { font-size: 1.02rem; font-weight: 800; color: #fff; margin: 0; line-height: 1.35; }
+.flow-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #7dd3fc;
+    margin-top: auto;
+}
+.flow-cta i { transition: transform 0.25s ease; }
+.flow-card:hover .flow-cta i { transform: translateX(4px); }
 
-    .subunits-stats {
-        width: 100%;
-        justify-content: flex-start;
-    }
+@keyframes rise {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .rnav-title { display: none; }
+    .rmain { padding-top: 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rhero, .flow-card { animation: none; }
+    .flow-card:hover { transform: none; }
 }
 </style>
-
