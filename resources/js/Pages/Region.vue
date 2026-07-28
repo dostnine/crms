@@ -1,278 +1,212 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { reactive, watch, ref, onMounted } from "vue";
-import AOS from 'aos'
-import 'aos/dist/aos.css'
-import { router } from '@inertiajs/vue3'
-
-AOS.init();
+import ScienceBackground from '@/Components/ScienceBackground.vue';
 
 defineProps({
     regions: Object,
 });
 
-const goServices = async (region_id) => {
-    router.get('/services/csf/services',{region_id} )
-}
-
-const goBack = async () => {
-    window.history.back()
-}
-
+const goBack = () => window.history.back();
 </script>
 
 <template>
-    <Head title="Regions" />
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" data-aos="fade-down" data-aos-duration="500" data-aos-delay="500" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; backdrop-filter: blur(2px);">
-        <div class="container-fluid">
-            <a href="/" class="navbar-brand d-flex align-items-center text-decoration-none">
-                <img src="../../../public/images/dost-logo.jpg" alt="DOST Logo" class="me-2" style="height: 2rem;">
-                <span class="fw-bold fs-4">DOST Customer Relation Management System</span>
+    <Head title="Select Region" />
+
+    <div class="regions">
+        <ScienceBackground />
+
+        <nav class="rnav">
+            <a href="/" class="rnav-brand">
+                <img src="/images/dost-logo.png" alt="DOST Logo" class="rnav-logo" />
+                <span class="rnav-title">DOST Customer Relation Management System</span>
             </a>
-        </div>
-    </nav>
-    <div class="min-vh-100 d-flex flex-column region-page">
-        <div class="mt-5 mx-3">
-            <div class="region-hero" data-aos="fade-up">
-                <div class="region-hero-content">
-                    <div>
-                        <p class="region-kicker mb-1">Welcome to</p>
-                        <h2 class="region-title mb-1">DOST Regional Offices</h2>
-                        <p class="region-text mb-0">Select your region to continue to available services</p>
-                    </div>
-                    <div class="region-stats">
-                        <div class="stat-pill">
-                            <span class="stat-label">Regions</span>
-                            <span class="stat-value">{{ regions?.length || 0 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid mt-4">
-            <div class="row justify-content-center">
-                <div v-for="(region, index) in regions" :key="region.id" class="col-lg-4 col-md-4 col-sm-6 m-4" :data-aos="'zoom-in'" :data-aos-delay="index * 10">
-                    <Link :href="'/services/csf/services?region_id=' + region.id" class="text-decoration-none">
-                        <div class="card h-100 region-card shadow border-0">
-                            <div class="region-card-body">
-                                <div class="region-icon-wrapper">
-                                    <i class="ri-map-pin-line region-icon"></i>
-                                </div>
-                                <h6 class="card-title fw-bold region-card-title mb-0">{{ region.short_name }}</h6>
-                                <p class="region-full-name text-muted mb-0">{{ region.region_name }}</p>
-                            </div>
-                            <div class="region-card-footer">
-                                <span class="explore-text">Click to explore</span>
-                                <i class="ri-arrow-right-line"></i>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-            </div>
-        </div>
-        <div class="mt-auto text-center mb-4">
-            <button @click="goBack()" class="btn btn-back">
-                <i class="ri-arrow-left-line me-2"></i> Back
+            <button class="btn-ghost" @click="goBack">
+                <i class="ri-arrow-left-line me-1"></i> Back
             </button>
-        </div>
+        </nav>
+
+        <main class="rmain">
+            <header class="rhero">
+                <span class="rhero-kicker">Customer Satisfaction Feedback</span>
+                <h1 class="rhero-title">
+                    Select <span class="gradient">Regional Office</span>
+                </h1>
+                <p class="rhero-sub">Choose your region to continue to its available services.</p>
+                <span class="rhero-count">{{ regions?.length || 0 }} regions available</span>
+            </header>
+
+            <div class="region-grid">
+                <Link
+                    v-for="(region, index) in regions"
+                    :key="region.id"
+                    :href="'/services/csf/services?region_id=' + region.id"
+                    class="region-card"
+                    :style="{ animationDelay: (index * 45) + 'ms' }"
+                >
+                    <div class="region-icon"><i class="ri-map-pin-2-line"></i></div>
+                    <div class="region-body">
+                        <h3 class="region-short">{{ region.short_name }}</h3>
+                        <p class="region-name">{{ region.region_name }}</p>
+                    </div>
+                    <i class="ri-arrow-right-line region-arrow"></i>
+                </Link>
+            </div>
+        </main>
     </div>
 </template>
 
 <style scoped>
-.region-page {
-    background: linear-gradient(135deg, #f6f9fc 0%, #e8f0f8 100%);
+.regions {
+    position: relative;
     min-height: 100vh;
+    color: #e7ecff;
+    background: radial-gradient(120% 120% at 50% 0%, #0d1533 0%, #070b1e 55%, #05060f 100%);
+    overflow-x: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-.region-hero {
-    border-radius: 16px;
-    border: 1px solid #d9e7f7;
-    background: linear-gradient(135deg, #f6fbff 0%, #e8f2ff 100%);
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(21, 59, 112, 0.08);
-}
-
-.region-hero-content {
-    padding: 24px 28px;
+/* Nav */
+.rnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    padding: 14px 24px;
+    background: rgba(7, 11, 30, 0.72);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(125, 211, 252, 0.12);
+}
+.rnav-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: #fff; }
+.rnav-logo { height: 40px; width: 40px; object-fit: contain; }
+.rnav-title { font-weight: 700; font-size: 1.02rem; }
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(231, 236, 255, 0.28);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e7ecff;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(231, 236, 255, 0.5); }
+
+/* Main */
+.rmain {
+    position: relative;
+    z-index: 10;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 130px 24px 70px;
 }
 
-.region-kicker {
-    font-size: 0.85rem;
+.rhero { text-align: center; margin-bottom: 46px; animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rhero-kicker {
+    display: inline-block;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #3f6c9e;
+    letter-spacing: 2.5px;
+    font-size: 0.74rem;
     font-weight: 700;
+    color: #7dd3fc;
+    padding: 6px 15px;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.08);
+    margin-bottom: 18px;
 }
-
-.region-title {
-    color: #153b70;
-    font-size: 1.75rem;
+.rhero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
     font-weight: 800;
-    margin: 0;
+    letter-spacing: -1px;
+    margin: 0 0 12px;
+}
+.rhero-title .gradient {
+    background: linear-gradient(120deg, #67e8f9 0%, #38bdf8 45%, #818cf8 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.rhero-sub { color: #b7c2e8; font-size: 1.05rem; margin: 0 0 14px; }
+.rhero-count {
+    display: inline-block;
+    font-size: 0.82rem;
+    color: #8b97c2;
+    font-weight: 600;
 }
 
-.region-text {
-    color: #38506b;
-    font-size: 1rem;
-}
-
-.region-stats {
-    display: flex;
-    gap: 12px;
-}
-
-.stat-pill {
-    background: #ffffff;
-    border: 1px solid #d3e4f8;
-    border-radius: 12px;
-    padding: 10px 18px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 2px 8px rgba(27, 72, 122, 0.08);
-}
-
-.stat-label {
-    color: #5f7893;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.stat-value {
-    color: #0d2f54;
-    font-size: 1.25rem;
-    font-weight: 800;
+/* Grid */
+.region-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
 }
 
 .region-card {
-    border-radius: 16px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    border-radius: 18px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(10px);
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-
 .region-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(21, 59, 112, 0.15) !important;
+    transform: translateY(-6px);
+    border-color: rgba(125, 211, 252, 0.55);
+    background: rgba(56, 189, 248, 0.08);
+    box-shadow: 0 16px 34px rgba(3, 8, 24, 0.5);
 }
-
-.region-card:hover .region-card-body {
-    background: linear-gradient(135deg, rgba(21, 59, 112, 0.05) 0%, rgba(34, 102, 168, 0.08) 100%);
-}
-
-.region-card:hover .region-card-footer {
-    background: linear-gradient(90deg, #153b70, #2266a8);
-}
-
-.region-card:hover .region-card-footer .explore-text,
-.region-card:hover .region-card-footer i {
-    color: #ffffff;
-}
-
-.region-card:hover .region-icon {
-    color: #153b70;
-    transform: scale(1.1);
-}
-
-.region-card-body {
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: #ffffff;
-    transition: all 0.3s ease;
-    min-height: 160px;
-}
-
-.region-icon-wrapper {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #e8f2ff 0%, #d0e4f8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-}
-
 .region-icon {
-    font-size: 2rem;
-    color: #2266a8;
-    transition: all 0.3s ease;
-}
-
-.region-card-title {
-    color: #153b70;
-    font-size: 1.35rem;
-    font-weight: 800;
-    margin-bottom: 4px;
-}
-
-.region-full-name {
-    font-size: 0.85rem;
-}
-
-.region-card-footer {
-    padding: 14px 20px;
-    background: #f8fafc;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    border-top: 1px solid #e2e8f0;
+    font-size: 1.5rem;
+    color: #06122b;
+    background: linear-gradient(135deg, #67e8f9, #818cf8);
+    transition: transform 0.25s ease;
+}
+.region-card:hover .region-icon { transform: scale(1.06); }
+.region-body { flex: 1; min-width: 0; }
+.region-short { font-size: 1.15rem; font-weight: 800; margin: 0 0 2px; color: #fff; }
+.region-name {
+    font-size: 0.82rem;
+    color: #9fabd4;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.region-arrow { color: #6b76a0; font-size: 1.2rem; transition: transform 0.25s ease, color 0.25s ease; }
+.region-card:hover .region-arrow { transform: translateX(4px); color: #7dd3fc; }
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.explore-text {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
+@media (max-width: 640px) {
+    .rnav-title { display: none; }
+    .rmain { padding-top: 110px; }
 }
 
-.region-card-footer i {
-    color: #94a3b8;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-back {
-    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
-    padding: 12px 32px;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 12px;
-    color: #334155;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-}
-
-.btn-back:hover {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    color: #0f172a;
-}
-
-@media (max-width: 992px) {
-    .region-hero-content {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
-
-    .region-stats {
-        width: 100%;
-        justify-content: flex-start;
-    }
+@media (prefers-reduced-motion: reduce) {
+    .rhero, .region-card { animation: none; }
+    .region-card:hover { transform: none; }
 }
 </style>
-
