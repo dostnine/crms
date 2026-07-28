@@ -445,21 +445,6 @@ onBeforeUnmount(() => {
                     </a>
                     <a href="#about" class="btn btn-outline">Learn more</a>
                 </div>
-
-                <dl class="hero-stats">
-                    <div class="stat">
-                        <dt>16</dt>
-                        <dd>Regions</dd>
-                    </div>
-                    <div class="stat">
-                        <dt>8,500+</dt>
-                        <dd>Responses</dd>
-                    </div>
-                    <div class="stat">
-                        <dt>Real-time</dt>
-                        <dd>CSI &amp; NPS</dd>
-                    </div>
-                </dl>
             </div>
 
             <a href="#about" class="scroll-cue" aria-label="Scroll to content">
@@ -693,30 +678,7 @@ onBeforeUnmount(() => {
     gap: 16px;
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 56px;
-}
-.hero-stats {
-    display: flex;
-    gap: 48px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin: 0;
-}
-.hero-stats .stat { text-align: center; }
-.hero-stats dt {
-    font-size: clamp(1.6rem, 4vw, 2.3rem);
-    font-weight: 800;
-    background: linear-gradient(120deg, #e7ecff, #7dd3fc);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.hero-stats dd {
-    margin: 4px 0 0;
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #8b97c2;
+    margin-bottom: 0;
 }
 
 /* Scroll cue */
@@ -832,7 +794,6 @@ onBeforeUnmount(() => {
 
 @media (max-width: 640px) {
     .nav-title { display: none; }
-    .hero-stats { gap: 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
