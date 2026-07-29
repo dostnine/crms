@@ -5,6 +5,7 @@ import SignaturePad from "signature_pad";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Swal from "sweetalert2";
+import ScienceBackground from "@/Components/ScienceBackground.vue";
 /* Native selects used - Multiselect removed */
 
 const props = defineProps({
@@ -131,6 +132,17 @@ const form = reactive({
 
 const formSubmitted = ref(false);
 
+// Light / dark (immersive) theme, remembered across the session.
+const theme = ref("dark");
+const toggleTheme = () => {
+  theme.value = theme.value === "dark" ? "light" : "dark";
+  try {
+    localStorage.setItem("csf-theme", theme.value);
+  } catch (e) {
+    /* ignore */
+  }
+};
+
 const getCC = (index, cc_id, answer) => {
   form.cc_form.id[index] = cc_id;
   form.cc_form.answer[index] = answer;
@@ -145,6 +157,13 @@ const getDimension = (index, dimension_id) => {
 
 onMounted(() => {
   AOS.init();
+
+  try {
+    const saved = localStorage.getItem("csf-theme");
+    if (saved === "light" || saved === "dark") theme.value = saved;
+  } catch (e) {
+    /* ignore */
+  }
 
   // signaturePad.value = new SignaturePad(signaturePad.value);
   // const canvas = signaturePad.value;
@@ -285,297 +304,31 @@ watch(
 <template>
   <Head title="CSF Form" />
 
-  <nav
-    data-aos="fade-down"
-    data-aos-duration="500"
-    data-aos-delay="500"
-    class="navbar navbar-expand-lg navbar-light bg-white border-bottom position-fixed w-100"
-    style="z-index: 1020"
-  >
-    <div class="container-fluid">
-      <a href="/" class="navbar-brand d-flex align-items-center">
-        <img
-          src="../../../../public/images/dost-logo.jpg"
-          class="me-3"
-          style="height: 2rem"
-          alt="DOST Logo"
-        />
-        <span class="fw-semibold fs-5 text-dark"
-          >Department of Science and Technology</span
-        >
-      </a>
-    </div>
+  <nav class="csf-nav" :class="{ light: theme === 'light' }">
+    <a href="/" class="csf-nav-brand">
+      <img src="/images/dost-logo.png" class="csf-nav-logo" alt="DOST Logo" />
+      <span class="csf-nav-title">Department of Science and Technology</span>
+    </a>
+    <button
+      type="button"
+      class="csf-theme-toggle"
+      :aria-label="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      @click="toggleTheme"
+    >
+      <i :class="theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line'"></i>
+    </button>
   </nav>
-  <div
-    class="min-vh-100 position-relative"
-    data-aos="fade-up"
-    data-aos-duration="2000"
-    data-aos-delay="500"
-    style="background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #312e81 100%)"
-  >
-    <!-- Animated Background Elements -->
-    <div class="position-absolute w-100 h-100">
-      <div
-        class="position-absolute bg-primary rounded-circle opacity-25 animate-pulse"
-        style="top: 10%; left: 10%; width: 8rem; height: 8rem"
-      ></div>
-      <div
-        class="position-absolute bg-info rounded-circle opacity-25 animate-pulse"
-        style="bottom: 10%; right: 10%; width: 6rem; height: 6rem; animation-delay: 1s"
-      ></div>
-      <div
-        class="position-absolute bg-warning rounded-circle opacity-25 animate-pulse"
-        style="
-          top: 50%;
-          left: 50%;
-          width: 4rem;
-          height: 4rem;
-          animation-delay: 2s;
-          transform: translate(-50%, -50%);
-        "
-      ></div>
-    </div>
-
-    <!-- Tech Animation Elements -->
-    <div class="position-absolute w-100 h-100 overflow-hidden">
-      <!-- Moving Circuit Lines -->
-      <div class="position-absolute w-100 h-100">
-        <svg
-          class="w-100 h-100 opacity-25"
-          viewBox="0 0 1000 1000"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <linearGradient id="circuit-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color: #0d6efd; stop-opacity: 1" />
-              <stop offset="100%" style="stop-color: #6610f2; stop-opacity: 1" />
-            </linearGradient>
-          </defs>
-          <!-- Horizontal Lines -->
-          <line
-            x1="0"
-            y1="200"
-            x2="1000"
-            y2="200"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="8s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="0"
-            y1="400"
-            x2="1000"
-            y2="400"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="10s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="0"
-            y1="600"
-            x2="1000"
-            y2="600"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="12s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="0"
-            y1="800"
-            x2="1000"
-            y2="800"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="9s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <!-- Vertical Lines -->
-          <line
-            x1="200"
-            y1="0"
-            x2="200"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="11s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="400"
-            y1="0"
-            x2="400"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="13s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="600"
-            y1="0"
-            x2="600"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="7s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="800"
-            y1="0"
-            x2="800"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="2"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1000;1000,0"
-              dur="15s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <!-- Diagonal Lines -->
-          <line
-            x1="0"
-            y1="0"
-            x2="1000"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="1"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1414;1414,0"
-              dur="20s"
-              repeatCount="indefinite"
-            />
-          </line>
-          <line
-            x1="1000"
-            y1="0"
-            x2="0"
-            y2="1000"
-            stroke="url(#circuit-gradient)"
-            stroke-width="1"
-            class="animate-pulse"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              values="0,1414;1414,0"
-              dur="18s"
-              repeatCount="indefinite"
-            />
-          </line>
-        </svg>
-      </div>
-
-      <!-- Floating Geometric Shapes -->
-      <div
-        class="position-absolute border border-info rotate-45 animate-bounce"
-        style="top: 25%; left: 25%; width: 2rem; height: 2rem; animation-duration: 6s"
-      ></div>
-      <div
-        class="position-absolute border border-primary rounded-circle animate-spin"
-        style="
-          top: 75%;
-          right: 25%;
-          width: 1.5rem;
-          height: 1.5rem;
-          animation-duration: 8s;
-          animation-delay: 2s;
-        "
-      ></div>
-      <div
-        class="position-absolute bg-warning opacity-50 animate-ping"
-        style="
-          top: 50%;
-          left: 50%;
-          width: 1rem;
-          height: 1rem;
-          animation-duration: 4s;
-          animation-delay: 1s;
-          transform: translate(-50%, -50%);
-        "
-      ></div>
-      <div
-        class="position-absolute border border-light opacity-50 rotate-12 animate-pulse"
-        style="
-          bottom: 25%;
-          right: 33%;
-          width: 2.5rem;
-          height: 2.5rem;
-          animation-duration: 5s;
-          animation-delay: 3s;
-        "
-      ></div>
-      <div
-        class="position-absolute bg-light opacity-75 rounded-circle animate-bounce"
-        style="
-          top: 17%;
-          right: 17%;
-          width: 0.75rem;
-          height: 0.75rem;
-          animation-duration: 7s;
-          animation-delay: 1.5s;
-        "
-      ></div>
-    </div>
+  <div class="csf-page" :class="{ light: theme === 'light' }">
+    <ScienceBackground v-if="theme === 'dark'" />
+    <div v-else class="csf-light-aurora"></div>
 
     <!-- Form Content -->
     <div class="position-relative z-index-10 w-100 py-5">
       <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
           <form class="needs-validation" @submit.prevent="saveCSF" novalidate>
-            <div class="py-5 bg-light">
-              <div class="card mb-3 text-center shadow-sm">
+            <div class="csf-sheet">
+              <div class="card mb-3 text-center shadow-sm csf-hero-card">
                 <div class="card-body p-4">
                   <div class="mb-4">
                     <img
@@ -584,7 +337,7 @@ watch(
                       data-aos-delay="500"
                       class="img-fluid mx-auto d-block"
                       style="width: 200px; height: 200px"
-                      src="../../../../public/images/dost-logo.jpg"
+                      src="/images/dost-logo.png"
                       alt="DOST Logo"
                     />
                   </div>
@@ -841,7 +594,7 @@ watch(
                 data-aos-delay="500"
                 class="card mb-4 shadow-sm"
               >
-                <div class="card-header bg-primary text-white">
+                <div class="card-header csf-rate-header text-white">
                   <h4 class="card-title mb-0">HOW WOULD YOU RATE OUR SERVICES?</h4>
                 </div>
                 <div class="card-body">
@@ -1081,12 +834,12 @@ watch(
                 <div class="card-body">
                   <div class="row mt-4 mb-4 text-center">
                     <div class="col-6 text-end">
-                      <a href="/" class="btn btn-secondary">Back</a>
+                      <a href="/" class="btn csf-back">Back</a>
                     </div>
                     <div class="col-6 text-start">
                       <button
                         type="submit"
-                        class="btn btn-success"
+                        class="btn csf-submit"
                         :disabled="
                           form.processing || (form.is_complaint && !form.comment)
                         "
@@ -1105,7 +858,293 @@ watch(
   </div>
 </template>
 <style>
-canvas {
-  border: 1px solid #000;
+.csf-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 84px 0 40px;
+  background: radial-gradient(120% 120% at 50% 0%, #0d1533 0%, #070b1e 55%, #05060f 100%);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.csf-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  background: rgba(7, 11, 30, 0.72);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(125, 211, 252, 0.12);
+}
+.csf-nav.light {
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid #e2e8f0;
+}
+.csf-nav.light .csf-nav-title { color: #10214a; }
+
+.csf-theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: #7dd3fc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.csf-theme-toggle:hover { background: rgba(56, 189, 248, 0.15); color: #bae6fd; }
+.csf-nav.light .csf-theme-toggle { border-color: #cbd7ea; background: #fff; color: #f59e0b; }
+.csf-nav.light .csf-theme-toggle:hover { background: #f1f6fc; }
+
+.csf-light-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 60% at 18% 15%, rgba(56, 189, 248, 0.2), transparent 60%),
+    radial-gradient(55% 55% at 82% 20%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(70% 70% at 50% 95%, rgba(34, 211, 238, 0.12), transparent 60%);
+}
+.csf-nav-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+.csf-nav-logo { height: 38px; width: 38px; object-fit: contain; }
+.csf-nav-title { color: #fff; font-weight: 700; font-size: 1rem; }
+
+/* The form sits directly on the scene — no opaque sheet */
+.csf-sheet {
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  padding: 4px;
+}
+
+/* Cards become dark glass */
+.csf-page .card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(12px);
+  color: #e7ecff;
+  border-radius: 16px !important;
+}
+.csf-page .card-body { color: #e7ecff; }
+.csf-page .card-title,
+.csf-page h2,
+.csf-page h4,
+.csf-page h5,
+.csf-page h6,
+.csf-page label,
+.csf-page p,
+.csf-page .form-check-label { color: #e7ecff; }
+.csf-page .text-muted { color: #a9b4d9 !important; }
+
+/* Inner "bg-light" chips (dimension titles) */
+.csf-page .bg-light {
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #eaf1ff !important;
+}
+
+/* Inputs */
+.csf-page .form-control,
+.csf-page .form-select,
+.csf-page textarea {
+  background: rgba(9, 13, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #eaf0ff;
+}
+.csf-page .form-control::placeholder,
+.csf-page textarea::placeholder { color: #7d88b0; }
+.csf-page .form-control:focus,
+.csf-page .form-select:focus,
+.csf-page textarea:focus {
+  background: rgba(9, 13, 30, 0.85);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.2);
+  color: #eaf0ff;
+}
+.csf-page .form-select option { background: #0d1533; color: #e7ecff; }
+.csf-page .form-check-input {
+  background-color: rgba(9, 13, 30, 0.6);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.csf-page .form-check-input:checked {
+  background-color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+/* Outline choice buttons */
+.csf-page .btn-outline-secondary {
+  color: #c6d0ee;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+}
+.csf-page .btn-outline-secondary:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(125, 211, 252, 0.6);
+  color: #fff;
+}
+.csf-page .btn-outline-secondary.active {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  border-color: transparent;
+  color: #06122b;
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.35);
+}
+
+/* ---- Field polish (both themes) ---- */
+.csf-page label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  letter-spacing: 0.2px;
+}
+.csf-page .form-control,
+.csf-page .form-select,
+.csf-page textarea {
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.98rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+/* A background shorthand elsewhere wipes Bootstrap's chevron, so redraw it here */
+.csf-page .form-select {
+  background-color: rgba(9, 13, 30, 0.6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 15px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+.csf-page .form-check {
+  padding: 4px 0 4px 1.9em;
+}
+.csf-page .form-check-input {
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: 0.15em;
+  cursor: pointer;
+}
+
+/* ---- Light theme ---- */
+.csf-page.light {
+  background: radial-gradient(120% 120% at 50% 0%, #eef4ff 0%, #e5edf8 55%, #dde7f6 100%);
+}
+.csf-page.light .card {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(21, 59, 112, 0.12) !important;
+  color: #12243a;
+  box-shadow: 0 10px 30px rgba(21, 59, 112, 0.08);
+}
+.csf-page.light .card-body,
+.csf-page.light .card-title,
+.csf-page.light h2,
+.csf-page.light h4,
+.csf-page.light h5,
+.csf-page.light h6,
+.csf-page.light label,
+.csf-page.light p,
+.csf-page.light .form-check-label { color: #12243a; }
+.csf-page.light .text-muted { color: #5b7088 !important; }
+.csf-page.light .bg-light {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #12243a !important;
+}
+.csf-page.light .form-control,
+.csf-page.light .form-select,
+.csf-page.light textarea {
+  background-color: #ffffff;
+  border: 1px solid #cbd7ea;
+  color: #12243a;
+}
+.csf-page.light .form-control::placeholder,
+.csf-page.light textarea::placeholder { color: #94a3b8; }
+.csf-page.light .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%232266a8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+.csf-page.light .form-select option { background: #fff; color: #12243a; }
+.csf-page.light .form-control:focus,
+.csf-page.light .form-select:focus,
+.csf-page.light textarea:focus {
+  background-color: #fff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.2);
+  color: #12243a;
+}
+.csf-page.light .form-check-input { background-color: #fff; border-color: #cbd7ea; }
+.csf-page.light .form-check-input:checked { background-color: #38bdf8; border-color: #38bdf8; }
+.csf-page.light .btn-outline-secondary {
+  color: #3f6c9e;
+  border-color: #cbd7ea;
+  background: #fff;
+}
+.csf-page.light .btn-outline-secondary:hover { background: #eaf2ff; color: #10214a; }
+.csf-page.light .btn-outline-secondary.active {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #06122b;
+  border-color: transparent;
+}
+.csf-page.light .csf-back { background: #fff; }
+
+/* Keep banners on-brand and readable in light mode */
+.csf-page.light .csf-hero-card {
+  background: linear-gradient(120deg, #10214a 0%, #123a6b 55%, #0d2f54 100%) !important;
+  border: none !important;
+}
+.csf-page.light .csf-hero-card,
+.csf-page.light .csf-hero-card h2,
+.csf-page.light .csf-hero-card .card-body { color: #fff; }
+.csf-page.light .csf-rate-header .card-title { color: #fff; }
+
+/* Branded header banner */
+.csf-hero-card {
+  border: none !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  background: linear-gradient(120deg, #10214a 0%, #123a6b 55%, #0d2f54 100%) !important;
+}
+.csf-hero-card .card-body { color: #fff; }
+.csf-hero-card h2 { color: #fff; letter-spacing: 0.5px; }
+
+.csf-rate-header {
+  background: linear-gradient(90deg, #10214a, #123a6b) !important;
+  border-bottom: none !important;
+}
+
+/* Buttons */
+.csf-submit {
+  background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 45%, #818cf8 100%);
+  border: none;
+  color: #06122b;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 10px 28px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.csf-submit:hover:not(:disabled) {
+  color: #06122b;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(56, 189, 248, 0.45);
+}
+.csf-submit:disabled { opacity: 0.55; }
+.csf-back {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-weight: 600;
+}
+.csf-back:hover { background: #f1f5f9; color: #0f172a; }
+
+@media (max-width: 640px) {
+  .csf-nav-title { display: none; }
+  .csf-sheet { padding: 16px; border-radius: 16px; }
 }
 </style>
