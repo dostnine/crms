@@ -991,11 +991,12 @@ watch(
   color: #eaf1ff !important;
 }
 
-/* Inputs */
+/* Inputs — use background-color (never the `background` shorthand) so the
+   select's chevron background-image / no-repeat is never reset and tiled. */
 .csf-page .form-control,
 .csf-page .form-select,
 .csf-page textarea {
-  background: rgba(9, 13, 30, 0.6);
+  background-color: rgba(9, 13, 30, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #eaf0ff;
 }
@@ -1004,7 +1005,7 @@ watch(
 .csf-page .form-control:focus,
 .csf-page .form-select:focus,
 .csf-page textarea:focus {
-  background: rgba(9, 13, 30, 0.85);
+  background-color: rgba(9, 13, 30, 0.85);
   border-color: #38bdf8;
   box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.2);
   color: #eaf0ff;
