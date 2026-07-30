@@ -529,14 +529,25 @@ class ReportController extends Controller
 
         // Net Promotion Scores(NPS) = Percentage of Promoters−Percentage of Detractors
         $net_promoter_score =  number_format(($percentage_promoters - $percentage_detractors),2);
-  
+
+        //comments and complaints
+        $comment_list = CustomerComment::whereIn('customer_id', $customer_ids)
+                                    ->whereBetween('created_at', [$request->date_from, $request->date_to])->get();
+
+        $comments = $comment_list->where('comment','!=','')->pluck('comment');
+
+        $total_comments = $comment_list->where('comment','!=','')->count();
+        $total_complaints = $comment_list->where('is_complaint',1)->count();
 
         //send response to front end
-        return Inertia::render('CSI/Index')    
+        return Inertia::render('CSI/Index')
             ->with('user', $user)
             ->with('assignatorees', $assignatorees)
             ->with('users', $users)
-            ->with('cc_data', $cc_data) 
+            ->with('cc_data', $cc_data)
+            ->with('total_comments', $total_comments)
+            ->with('total_complaints', $total_complaints)
+            ->with('comments', $comments)
             ->with('sub_unit', $sub_unit)
             ->with('unit_pstos', $unit_pstos)
             ->with('sub_unit_pstos', $sub_unit_pstos)
