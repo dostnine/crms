@@ -1012,8 +1012,13 @@ watch(
   font-size: 0.98rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-/* A background shorthand elsewhere wipes Bootstrap's chevron, so redraw it here */
+/* A background shorthand elsewhere wipes Bootstrap's chevron, so redraw it here.
+   Force appearance:none so the browser's own native caret doesn't show alongside
+   this custom one (which read as a double / stacked arrow). */
 .csf-page .form-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   background-color: rgba(9, 13, 30, 0.6);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
