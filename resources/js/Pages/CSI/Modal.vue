@@ -175,7 +175,7 @@ const closeDialog = (value) => {
 
 
     <!-- Printouts-->
-    <ByUnitMonthlyReport v-if="form.csi_type == 'By Month' && is_printing && data" :form="form"  :data="data" :form_assignatorees="form_assignatorees" />
+    <ByUnitMonthlyReport v-if="(form.csi_type == 'By Month' || form.csi_type == 'By Date') && is_printing && data" :form="form"  :data="data" :form_assignatorees="form_assignatorees" />
  
 </template>
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>

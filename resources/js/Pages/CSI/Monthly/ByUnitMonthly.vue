@@ -14,6 +14,16 @@
             default: false,
         }
     });
+
+    const formatReadableDate = (value) => {
+        if (!value) return '';
+        const [year, month, day] = value.split('-').map(Number);
+        return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+            month: 'long',
+            day: '2-digit',
+            year: 'numeric',
+        }).toUpperCase();
+    };
 </script>
 <template>
 
@@ -28,7 +38,7 @@
                         style="width:40px; height:40px; margin-right:10px" 
                         src="../../../../../public/images/dost-logo.jpg" 
                         alt="..">
-                        <span style="text-align:center">CUSTOMER SATISFACTION FEEDBACK <br>SUMMARY REPORT FOR   <u><span>{{ form.selected_month }}</span>  {{ form.selected_year }}</u></span>
+                        <span style="text-align:center">CUSTOMER SATISFACTION FEEDBACK <br>SUMMARY REPORT FOR   <u><span v-if="form.csi_type == 'By Date'">{{ formatReadableDate(form.date_from) }} TO {{ formatReadableDate(form.date_to) }}</span><span v-else>{{ form.selected_month }}  {{ form.selected_year }}</span></u></span>
                     </div>                  
                 </h5><br>
                 <div style="display: flex; justify-content: space-between;margin-top: -20px; margin-bottom: 10px" v-if="data.service && data.unit">
