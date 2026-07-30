@@ -375,7 +375,7 @@ watch(
     <div v-else class="csf-light-aurora"></div>
 
     <!-- Form Content -->
-    <div class="position-relative z-index-10 w-100 py-5">
+    <div class="position-relative z-index-10 w-100 py-5 csf-content">
       <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
           <form class="needs-validation" @submit.prevent="saveCSF" novalidate>
@@ -387,8 +387,7 @@ watch(
                       data-aos="zoom-in"
                       data-aos-duration="500"
                       data-aos-delay="500"
-                      class="img-fluid mx-auto d-block"
-                      style="width: 200px; height: 200px"
+                      class="img-fluid mx-auto d-block csf-hero-logo"
                       src="/images/dost-logo.png"
                       alt="DOST Logo"
                     />
@@ -667,10 +666,7 @@ watch(
 
                       <input type="hidden" :value="getDimension(index, dimension.id)" />
                       <div class="mb-4">
-                        <div
-                          class="btn-group d-flex flex-wrap justify-content-center gap-2"
-                          role="group"
-                        >
+                        <div class="csf-rate-options" role="group">
                           <input
                             type="hidden"
                             v-model="form.dimension_form.rate_score[index]"
@@ -679,7 +675,7 @@ watch(
                             v-for="option in options"
                             :key="option.value"
                             type="button"
-                            class="btn btn-outline-secondary rounded-pill"
+                            class="btn btn-outline-secondary csf-rate-btn"
                             :class="{
                               active:
                                 form.dimension_form.rate_score[index] === option.value,
@@ -716,30 +712,32 @@ watch(
                         class="mt-4"
                       >
                         <p class="mb-3 fw-semibold">How important is this attribute?</p>
-                        <div class="d-flex justify-content-center gap-3 flex-wrap">
-                          <div class="btn-group" role="group">
-                            <input
-                              type="hidden"
-                              v-model="form.dimension_form.importance_rate_score[index]"
-                            />
-                            <button
-                              v-for="option in attribute_numbers"
-                              :key="option.value"
-                              type="button"
-                              class="btn btn-outline-secondary rounded-circle mx-1"
-                              :class="{
-                                active:
-                                  form.dimension_form.importance_rate_score[index] ===
-                                  option.value,
-                              }"
-                              @click="
-                                form.dimension_form.importance_rate_score[index] =
-                                  option.value
-                              "
-                            >
-                              {{ option.label }}
-                            </button>
-                          </div>
+                        <div class="csf-scale csf-scale--sm" role="group">
+                          <input
+                            type="hidden"
+                            v-model="form.dimension_form.importance_rate_score[index]"
+                          />
+                          <button
+                            v-for="option in attribute_numbers"
+                            :key="option.value"
+                            type="button"
+                            class="btn btn-outline-secondary csf-scale-btn"
+                            :class="{
+                              active:
+                                form.dimension_form.importance_rate_score[index] ===
+                                option.value,
+                            }"
+                            @click="
+                              form.dimension_form.importance_rate_score[index] =
+                                option.value
+                            "
+                          >
+                            {{ option.label }}
+                          </button>
+                        </div>
+                        <div class="csf-scale-legend csf-scale-legend--sm">
+                          <span>5 — Very important</span>
+                          <span>1 — Not important</span>
                         </div>
                         <div
                           class="text-danger mt-2"
@@ -768,19 +766,27 @@ watch(
                     <span class="text-danger">*</span>
                   </h5>
 
-                  <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
-                    <div class="btn-group" role="group">
+                  <div class="mb-3">
+                    <div
+                      class="csf-scale"
+                      role="group"
+                      aria-label="Recommendation score from 10 to 1"
+                    >
                       <input type="hidden" v-model="form.recommend_rate_score" />
                       <button
                         v-for="option in recommendation_numbers"
                         :key="option.value"
                         type="button"
-                        class="btn btn-outline-secondary rounded-circle mx-1"
+                        class="btn btn-outline-secondary csf-scale-btn"
                         :class="{ active: form.recommend_rate_score === option.value }"
                         @click="form.recommend_rate_score = option.value"
                       >
                         {{ option.label }}
                       </button>
+                    </div>
+                    <div class="csf-scale-legend">
+                      <span>10 — Most likely</span>
+                      <span>1 — Not likely</span>
                     </div>
                   </div>
 
@@ -1175,6 +1181,91 @@ watch(
   border-bottom: none !important;
 }
 
+/* ---- Layout guards ----
+   The inner .row carries Bootstrap's negative gutter margins (-12px a side), and
+   AOS parks fade-left/zoom-out-up cards ~100px off to the right before they
+   animate in. Without padding wider than the gutter plus a clip, the page scrolls
+   sideways into empty space on phones. */
+.csf-content {
+  padding-left: 16px;
+  padding-right: 16px;
+  overflow-x: hidden;
+}
+@media (min-width: 768px) {
+  .csf-content {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.csf-hero-logo {
+  width: clamp(120px, 34vw, 200px);
+  height: auto;
+}
+
+/* Emotion choices: an auto-fitting grid so the six options reflow to 3x2 (or
+   2x3) on phones instead of being squeezed by a non-wrapping .btn-group. */
+.csf-page .csf-rate-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 10px;
+}
+.csf-page .csf-rate-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  font-size: 0.84rem;
+  line-height: 1.2;
+  text-align: center;
+}
+.csf-page .csf-rate-btn i {
+  margin-bottom: 2px !important;
+}
+
+/* Numeric scales (importance 1–5, recommendation 1–10). A grid — not a
+   .btn-group, which is display:flex and never wraps — so the ten circles stay
+   round and tappable and simply fold onto a second row when space runs out. */
+.csf-page .csf-scale {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.csf-page .csf-scale--sm {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 290px;
+}
+.csf-page .csf-scale-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  min-height: 44px; /* keep a comfortable touch target */
+  padding: 0;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.csf-page .csf-scale-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  margin: 10px auto 0;
+  font-size: 0.76rem;
+  opacity: 0.75;
+}
+.csf-page .csf-scale-legend--sm {
+  max-width: 290px;
+}
+
 /* Buttons */
 .csf-submit {
   background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 45%, #818cf8 100%);
@@ -1203,13 +1294,55 @@ watch(
 
 @media (max-width: 640px) {
   .csf-nav-title { display: none; }
-  .csf-sheet { padding: 12px; border-radius: 16px; }
+  .csf-sheet { padding: 0; border-radius: 16px; }
   /* Tighten the top gap: less page padding + trim the Form Content py-5 */
   .csf-page { padding-top: 64px; }
   .csf-page .py-5 {
     padding-top: 0.75rem !important;
     padding-bottom: 1.25rem !important;
   }
+
+  /* Reclaim horizontal room: nested cards were paying padding three times over */
+  .csf-page .card-body { padding: 1rem; }
+  .csf-page .card-body.p-4 { padding: 1.1rem !important; }
+  .csf-page .card .card .card-body { padding: 0.85rem; }
+  .csf-page .ms-3 { margin-left: 0 !important; }
+  .csf-page h2.fs-3 { font-size: 1.35rem !important; }
+  .csf-page .card-title.fs-4 { font-size: 1.1rem !important; }
+  .csf-page .form-check-label { font-size: 0.88rem; }
+  .csf-page .bg-light.p-3 { padding: 0.75rem !important; }
+
+  /* Five per row, so 1–10 reads as two tidy rows of circles */
+  .csf-page .csf-scale {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    max-width: 320px;
+    gap: 10px;
+  }
+  .csf-page .csf-scale-legend { max-width: 320px; }
+  .csf-page .csf-rate-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .csf-page .csf-rate-btn {
+    min-height: 78px;
+    font-size: 0.76rem;
+    padding: 8px 4px;
+  }
+
+  /* Full-width actions are far easier to hit with a thumb */
+  .csf-page .csf-back,
+  .csf-page .csf-submit {
+    width: 100%;
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .csf-page .csf-scale {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .csf-page .csf-rate-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---- SweetAlert modals themed to the form's mode ----
