@@ -191,8 +191,48 @@ onMounted(() => {
   });
 });
 
+const validateForm = () => {
+  const missing = [];
+  if (!form.client_type) missing.push("Client Type");
+  if (!form.sex) missing.push("Sex");
+  if (!form.age_group) missing.push("Age Group");
+
+  const ccCount = props.cc_questions ? Object.keys(props.cc_questions).length : 0;
+  for (let i = 0; i < ccCount; i++) {
+    if (!form.cc_form.answer[i]) missing.push("Citizen's Charter question " + (i + 1));
+  }
+
+  const dims = props.dimensions ? Object.values(props.dimensions) : [];
+  dims.forEach((_dim, i) => {
+    const rate = form.dimension_form.rate_score[i];
+    if (!rate) missing.push("Service rating #" + (i + 1));
+    else if (rate != 6 && !form.dimension_form.importance_rate_score[i])
+      missing.push("Importance rating #" + (i + 1));
+  });
+
+  if (!form.recommend_rate_score) missing.push("Recommendation score");
+  if (form.is_complaint && !form.email) missing.push("Email");
+  if (form.is_complaint && !form.comment) missing.push("Comment");
+  return missing;
+};
+
 const saveCSF = async () => {
   formSubmitted.value = true;
+
+  // Block submission until every required field is answered.
+  const missing = validateForm();
+  if (missing.length) {
+    Swal.fire({
+      title: "Incomplete Form",
+      icon: "warning",
+      text: "Please answer all required fields before submitting.",
+    });
+    requestAnimationFrame(() => {
+      const el = document.querySelector(".csf-page .text-danger");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    return;
+  }
 
   // const canvas = document.querySelector('.signature-pad');
   // const ctx = canvas.getContext('2d');
@@ -403,7 +443,7 @@ watch(
                         placeholder="email@gmail.com"
                         required
                       />
-                      <div class="invalid-feedback" v-if="formSubmitted && !form.email">
+                      <div class="text-danger small mt-1" v-if="formSubmitted && !form.email">
                         This field is required
                       </div>
                     </div>
@@ -445,7 +485,7 @@ watch(
 
 
                         <div
-                          class="invalid-feedback"
+                          class="text-danger small mt-1"
                           v-if="formSubmitted && !form.client_type"
                         >
                           This field is required
@@ -464,7 +504,7 @@ watch(
                         </select>
 
 
-                        <div class="invalid-feedback" v-if="formSubmitted && !form.sex">
+                        <div class="text-danger small mt-1" v-if="formSubmitted && !form.sex">
                           This field is required
                         </div>
                       </div>
@@ -486,7 +526,7 @@ watch(
 
 
                         <div
-                          class="invalid-feedback"
+                          class="text-danger small mt-1"
                           v-if="formSubmitted && !form.age_group"
                         >
                           This field is required
@@ -1150,6 +1190,12 @@ watch(
 
 @media (max-width: 640px) {
   .csf-nav-title { display: none; }
-  .csf-sheet { padding: 16px; border-radius: 16px; }
+  .csf-sheet { padding: 12px; border-radius: 16px; }
+  /* Tighten the top gap: less page padding + trim the Form Content py-5 */
+  .csf-page { padding-top: 64px; }
+  .csf-page .py-5 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 1.25rem !important;
+  }
 }
 </style>
