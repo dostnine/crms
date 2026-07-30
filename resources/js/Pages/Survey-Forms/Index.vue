@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, watch } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import SignaturePad from "signature_pad";
 import AOS from "aos";
@@ -134,8 +134,15 @@ const formSubmitted = ref(false);
 
 // Light / dark (immersive) theme, remembered across the session.
 const theme = ref("dark");
+// SweetAlert renders outside the page, so mark <html> and let global CSS theme it.
+const applyThemeClass = () => {
+  const el = document.documentElement;
+  el.classList.toggle("csf-theme-dark", theme.value === "dark");
+  el.classList.toggle("csf-theme-light", theme.value === "light");
+};
 const toggleTheme = () => {
   theme.value = theme.value === "dark" ? "light" : "dark";
+  applyThemeClass();
   try {
     localStorage.setItem("csf-theme", theme.value);
   } catch (e) {
@@ -164,6 +171,7 @@ onMounted(() => {
   } catch (e) {
     /* ignore */
   }
+  applyThemeClass();
 
   // signaturePad.value = new SignaturePad(signaturePad.value);
   // const canvas = signaturePad.value;
@@ -189,6 +197,10 @@ onMounted(() => {
     text:
       "The DOST is committed to protect and respect your personal data privacy. All information collected will only be used for documentation purposes and will not be published in any platform.",
   });
+});
+
+onBeforeUnmount(() => {
+  document.documentElement.classList.remove("csf-theme-dark", "csf-theme-light");
 });
 
 const validateForm = () => {
@@ -1199,4 +1211,46 @@ watch(
     padding-bottom: 1.25rem !important;
   }
 }
+
+/* ---- SweetAlert modals themed to the form's mode ----
+   (SweetAlert mounts on <body>, so these are gated by a class on <html>) */
+html.csf-theme-dark .swal2-popup {
+  background: #0e1730;
+  color: #e7ecff;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  box-shadow: 0 30px 80px rgba(3, 6, 20, 0.6);
+}
+html.csf-theme-dark .swal2-title,
+html.csf-theme-dark .swal2-html-container { color: #e7ecff; }
+html.csf-theme-dark .swal2-input {
+  background: rgba(9, 13, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #eaf0ff;
+}
+html.csf-theme-dark .swal2-input::placeholder { color: #7d88b0; }
+html.csf-theme-dark .swal2-validation-message {
+  background: rgba(9, 13, 30, 0.6);
+  color: #fca5a5;
+}
+
+/* Brand buttons in both modes */
+html.csf-theme-dark .swal2-confirm,
+html.csf-theme-light .swal2-confirm {
+  background: linear-gradient(135deg, #38bdf8, #6366f1) !important;
+  color: #06122b !important;
+  font-weight: 700;
+}
+html.csf-theme-dark .swal2-cancel,
+html.csf-theme-light .swal2-cancel {
+  background: transparent !important;
+  border: 1px solid #94a3b8 !important;
+  color: #64748b !important;
+}
+html.csf-theme-light .swal2-popup {
+  background: #ffffff;
+  color: #12243a;
+  box-shadow: 0 24px 60px rgba(13, 47, 84, 0.18);
+}
+html.csf-theme-light .swal2-title { color: #10214a; }
+html.csf-theme-light .swal2-html-container { color: #38506b; }
 </style>
