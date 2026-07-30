@@ -96,12 +96,12 @@ const form = reactive({
   sub_unit_id: null,
   psto_id: null,
   date: getCurrentDate(),
-  client_type: null,
+  client_type: "",
   sub_unit_type: null,
   email: null,
   name: null,
-  sex: null,
-  age_group: null,
+  sex: "",
+  age_group: "",
   pwd: 0,
   pregnant: 0,
   senior_citizen: 0,
@@ -436,7 +436,7 @@ watch(
                           >Client Type <span class="text-danger">*</span></label
                         >
 <select id="client_type" v-model="form.client_type" class="form-select" required>
-                          <option value="">Select Client Type</option>
+                          <option value="" disabled>Select Client Type</option>
                           <option>General Public</option>
                           <option>Internal Employees</option>
                           <option>Business/Organization</option>
@@ -457,7 +457,7 @@ watch(
                           >Sex <span class="text-danger">*</span></label
                         >
 <select id="sex" v-model="form.sex" class="form-select" required>
-                          <option value="">Select Sex</option>
+                          <option value="" disabled>Select Sex</option>
                           <option>Male</option>
                           <option>Female</option>
                           <option>Prefer not to say</option>
@@ -474,7 +474,7 @@ watch(
                           >Age Group <span class="text-danger">*</span></label
                         >
 <select id="age_group" v-model="form.age_group" class="form-select" required>
-                          <option value="">Select Age Group</option>
+                          <option value="" disabled>Select Age Group</option>
                           <option>19 or lower</option>
                           <option>20-34</option>
                           <option>35-49</option>
