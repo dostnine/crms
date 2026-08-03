@@ -45,6 +45,9 @@ Route::get('/services/csf/sub-unit/pstos', [SurveyFormController::class, 'getSub
 Route::get('/services/csf/sub-unit/types', [SurveyFormController::class, 'getSubUnitTypes'])->name('getSubUnitTypes');
 Route::get('/services/csf', [SurveyFormController::class, 'index'])->name('csf_form');
 Route::get('/form/csf/msg', [SurveyFormController::class, 'msg_index'])->name('msg_index');
+// Pinged periodically by the CSF form while it's open so a long fill-out
+// session doesn't outlive SESSION_LIFETIME and 419 on submit.
+Route::get('/services/csf/keep-alive', fn () => response()->noContent())->name('csf_keep_alive');
 Route::get('captcha/{config?}', '\Mews\Captcha\CaptchaController@getCaptcha')->middleware('web');
 // Route::post('/captcha/verify', [SurveyFormController::class, 'verifyCaptcha']);
 Route::post('/csf_submission', [SurveyFormController::class, 'store']);

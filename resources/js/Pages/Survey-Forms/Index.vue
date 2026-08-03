@@ -132,6 +132,17 @@ const form = reactive({
 
 const formSubmitted = ref(false);
 
+// This is a kiosk-style form that can sit open for a long time before someone
+// submits it. Ping the server every few minutes so the session (and its CSRF
+// token) stays alive for the whole fill-out, instead of expiring mid-form and
+// throwing "session expired" on submit.
+let keepAliveTimer = null;
+const startKeepAlive = () => {
+  keepAliveTimer = setInterval(() => {
+    fetch("/services/csf/keep-alive", { credentials: "same-origin" }).catch(() => {});
+  }, 5 * 60 * 1000);
+};
+
 // Light / dark (immersive) theme, remembered across the session.
 const theme = ref("dark");
 // SweetAlert renders outside the page, so mark <html> and let global CSS theme it.
@@ -197,10 +208,13 @@ onMounted(() => {
     text:
       "The DOST is committed to protect and respect your personal data privacy. All information collected will only be used for documentation purposes and will not be published in any platform.",
   });
+
+  startKeepAlive();
 });
 
 onBeforeUnmount(() => {
   document.documentElement.classList.remove("csf-theme-dark", "csf-theme-light");
+  if (keepAliveTimer) clearInterval(keepAliveTimer);
 });
 
 const validateForm = () => {
