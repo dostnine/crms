@@ -383,8 +383,8 @@ const formatNumberOrDash = (value) => {
                         <td class="text-center">{{ getRowVssCount(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]) || '-' }}</td>
                         <td class="text-center">{{ getRowPercentage(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]).toFixed(2) }}%</td>
                         <td class="text-center">{{ getRowPercentage(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]).toFixed(2) }}%</td>
-                        <td class="text-center">-</td>
-                        <td class="text-center">-</td>
+                        <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.nps) }}</td>
+                        <td class="text-center">{{ formatNumberOrDash(props.data.all_units_data?.units_data?.[service.id]?.[unit.id]?.sub_units_data?.[subUnit.id]?.lsr) }}</td>
                       </tr>
                     </template>
 

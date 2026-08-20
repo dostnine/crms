@@ -30,6 +30,10 @@ return [
         'bgColor' => '#ecf2f4',
         'fontColors' => ['#2c3e50', '#c0392b', '#16a085', '#c0392b', '#8e44ad', '#303f9f', '#f57c00', '#795548'],
         'contrast' => -5,
+        // Used by the public CSF form. The package default (60s) is too tight
+        // for the elderly/PWD respondents this form is built for to read and
+        // type a captcha before it expires and their submission bounces.
+        'expire' => 300,
     ],
     'mini' => [
         'length' => 3,

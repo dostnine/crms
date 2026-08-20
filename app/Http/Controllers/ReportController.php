@@ -4271,6 +4271,11 @@ public function generateCSIAllUnitMonthly($request)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
+        // Get all recommendation ratings for sub-unit NPS calculations
+        $allRecommendationRatings = CustomerRecommendationRating::whereIn('customer_id', $allCustomerIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
         // Get all sub-unit customers
         $allSubUnitForms = CsfForm::where('region_id', $region_id)
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -4447,6 +4452,17 @@ public function generateCSIAllUnitMonthly($request)
                         $pctDisagree = $bucketTotal > 0 ? ($disagree / $bucketTotal) * 100 : 0;
                         $pctStronglyDisagree = $bucketTotal > 0 ? ($stronglyDisagree / $bucketTotal) * 100 : 0;
 
+                        $subLsr = count($avgScores) > 0 ? (array_sum($avgScores->all()) / count($avgScores)) : 0;
+
+                        $subRecommendationRatings = $allRecommendationRatings->whereIn('customer_id', $subCustomerIds);
+                        $subRecommendationTotal = $subRecommendationRatings->groupBy('customer_id')->count();
+                        $subPromoters = $subRecommendationRatings->whereBetween('recommend_rate_score', [7, 10])->groupBy('customer_id')->count();
+                        $subDetractors = $subRecommendationRatings->whereBetween('recommend_rate_score', [0, 6])->groupBy('customer_id')->count();
+                        $subNps = 0;
+                        if ($subRecommendationTotal > 0) {
+                            $subNps = (($subPromoters / $subRecommendationTotal) * 100) - (($subDetractors / $subRecommendationTotal) * 100);
+                        }
+
                         $sub_units_data[$subUnit->id] = [
                             'total_respo' => $subTotalRespo,
                             'strongly_agree_count' => $stronglyAgree,
@@ -4459,6 +4475,8 @@ public function generateCSIAllUnitMonthly($request)
                             'pct_neither' => number_format($pctNeither, 2),
                             'pct_disagree' => number_format($pctDisagree, 2),
                             'pct_strongly_disagree' => number_format($pctStronglyDisagree, 2),
+                            'nps' => number_format($subNps, 2),
+                            'lsr' => number_format($subLsr, 2),
                         ];
                     }
                 }
@@ -5092,6 +5110,17 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                         $pctDisagree = $bucketTotal > 0 ? ($disagree / $bucketTotal) * 100 : 0;
                         $pctStronglyDisagree = $bucketTotal > 0 ? ($stronglyDisagree / $bucketTotal) * 100 : 0;
 
+                        $subLsr = count($avgScores) > 0 ? (array_sum($avgScores->all()) / count($avgScores)) : 0;
+
+                        $subRecommendationRatings = $allRecommendationRatings->whereIn('customer_id', $subCustomerIds);
+                        $subRecommendationTotal = $subRecommendationRatings->groupBy('customer_id')->count();
+                        $subPromoters = $subRecommendationRatings->whereBetween('recommend_rate_score', [7, 10])->groupBy('customer_id')->count();
+                        $subDetractors = $subRecommendationRatings->whereBetween('recommend_rate_score', [0, 6])->groupBy('customer_id')->count();
+                        $subNps = 0;
+                        if ($subRecommendationTotal > 0) {
+                            $subNps = (($subPromoters / $subRecommendationTotal) * 100) - (($subDetractors / $subRecommendationTotal) * 100);
+                        }
+
                         $sub_units_data[$subUnit->id] = [
                             'total_respo' => $subTotalRespo,
                             'strongly_agree_count' => $stronglyAgree,
@@ -5104,6 +5133,8 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
                             'pct_neither' => number_format($pctNeither, 2),
                             'pct_disagree' => number_format($pctDisagree, 2),
                             'pct_strongly_disagree' => number_format($pctStronglyDisagree, 2),
+                            'nps' => number_format($subNps, 2),
+                            'lsr' => number_format($subLsr, 2),
                         ];
                     }
                 }
