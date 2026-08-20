@@ -481,9 +481,9 @@ const formatNumberOrDash = (value) => {
           </tr>
           <tr class="alt-summary-row">
             <td class="label-cell">Customer Satisfaction Index (CSI)</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[1]?.csi) }}</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[2]?.csi) }}</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[3]?.csi) }}</td>
             <td class="text-center">{{ formatPercentOrDash(props.data.csi_total) }}</td>
           </tr>
           <tr class="alt-summary-row">
@@ -495,9 +495,9 @@ const formatNumberOrDash = (value) => {
           </tr>
           <tr class="alt-summary-row">
             <td class="label-cell">Customer Satisfaction Score (CSAT) Rating</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[1]?.pct_strongly_agree_agree) }}</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[2]?.pct_strongly_agree_agree) }}</td>
+            <td class="text-center">{{ formatPercentOrDash(props.data.all_units_data.service_totals[3]?.pct_strongly_agree_agree) }}</td>
             <td class="text-center">{{ props.data.all_units_data?.grand_pct_strongly_agree_agree || 0 }}%</td>
           </tr>
           <tr class="alt-summary-row">

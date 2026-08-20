@@ -364,7 +364,7 @@ class ReportController extends Controller
             $x_vd_total = $vd_total * 1; 
 
              // sum of all repondent with rate_score 1-5
-             $x_respondents_total =  $vs_total +   $x_s_total + $n_total +  $d_total +  $vd_total;
+             $x_respondents_total =  $vs_total +   $s_total + $n_total +  $d_total +  $vd_total;
             $x_grand_total = $x_vs_total + $x_s_total + $x_n_total + $x_d_total + $x_vd_total  ; 
          
             // right side total score divided by total repondents or customers
@@ -782,7 +782,7 @@ class ReportController extends Controller
             $x_vd_total = $vd_total * 1; 
 
             // sum of all repondent with rate_score 1-5
-            $x_respondents_total =  $vs_total +   $x_s_total + $n_total +  $d_total +  $vd_total;
+            $x_respondents_total =  $vs_total +   $s_total + $n_total +  $d_total +  $vd_total;
             $x_grand_total = $x_vs_total + $x_s_total + $x_n_total + $x_d_total + $x_vd_total; 
   
             // right side total score divided by total repondents or customers
@@ -913,6 +913,12 @@ class ReportController extends Controller
         $lsr_grand_total = number_format($lsr_grand_total, 2);      
         
 
+        // Raw (unweighted) counts, captured before the weighting below, for the
+        // documented CSAT formula: (VS + S) / grand total responses * 100.
+        $raw_vs_total = $grand_vs_total;
+        $raw_s_total = $grand_s_total;
+        $raw_grand_total = $grand_vs_total + $grand_s_total + $grand_n_total + $grand_d_total + $grand_vd_total;
+
         // table below TOTAL SCORES
         $grand_vs_total =   $grand_vs_total * 5;
         $grand_s_total =   $grand_s_total * 4;
@@ -923,8 +929,8 @@ class ReportController extends Controller
 
         $x_grand_total =  $grand_vs_total +  $grand_s_total + $grand_n_total +  $grand_d_total +   $grand_vd_total;
 
- 
-        //Percentage of Respondents/Customers who rated VS/S: 
+
+        //Percentage of Respondents/Customers who rated VS/S:
         // = total no. of respondents / total no. respondets who rated vs/s * 100
         $percentage_vss_respondents  = 0;
         if($total_respondents != 0){
@@ -932,9 +938,10 @@ class ReportController extends Controller
         }
         $percentage_vss_respondents = number_format( $percentage_vss_respondents , 2);
 
+        // CSAT = ((Total No. of Very Satisfied (VS) Responses + Total No. of Satisfied (S) Responses) / grand total respondents) * 100
         $customer_satisfaction_rating = 0;
-        if($total_vss_respondents != 0){
-            $customer_satisfaction_rating = (($grand_vs_total+$grand_s_total)/$x_grand_total) * 100;
+        if($raw_grand_total != 0){
+            $customer_satisfaction_rating = (($raw_vs_total + $raw_s_total)/$raw_grand_total) * 100;
         }
         $customer_satisfaction_rating = number_format( $customer_satisfaction_rating , 2);
 
@@ -1545,9 +1552,10 @@ class ReportController extends Controller
         }
         $percentage_vss_respondents = number_format( $percentage_vss_respondents , 2);
 
+        // CSAT = ((Total No. of Very Satisfied (VS) Responses + Total No. of Satisfied (S) Responses) / grand total respondents) * 100
         $customer_satisfaction_rating = 0;
-        if($total_vss_respondents != 0){
-            $customer_satisfaction_rating = (($vs_grand_total_score + $s_grand_total_score)/$grand_total_score) * 100;
+        if($grand_total_raw_points != 0){
+            $customer_satisfaction_rating = (($vs_grand_total_raw_points + $s_grand_total_raw_points)/$grand_total_raw_points) * 100;
         }
         $customer_satisfaction_rating = number_format( $customer_satisfaction_rating , 2);
 
@@ -2167,7 +2175,7 @@ class ReportController extends Controller
             $vs_total_raw_points = $q1_vs_total + $q2_vs_total + $q3_vs_total + $q4_vs_total;
             $s_total_raw_points = $q1_s_total + $q2_s_total + $q3_s_total + $q4_s_total;
             $n_total_raw_points = $q1_n_total + $q2_n_total + $q3_n_total + $q4_n_total;
-            $d_total_raw_points = $q1_n_total + $q2_n_total + $q3_n_total + $q4_n_total;
+            $d_total_raw_points = $q1_d_total + $q2_d_total + $q3_d_total + $q4_d_total;
             $vd_total_raw_points = $q1_vd_total + $q2_vd_total + $q3_vd_total + $q4_vd_total;
             $total_raw_points = $vs_total_raw_points + $s_total_raw_points + $n_total_raw_points +  $d_total_raw_points +  $vd_total_raw_points;           
 
@@ -2444,8 +2452,8 @@ class ReportController extends Controller
 
          // CSAT = ((Total No. of Very Satisfied (VS) Responses + Total No. of Satisfied (S) Responses) / grand total respondents) * 100
         $customer_satisfaction_rating = 0;
-        if($total_vss_respondents != 0){
-            $customer_satisfaction_rating = (($vs_grand_total_score + $s_grand_total_score)/$grand_total_score) * 100;
+        if($grand_total_raw_points != 0){
+            $customer_satisfaction_rating = (($vs_grand_total_raw_points + $s_grand_total_raw_points)/$grand_total_raw_points) * 100;
         }
         $customer_satisfaction_rating = number_format( $customer_satisfaction_rating , 2);
 
@@ -2855,7 +2863,7 @@ class ReportController extends Controller
             $x_vd_total = $vd_total * 1; 
 
              // sum of all repondent with rate_score 1-5
-             $x_respondents_total =  $vs_total +   $x_s_total + $n_total +  $d_total +  $vd_total;
+             $x_respondents_total =  $vs_total +   $s_total + $n_total +  $d_total +  $vd_total;
             $x_grand_total = $x_vs_total + $x_s_total + $x_n_total + $x_d_total + $x_vd_total  ; 
          
             // right side total score divided by total repondents or customers
@@ -3436,6 +3444,23 @@ class ReportController extends Controller
             ->groupBy('sc.service_id', 'customer_recommendation_ratings.recommend_rate_score')
             ->get();
 
+        // Raw attribute rating rows (per dimension, not averaged) so CSI can be
+        // computed per service with the same weighted-sum method used elsewhere.
+        $attributeRatingRows = CustomerAttributeRating::query()
+            ->joinSub(clone $serviceCustomerBase, 'sc', function ($join) {
+                $join->on('customer_attribute_ratings.customer_id', '=', 'sc.customer_id');
+            })
+            ->whereBetween('customer_attribute_ratings.created_at', [$startDate, $endDate])
+            ->select(
+                'sc.service_id',
+                'customer_attribute_ratings.dimension_id',
+                'customer_attribute_ratings.rate_score',
+                'customer_attribute_ratings.importance_rate_score'
+            )
+            ->get();
+        $attributeRatingsByService = $attributeRatingRows->groupBy('service_id');
+        $dimension_count = Dimension::count();
+
         $service_totals = [];
         foreach ([1, 2, 3] as $serviceId) {
             $service_totals[$serviceId] = [
@@ -3445,6 +3470,7 @@ class ReportController extends Controller
                 'pct_strongly_agree_agree' => '0.00',
                 'nps' => '0.00',
                 'lsr' => '0.00',
+                'csi' => '0.00',
             ];
         }
 
@@ -3497,6 +3523,10 @@ class ReportController extends Controller
             $avgScores = $averageScoresByService[$serviceId] ?? [];
             $lsr = count($avgScores) > 0 ? (array_sum($avgScores) / count($avgScores)) : 0;
             $service_totals[$serviceId]['lsr'] = number_format($lsr, 2);
+
+            $serviceAttributeRatings = $attributeRatingsByService->get($serviceId, collect());
+            $csi = $this->calculateUnitCSI($serviceAttributeRatings, $totalRespo, $dimension_count);
+            $service_totals[$serviceId]['csi'] = number_format($csi, 2);
         }
 
         return $service_totals;
@@ -5227,32 +5257,38 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             return 0;
         }
 
+        $ilsrByDimension = [];
         $ilsr_grand_total = 0;
-        $ws_grand_total = 0;
 
-        // Calculate importance and service quality ratings for each dimension
+        // First pass: importance ratings for every dimension, so the grand
+        // total is complete before it's used as a weight-factor denominator.
         for ($dimensionId = 1; $dimensionId <= $dimension_count; $dimensionId++) {
-            // Importance ratings
             $vi_total = $attribute_ratings->where('importance_rate_score', 5)->where('dimension_id', $dimensionId)->count();
             $i_total = $attribute_ratings->where('importance_rate_score', 4)->where('dimension_id', $dimensionId)->count();
             $mi_total = $attribute_ratings->where('importance_rate_score', 3)->where('dimension_id', $dimensionId)->count();
             $li_total = $attribute_ratings->where('importance_rate_score', 2)->where('dimension_id', $dimensionId)->count();
             $nai_total = $attribute_ratings->where('importance_rate_score', 1)->where('dimension_id', $dimensionId)->count();
 
-            $x_vi_total = $vi_total * 5; 
-            $x_i_total = $i_total * 4; 
-            $x_mi_total = $mi_total * 3; 
-            $x_li_total = $li_total * 2; 
+            $x_vi_total = $vi_total * 5;
+            $x_i_total = $i_total * 4;
+            $x_mi_total = $mi_total * 3;
+            $x_li_total = $li_total * 2;
             $x_nai_total = $nai_total * 1;
             $x_importance_total = $x_vi_total + $x_i_total + $x_mi_total + $x_li_total + $x_nai_total;
 
-            // Importance Likert Scale Rating 
+            // Importance Likert Scale Rating
             $ilsr = 0;
             if ($x_importance_total != 0) {
                 $ilsr = $x_importance_total / $total_respondents;
-                $ilsr_grand_total += $ilsr;
             }
+            $ilsrByDimension[$dimensionId] = $ilsr;
+            $ilsr_grand_total += $ilsr;
+        }
 
+        $ws_grand_total = 0;
+
+        // Second pass: service quality ratings, weighted against the now-complete importance total.
+        for ($dimensionId = 1; $dimensionId <= $dimension_count; $dimensionId++) {
             // Service quality ratings
             $vs_total = $attribute_ratings->where('rate_score', 5)->where('dimension_id', $dimensionId)->count();
             $s_total = $attribute_ratings->where('rate_score', 4)->where('dimension_id', $dimensionId)->count();
@@ -5260,11 +5296,11 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             $d_total = $attribute_ratings->where('rate_score', 2)->where('dimension_id', $dimensionId)->count();
             $vd_total = $attribute_ratings->where('rate_score', 1)->where('dimension_id', $dimensionId)->count();
 
-            $x_vs_total = $vs_total * 5; 
-            $x_s_total = $s_total * 4; 
-            $x_n_total = $n_total * 3; 
-            $x_d_total = $d_total * 2; 
-            $x_vd_total = $vd_total * 1; 
+            $x_vs_total = $vs_total * 5;
+            $x_s_total = $s_total * 4;
+            $x_n_total = $n_total * 3;
+            $x_d_total = $d_total * 2;
+            $x_vd_total = $vd_total * 1;
             $x_respondents_total = $vs_total + $s_total + $n_total + $d_total + $vd_total;
             $x_grand_total = $x_vs_total + $x_s_total + $x_n_total + $x_d_total + $x_vd_total;
 
@@ -5281,7 +5317,7 @@ private function getAllUnitsData($request, $region_id, $numeric_month)
             // Weighted Factor
             $wf = 0;
             if ($ilsr_grand_total > 0) {
-                $wf = ($ilsr / $ilsr_grand_total) * 100;
+                $wf = ($ilsrByDimension[$dimensionId] / $ilsr_grand_total) * 100;
             }
 
             // Weighted Score
