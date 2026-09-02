@@ -237,7 +237,6 @@ const validateForm = () => {
   });
 
   if (!form.recommend_rate_score) missing.push("Recommendation score");
-  if (form.is_complaint && !form.email) missing.push("Email");
   if (form.is_complaint && !form.comment) missing.push("Comment");
   return missing;
 };
@@ -456,24 +455,7 @@ watch(
                       />
                     </div>
 
-                    <div v-if="form.is_complaint == true" class="mb-3">
-                      <label for="email" class="form-label"
-                        >Email <span class="text-danger">*</span></label
-                      >
-                      <input
-                        id="email"
-                        v-model="form.email"
-                        type="email"
-                        class="form-control"
-                        placeholder="email@gmail.com"
-                        required
-                      />
-                      <div class="text-danger small mt-1" v-if="formSubmitted && !form.email">
-                        This field is required
-                      </div>
-                    </div>
-
-                    <div v-else class="mb-3">
+                    <div class="mb-3">
                       <label for="email" class="form-label">Email (Optional)</label>
                       <input
                         id="email"
