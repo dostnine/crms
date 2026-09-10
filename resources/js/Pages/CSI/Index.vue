@@ -14,7 +14,7 @@ import ByUnitYearlyReport from '@/Pages/CSI/Yearly/ByUnitYearly.vue';
 import ModalForm from '@/Pages/CSI/Modal.vue';
 import VueMultiselect from "vue-multiselect";
 import { reactive, ref, computed, onMounted, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import Swal from 'sweetalert2';
 import { Printd } from "printd";
 
@@ -235,6 +235,15 @@ const currentYear = ref(getCurrentYear());
       form.selected_month = currentMonth.value;
       form.selected_year = currentYear.value;
       generated.value == false;
+
+      const flashError = usePage().props.flash?.error;
+      if (flashError) {
+          Swal.fire({
+              icon: 'warning',
+              title: 'Notice',
+              text: flashError,
+          });
+      }
   });
 
 
@@ -347,13 +356,74 @@ const sex_options = [
 ];
 
 
+// Builds a PHP-compatible query string (bracket notation for nested
+// objects/arrays: foo[bar]=x, foo[0][bar]=x) since Laravel needs that shape
+// to reconstruct $request->service / $request->unit as arrays.
+const toQueryString = (data, prefix = '') => {
+    const parts = [];
+    for (const key in data) {
+        if (data[key] === null || data[key] === undefined) continue;
+        const value = data[key];
+        const paramKey = prefix ? `${prefix}[${key}]` : key;
+        if (typeof value === 'object') {
+            parts.push(toQueryString(value, paramKey));
+        } else {
+            parts.push(`${encodeURIComponent(paramKey)}=${encodeURIComponent(value)}`);
+        }
+    }
+    return parts.filter(Boolean).join('&');
+};
+
+// Shared by the Monthly, Quarterly and Yearly PDF routes. Yearly additionally
+// collects a "Reviewed by" signatory, so that field is only shown/sent there.
+const show_pdf_assignatoree_modal = ref(false);
+const pdfReportKind = ref('quarter');
+const pdfAssignatorees = reactive({
+    prepared_by: props.user,
+    reviewed_by: {},
+    noted_by: {},
+});
+
+const confirmPdfPrint = () => {
+    show_pdf_assignatoree_modal.value = false;
+    const isYearly = pdfReportKind.value === 'year';
+    let query = toQueryString(form)
+        + '&' + toQueryString(pdfAssignatorees.prepared_by || {}, 'prepared_by')
+        + '&' + toQueryString(pdfAssignatorees.noted_by || {}, 'noted_by');
+    if (isYearly) {
+        query += '&' + toQueryString(pdfAssignatorees.reviewed_by || {}, 'reviewed_by');
+    }
+    window.open(`/csi/print/${pdfReportKind.value}?` + query, '_blank');
+};
+
+const PDF_REPORT_KINDS = {
+    'By Quarter': 'quarter',
+    'By Year/Annual': 'year',
+    'By Month': 'month',
+    'By Date': 'month',
+};
+
 const is_printing = ref(false);
 const printCSIReport = async () => {
+      if (PDF_REPORT_KINDS[form.csi_type]) {
+          // These reports open as a real PDF in a new tab (the browser's native
+          // PDF viewer handles printing/saving) instead of hijacking this page
+          // to pop the print dialog. Ask who's signing off on it first.
+          pdfReportKind.value = PDF_REPORT_KINDS[form.csi_type];
+          show_pdf_assignatoree_modal.value = true;
+          return;
+      }
+
       is_printing.value = true;
       //  router.get('/generate-pdf', form , { preserveState: true, preserveScroll: true})
       //Create an instance of Printd
         let d = await new Printd();
-        let css = ` 
+        const isQuarterly = form.csi_type === 'By Quarter';
+        let css = `
+          @page {
+            size: A4 ${isQuarterly ? 'landscape' : 'portrait'};
+            margin: 10mm;
+          }
           @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800&family=Roboto:wght@100;300;400;500;700;900&display=swap');
           * {
               font-family: 'Time New Roman'
@@ -457,12 +527,15 @@ const printCSIReport = async () => {
                       </div>
                     </div>
 
-                    <div class="card overflow-visible mb-5 border-0 shadow report-config-card">
-                          <div class="card-header report-config-header border-bottom-0">
+                    <div class="card overflow-visible mb-4 border-0 shadow report-config-card">
+                          <div class="card-header report-config-header border-bottom-0 d-flex align-items-center justify-content-between">
                               <h5 class="mb-0 text-white">
                                   <i class="ri-settings-5-line me-2"></i>
                                   Report Configuration
                               </h5>
+                              <span v-if="form.csi_type" class="badge bg-light text-dark fw-semibold">
+                                  {{ form.csi_type }}
+                              </span>
                           </div>
                           <div class="card-body">
                               <div class="row g-3">
@@ -576,34 +649,45 @@ const printCSIReport = async () => {
                               </div>
                           </div>
     
-                          <hr class="border-opacity-100">
-
-                          <div class="row p-3 overflow-visible" v-if="user.account_type == 'planning'">
-                            <div class="col-md-6 my-auto">
-                                <vue-multiselect
-                                    v-model="form.sex"
-                                    prepend-icon="mdi-account"
-                                    :options="['Male','Female', 'Prefer not to say']"
-                                    :multiple="false"
-                                    placeholder="Select Sex"
-                                    :allow-empty="true"
-                                  >
-                                </vue-multiselect>
-                            </div>
-                            <div class="col-md-6 my-auto">
-                                <vue-multiselect
-                                    v-model="form.age_group"
-                                    prepend-icon="mdi-account"
-                                    :options="['19 or lower','20-34','35-49','50-64','60+', 'Prefer not to say']"
-                                    :multiple="false"
-                                    placeholder="Select Age Group"
-                                    :allow-empty="true"
-                                  >
-                                </vue-multiselect>
+                          <!-- Respondent demographics -- planning accounts only.
+                               Kept inside the same v-if as its dividers so the
+                               card doesn't show an empty banded gap for everyone else. -->
+                          <template v-if="user.account_type == 'planning'">
+                              <hr class="my-0">
+                              <div class="card-body pt-3 pb-3 overflow-visible">
+                                  <div class="row g-3">
+                                      <div class="col-md-6">
+                                          <label class="form-label fw-semibold">
+                                              <i class="ri-user-3-line me-1 text-muted"></i>
+                                              Sex
+                                          </label>
+                                          <vue-multiselect
+                                              v-model="form.sex"
+                                              :options="['Male','Female', 'Prefer not to say']"
+                                              :multiple="false"
+                                              placeholder="Select Sex"
+                                              :allow-empty="true"
+                                            >
+                                          </vue-multiselect>
+                                      </div>
+                                      <div class="col-md-6">
+                                          <label class="form-label fw-semibold">
+                                              <i class="ri-group-line me-1 text-muted"></i>
+                                              Age Group
+                                          </label>
+                                          <vue-multiselect
+                                              v-model="form.age_group"
+                                              :options="['19 or lower','20-34','35-49','50-64','60+', 'Prefer not to say']"
+                                              :multiple="false"
+                                              placeholder="Select Age Group"
+                                              :allow-empty="true"
+                                            >
+                                          </vue-multiselect>
+                                      </div>
+                                  </div>
                               </div>
-                          </div>
-                          <hr class="border-opacity-100">
-                          
+                          </template>
+
 
                     <div class="card-footer report-config-footer border-top-0">
                               <div class="row g-3 align-items-end" v-if="form.csi_type == 'By Date'">
@@ -637,7 +721,7 @@ const printCSIReport = async () => {
                                           <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success action-btn">
+                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Preview
                                           </button>
                                       </div>
@@ -673,7 +757,7 @@ const printCSIReport = async () => {
                                           <button @click="refresh()" v-if="generated" class="btn btn-outline-secondary action-btn">
                                               <i class="ri-refresh-line me-1"></i>Refresh
                                           </button>
-                                          <button :disabled="generated == false" @click="showPrintPreviewModal(true)" class="btn btn-success action-btn">
+                                          <button :disabled="generated == false" @click="printCSIReport()" class="btn btn-success action-btn">
                                               <i class="ri-printer-line me-1"></i>Print Preview
                                           </button>
                                       </div>
@@ -766,16 +850,91 @@ const printCSIReport = async () => {
                   <ByUnitYearlyReport v-if="form.csi_type == 'By Year/Annual'"  :form="form"  :data="props" />
                  
                   <!-- Modal for Print Preview -->
-                  <ModalForm 
-                      v-if="generated" 
+                  <ModalForm
+                      v-if="generated"
                       :value="show_modal"
-                      :form="form"  
+                      :form="form"
                       :assignatorees="assignatorees"
                       :users="users"
                       :user="user"
-                      @input="showPrintPreviewModal"  
+                      @input="showPrintPreviewModal"
                       :data="props"
                      />
+
+                  <!-- Select Assignatoree modal for Quarterly / Yearly PDF printing -->
+                  <div class="modal fade" :class="{ 'show': show_pdf_assignatoree_modal, 'd-block': show_pdf_assignatoree_modal }" tabindex="-1" role="dialog">
+                      <div class="modal-dialog modal-lg" role="document">
+                          <div class="modal-content">
+                              <div class="modal-header bg-primary text-white">
+                                  <h5 class="modal-title">
+                                      <i class="ri-user-line me-2"></i>
+                                      Select Assignatoree
+                                  </h5>
+                                  <button type="button" class="btn-close btn-close-white" @click="show_pdf_assignatoree_modal = false" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                  <div class="row mb-3">
+                                      <div class="col-12">
+                                          <label class="form-label">Prepared By: </label>
+                                          <vue-multiselect
+                                              v-model="pdfAssignatorees.prepared_by"
+                                              :options="users"
+                                              :multiple="false"
+                                              placeholder="Select Prepared By"
+                                              label="name"
+                                              track-by="id"
+                                              :allow-empty="false"
+                                              class="form-control p-0 border-0"
+                                              style="min-width: 200px;"
+                                          >
+                                          </vue-multiselect>
+                                      </div>
+                                  </div>
+                                  <div class="row mb-3" v-if="pdfReportKind === 'year'">
+                                      <div class="col-12">
+                                          <label class="form-label">Reviewed By:</label>
+                                          <vue-multiselect
+                                              v-model="pdfAssignatorees.reviewed_by"
+                                              :options="assignatorees"
+                                              :multiple="false"
+                                              placeholder="Select Reviewed By"
+                                              label="name"
+                                              track-by="name"
+                                              :allow-empty="false"
+                                          >
+                                          </vue-multiselect>
+                                      </div>
+                                  </div>
+                                  <div class="row">
+                                      <div class="col-12">
+                                          <label class="form-label">Noted By:</label>
+                                          <vue-multiselect
+                                              v-model="pdfAssignatorees.noted_by"
+                                              :options="assignatorees"
+                                              :multiple="false"
+                                              placeholder="Select Noted By"
+                                              label="name"
+                                              track-by="name"
+                                              :allow-empty="false"
+                                          >
+                                          </vue-multiselect>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" @click="show_pdf_assignatoree_modal = false">
+                                      <i class="ri-close-line me-1"></i>
+                                      Cancel
+                                  </button>
+                                  <button type="button" class="btn btn-success" @click="confirmPdfPrint()">
+                                      <i class="ri-printer-line me-1"></i>
+                                      Print Preview
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div v-if="show_pdf_assignatoree_modal" class="modal-backdrop fade show"></div>
                   
                  
                 </div>
@@ -895,10 +1054,17 @@ const printCSIReport = async () => {
 
 .report-config-header {
     background: linear-gradient(90deg, var(--brand-navy), var(--brand-blue));
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
 }
 
+/* The footer holds the date range and the action buttons, so give it a clear
+   edge against the filter body above it rather than floating loose. */
 .report-config-footer {
     background: #f5f9ff;
+    border-top: 1px solid #dbe7f5 !important;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
 .report-config-card .form-label {

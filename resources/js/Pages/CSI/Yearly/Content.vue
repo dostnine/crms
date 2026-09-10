@@ -847,7 +847,7 @@
 
                 <template v-for="(comment, index) in data.comments" class="m-5 mb-10">
                     <table style="margin-left: 40px" >
-                    <p>[{{ index +1 }}] {{ comment }}</p>
+                    <p>[{{ index +1 }}] {{ comment.text }}</p>
                     </table>
                 </template>
             </div>
@@ -860,13 +860,13 @@
         </div>
         <div class="card-body">
             <div class="m-5" style="margin-top: -10px;text-align: justify;">
-                The <span>{{ data.unit.unit_name }}</span>  for the year <span>{{ form.selected_year }}</span> had a total of <span>{{ data.total_respondents }}</span> respondents 
+                The <span>{{ data.unit.data?.[0]?.unit_name }}</span>  for the year <span>{{ form.selected_year }}</span> had a total of <span>{{ data.total_respondents }}</span> respondents 
                 who filled out and rated the Customer Satisfaction Feedback. <span>{{ data.total_respondents }}</span> of the respondents rated the CSF as either very satisfied (VS) 
                 or satisfied (S), which resulted in an overall average Customer Satisfaction Index (CSI) of <span>{{ data.total_respondents }}</span>, 
                 a Net Promoter Score of {{ data.ave_net_promoter_score }}%, and an average Likert Scale Rating of <span>{{ data.ave_net_promoter_score }}%</span>, 
                 which translates to "very satisfied" for the year <span>{{ form.selected_year }}</span>.
 
-                The <span>{{ data.unit.unit_name }}</span> unit's Customer Satisfaction Survey resulted in an Overall Customer Satisfaction Score Rating of <span>{{ data.customer_satisfaction_rating }}</span>% 
+                The <span>{{ data.unit.data?.[0]?.unit_name }}</span> unit's Customer Satisfaction Survey resulted in an Overall Customer Satisfaction Score Rating of <span>{{ data.customer_satisfaction_rating }}</span>% 
                 for the year <span>{{ form.selected_year }}</span>, which <span v-if="data.customer_satisfaction_rating < 95">does not</span> achieved its quality objective of at least 95% of customers being satisfied with the S&T services.
 
             </div>

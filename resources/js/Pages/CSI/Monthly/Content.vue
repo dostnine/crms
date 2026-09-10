@@ -402,7 +402,7 @@
             <div v-if="data.comments && data.comments.length > 0" class="mt-3">
                 <h6 class="text-muted mb-3">Comments:</h6>
                 <div v-for="(comment, index) in data.comments" :key="index" class="mb-2 p-2 bg-light rounded">
-                    <strong>[{{ index + 1 }}]</strong> {{ comment }}
+                    <strong>[{{ index + 1 }}]</strong> {{ comment.text }}
                 </div>
             </div>
         </div>
@@ -417,11 +417,11 @@
         </div>
         <div class="card-body">
             <div v-if="data.unit && data.service" class="text-justify">
-                The <strong>{{ data.unit.unit_name }}</strong> unit had <strong>{{ data.total_respondents || 0 }}</strong> respondents who rated the CSF,
+                The <strong>{{ data.unit.data?.[0]?.unit_name }}</strong> unit had <strong>{{ data.total_respondents || 0 }}</strong> respondents who rated the CSF,
                 and <strong>{{ data.total_vss_respondents || 0 }}</strong> (or <strong>{{ data.percentage_vss_respondents || 0 }}%</strong>) of those respondents rated
-                the unit with satisfied responses (VS & S) for all service quality attributes. The <strong>{{ data.unit.unit_name }}</strong> unit had a
+                the unit with satisfied responses (VS & S) for all service quality attributes. The <strong>{{ data.unit.data?.[0]?.unit_name }}</strong> unit had a
                 <strong>{{ data.customer_satisfaction_index || 0 }}%</strong> Customer Satisfaction Index as well as a Net Promoter Score of <strong>{{ data.net_promoter_score || 0 }}%</strong>.
-                The Customer Satisfaction Rating for the <strong>{{ data.unit.unit_name }}</strong>
+                The Customer Satisfaction Rating for the <strong>{{ data.unit.data?.[0]?.unit_name }}</strong>
                 unit is <strong>{{ data.customer_satisfaction_rating || 0 }}%</strong>,
                 which <span v-if="data.customer_satisfaction_rating < 95" class="text-danger"><strong>does not</strong></span><span v-else class="text-success"><strong>achieved</strong></span> its functional objective of 95% of customers surveyed are at least satisfied with the S&T services.
             </div>

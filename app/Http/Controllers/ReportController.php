@@ -153,7 +153,12 @@ class ReportController extends Controller
             case 'By Year/Annual':
                 return $this->generateCSIByUnitYearly($request, $user->region_id, $psto_id);
             default:
-                abort(400, 'Invalid CSI type specified');
+                // Reaching here on a GET usually means the page was refreshed after
+                // generating a report (Inertia's POST doesn't keep the payload in the
+                // URL, so a reload re-requests it with no report params). Send the
+                // user back to the report builder with a friendly message instead of
+                // a raw error page.
+                return redirect('/csi')->with('error', 'Your report session expired or is incomplete. Please choose your filters and generate the report again.');
         }
     }
 
@@ -185,6 +190,25 @@ class ReportController extends Controller
 
 
     public function generateCSIByUnitByDate($request, $region_id, $psto_id)
+    {
+        $reportData = $this->buildDateReportData($request, $region_id, $psto_id);
+
+        return Inertia::render('CSI/Index')->with(\Illuminate\Support\Arr::only($reportData, [
+            'user', 'assignatorees', 'users', 'cc_data', 'total_comments', 'total_complaints',
+            'comments', 'sub_unit', 'unit_pstos', 'sub_unit_pstos', 'sub_unit_types', 'dimensions',
+            'service', 'unit', 'y_totals', 'grand_vs_total', 'grand_s_total', 'grand_n_total',
+            'grand_d_total', 'grand_vd_total', 'x_totals', 'x_grand_total', 'likert_scale_rating_totals', 'lsr_grand_total',
+            'importance_rate_score_totals', 'x_importance_totals', 'importance_ilsr_totals', 'gap_totals', 'gap_grand_total', 'wf_totals',
+            'ss_totals', 'ws_totals', 'total_respondents', 'total_vss_respondents', 'percentage_vss_respondents', 'customer_satisfaction_rating',
+            'customer_satisfaction_index', 'net_promoter_score', 'percentage_promoters', 'percentage_detractors',
+        ]));
+    }
+
+    /**
+     * Runs the whole by-date CSI computation and returns every local it produced.
+     * Split out so the Blade/dompdf print route can reuse the same numbers.
+     */
+    private function buildDateReportData($request, $region_id, $psto_id): array
     {
         $unitData = $this->getUnitData($request, true);
         $sub_unit = $unitData['sub_unit'];
@@ -534,59 +558,43 @@ class ReportController extends Controller
         $comment_list = CustomerComment::whereIn('customer_id', $customer_ids)
                                     ->whereBetween('created_at', [$request->date_from, $request->date_to])->get();
 
-        $comments = $comment_list->where('comment','!=','')->pluck('comment');
+        $comments = $comment_list->where('comment','!=','')->map(function ($c) { return ['text' => $c->comment, 'is_complaint' => (bool) $c->is_complaint]; })->values();
 
         $total_comments = $comment_list->where('comment','!=','')->count();
         $total_complaints = $comment_list->where('is_complaint',1)->count();
 
-        //send response to front end
-        return Inertia::render('CSI/Index')
-            ->with('user', $user)
-            ->with('assignatorees', $assignatorees)
-            ->with('users', $users)
-            ->with('cc_data', $cc_data)
-            ->with('total_comments', $total_comments)
-            ->with('total_complaints', $total_complaints)
-            ->with('comments', $comments)
-            ->with('sub_unit', $sub_unit)
-            ->with('unit_pstos', $unit_pstos)
-            ->with('sub_unit_pstos', $sub_unit_pstos)
-            ->with('sub_unit_types', $sub_unit_types)
-            ->with('dimensions', $dimensions)
-            ->with('service', $request->service)
-            ->with('unit', $request->unit)
-            ->with('y_totals',$y_totals)
-            ->with('grand_vs_total',$grand_vs_total)
-            ->with('grand_s_total',$grand_s_total)
-            ->with('grand_n_total',$grand_n_total)
-            ->with('grand_d_total',$grand_d_total)
-            ->with('grand_vd_total',$grand_vd_total)
-            ->with('x_totals',$x_totals)
-            ->with('x_grand_total',$x_grand_total)
-            ->with('likert_scale_rating_totals',$likert_scale_rating_totals)
-            ->with('lsr_grand_total',$lsr_grand_total)
-            ->with('importance_rate_score_totals',$importance_rate_score_totals)
-            ->with('x_importance_totals', $x_importance_totals)
-            ->with('importance_ilsr_totals', $importance_ilsr_totals)
-            ->with('gap_totals', $gap_totals)
-            ->with('gap_grand_total', $gap_grand_total)
-            ->with('wf_totals', $wf_totals)
-            ->with('ss_totals', $ss_totals)
-            ->with('wf_totals', $wf_totals)
-            ->with('ws_totals', $ws_totals)
-            ->with('total_respondents', $total_respondents)
-            ->with('total_vss_respondents', $total_vss_respondents)
-            ->with('percentage_vss_respondents', $percentage_vss_respondents)
-            ->with('customer_satisfaction_rating', $customer_satisfaction_rating)
-            ->with('customer_satisfaction_index', $customer_satisfaction_index)
-            ->with('net_promoter_score', $net_promoter_score)
-            ->with('percentage_promoters', $percentage_promoters)
-            ->with('percentage_detractors', $percentage_detractors)
-            ->with('request', $request);    
+        // These come straight off the request rather than being computed, so
+        // they need locals of their own for get_defined_vars() to pick them up.
+        $service = $request->service;
+        $unit = $request->unit;
+
+        // Hand every computed local back to the caller.
+        $reportData = get_defined_vars();
+
+        return $reportData;
     }   
 
 
     public function generateCSIByUnitMonthly($request, $region_id, $psto_id)
+    {
+        $reportData = $this->buildMonthReportData($request, $region_id, $psto_id);
+
+        return Inertia::render('CSI/Index')->with(\Illuminate\Support\Arr::only($reportData, [
+            'user', 'cc_data', 'assignatorees', 'users', 'sub_unit', 'unit_pstos',
+            'sub_unit_pstos', 'sub_unit_types', 'dimensions', 'service', 'unit', 'respondents_list',
+            'y_totals', 'grand_vs_total', 'grand_s_total', 'grand_n_total', 'grand_d_total', 'grand_vd_total',
+            'x_totals', 'x_grand_total', 'likert_scale_rating_totals', 'lsr_grand_total', 'importance_rate_score_totals', 'x_importance_totals',
+            'importance_ilsr_totals', 'gap_totals', 'gap_grand_total', 'wf_totals', 'ss_totals', 'ws_totals',
+            'total_respondents', 'total_vss_respondents', 'percentage_vss_respondents', 'customer_satisfaction_rating', 'customer_satisfaction_index', 'net_promoter_score',
+            'percentage_promoters', 'percentage_detractors', 'total_comments', 'total_complaints', 'comments',
+        ]));
+    }
+
+    /**
+     * Runs the whole monthly CSI computation and returns every local it produced.
+     * Split out so the Blade/dompdf print route can reuse the same numbers.
+     */
+    private function buildMonthReportData($request, $region_id, $psto_id): array
     {
         $unitData = $this->getUnitData($request, true);
         $sub_unit = $unitData['sub_unit'];
@@ -978,61 +986,75 @@ class ReportController extends Controller
                                     ->whereMonth('created_at', $numericMonth)
                                     ->whereYear('created_at', $request->selected_year)->get();
         
-        $comments = $comment_list->where('comment','!=','')->pluck('comment'); 
+        $comments = $comment_list->where('comment','!=','')->map(function ($c) { return ['text' => $c->comment, 'is_complaint' => (bool) $c->is_complaint]; })->values(); 
 
         $total_comments = $comment_list->where('comment','!=','')->count();
         $total_complaints = $comment_list->where('is_complaint',1)->count();
 
 
-        //send response to front end
-        return Inertia::render('CSI/Index')
-            ->with('user', $user)
-            ->with('cc_data', $cc_data)
-            ->with('assignatorees', $assignatorees)
-            ->with('users', $users)
-            ->with('sub_unit', $sub_unit)
-            ->with('unit_pstos', $unit_pstos)
-            ->with('sub_unit_pstos', $sub_unit_pstos)
-            ->with('sub_unit_types', $sub_unit_types)
-            ->with('dimensions', $dimensions)
-            ->with('service', $request->service)
-            ->with('unit', $request->unit)
-            ->with('respondents_list',$data)
-            ->with('y_totals',$y_totals)
-            ->with('grand_vs_total',$grand_vs_total)
-            ->with('grand_s_total',$grand_s_total)
-            ->with('grand_n_total',$grand_n_total)
-            ->with('grand_d_total',$grand_d_total)
-            ->with('grand_vd_total',$grand_vd_total)
-            ->with('x_totals',$x_totals)
-            ->with('x_grand_total',$x_grand_total)
-            ->with('likert_scale_rating_totals',$likert_scale_rating_totals)
-            ->with('lsr_grand_total',$lsr_grand_total)
-            ->with('importance_rate_score_totals',$importance_rate_score_totals)
-            ->with('x_importance_totals', $x_importance_totals)
-            ->with('importance_ilsr_totals', $importance_ilsr_totals)
-            ->with('gap_totals', $gap_totals)
-            ->with('gap_grand_total', $gap_grand_total)
-            ->with('wf_totals', $wf_totals)
-            ->with('ss_totals', $ss_totals)
-            ->with('wf_totals', $wf_totals)
-            ->with('ws_totals', $ws_totals)
-            ->with('total_respondents', $total_respondents)
-            ->with('total_vss_respondents', $total_vss_respondents)
-            ->with('percentage_vss_respondents', $percentage_vss_respondents)
-            ->with('customer_satisfaction_rating', $customer_satisfaction_rating)
-            ->with('customer_satisfaction_index', $customer_satisfaction_index)
-            ->with('net_promoter_score', $net_promoter_score)
-            ->with('percentage_promoters', $percentage_promoters)
-            ->with('percentage_detractors', $percentage_detractors)
-            ->with('total_comments', $total_comments)
-            ->with('total_complaints', $total_complaints)
-            ->with('comments', $comments)
-            ->with('request', $request);    
+        // These come straight off the request rather than being computed, so
+        // they need locals of their own for get_defined_vars() to pick them up.
+        $service = $request->service;
+        $unit = $request->unit;
+
+        // Hand every computed local back to the caller.
+        $reportData = get_defined_vars();
+        $reportData['respondents_list'] = $data;
+
+        return $reportData;
     }   
    
     // QUARTERLY || FIRST, SECOND , THIRD AND FOURTH QUARTER
     public function generateCSIByQuarter($request, $region_id, $psto_id)
+    {
+        $reportData = $this->buildQuarterReportData($request, $region_id, $psto_id);
+
+        // Only pass through the exact same props the page used to receive via
+        // its long ->with() chain -- buildQuarterReportData() also returns
+        // internal working variables (query builders, the raw $request, etc.)
+        // via get_defined_vars(), which Inertia must never try to serialize.
+        return Inertia::render('CSI/Index')->with(\Illuminate\Support\Arr::only($reportData, [
+            'cc_data', 'user', 'assignatorees', 'users', 'sub_unit', 'unit_pstos',
+            'sub_unit_pstos', 'sub_unit_types', 'dimensions', 'service', 'unit',
+            'trp_totals', 'grand_total_raw_points', 'vs_grand_total_raw_points',
+            's_grand_total_raw_points', 'ndvd_grand_total_raw_points',
+            'n_grand_total_raw_points', 'd_grand_total_raw_points', 'vd_grand_total_raw_points',
+            'p1_total_scores', 'vs_grand_total_score', 's_grand_total_score',
+            'ndvd_grand_total_score', 'grand_total_score', 'lsr_totals', 'lsr_grand_total',
+            'lsr_average', 'vs_totals', 's_totals', 'n_totals', 'd_totals', 'vd_totals',
+            'grand_totals', 'first_month_total_vs_respondents', 'second_month_total_vs_respondents',
+            'third_month_total_vs_respondents', 'first_month_total_s_respondents',
+            'second_month_total_s_respondents', 'third_month_total_s_respondents',
+            'first_month_total_ndvd_respondents', 'second_month_total_ndvd_respondents',
+            'third_month_total_ndvd_respondents', 'first_month_total_respondents',
+            'second_month_total_respondents', 'third_month_total_respondents',
+            'total_respondents', 'total_vss_respondents', 'percentage_vss_respondents',
+            'total_promoters', 'total_detractors', 'vi_totals', 'i_totals', 'mi_totals',
+            'si_totals', 'nai_totals', 'i_grand_totals', 'i_trp_totals',
+            'i_grand_total_raw_points', 'vi_grand_total_raw_points', 'misinai_grand_total_raw_points',
+            'i_total_scores', 'vi_grand_total_score', 'i_grand_total_score',
+            'misinai_grand_total_score', 'percentage_promoters', 'first_month_percentage_promoters',
+            'second_month_percentage_promoters', 'third_month_percentage_promoters',
+            'average_percentage_promoters', 'first_month_percentage_detractors',
+            'second_month_percentage_detractors', 'third_month_percentage_detractors',
+            'average_percentage_detractors', 'first_month_net_promoter_score',
+            'second_month_net_promoter_score', 'third_month_net_promoter_score',
+            'ave_net_promoter_score', 'customer_satisfaction_rating', 'csi',
+            'first_month_csi', 'second_month_csi', 'third_month_csi',
+            'first_month_vs_grand_total', 'second_month_vs_grand_total', 'third_month_vs_grand_total',
+            'first_month_s_grand_total', 'second_month_s_grand_total', 'third_month_s_grand_total',
+            'first_month_ndvd_grand_total', 'second_month_ndvd_grand_total', 'third_month_ndvd_grand_total',
+            'first_month_grand_total', 'second_month_grand_total', 'third_month_grand_total',
+            'total_comments', 'total_complaints', 'comments', 'respondents_list',
+        ]));
+    }
+
+    /**
+     * Builds all data needed for the "By Quarter" CSI report. Shared by the
+     * Inertia-rendered report page and the standalone print/PDF view, so the
+     * heavy per-dimension computation only lives in one place.
+     */
+    private function buildQuarterReportData($request, $region_id, $psto_id): array
     {
         $unitData = $this->getUnitData($request);
         $sub_unit = $unitData['sub_unit'];
@@ -1052,7 +1074,7 @@ class ReportController extends Controller
         $customer_recommendation_ratings = null;
         $respondents_list = null; 
             
-        $service_id = $request->service;
+        $service_id = $request->service['id'] ?? null;
         $unit_id = $request->unit_id;
         $sub_unit_id = $request->selected_sub_unit;
         $client_type = $request->client_type; 
@@ -1146,6 +1168,9 @@ class ReportController extends Controller
         $vs_grand_total_raw_points = 0;
         $s_grand_total_raw_points = 0;
         $ndvd_grand_total_raw_points = 0;
+        $n_grand_total_raw_points = 0;
+        $d_grand_total_raw_points = 0;
+        $vd_grand_total_raw_points = 0;
         $lsr_grand_total = 0;
         $lsr_average = 0;
 
@@ -1264,6 +1289,9 @@ class ReportController extends Controller
             $s_grand_total_raw_points +=  $s_total_raw_points;
 
             $ndvd_grand_total_raw_points +=  $n_total_raw_points + $d_total_raw_points + $vd_total_raw_points;
+            $n_grand_total_raw_points += $n_total_raw_points;
+            $d_grand_total_raw_points += $d_total_raw_points;
+            $vd_grand_total_raw_points += $vd_total_raw_points;
             $grand_total_raw_points+= $total_raw_points;
 
             $trp_totals[$dimensionId] = [
@@ -1406,7 +1434,11 @@ class ReportController extends Controller
             $vi_grand_total_raw_points += $vi_total_raw_points;
             $i_grand_total_raw_points +=  $i_total_raw_points;
             $misinai_grand_total_raw_points +=  $mi_total_raw_points + $si_total_raw_points + $nai_total_raw_points;
-            $grand_total_raw_points+= $total_raw_points;
+            // NOTE: intentionally not touching $grand_total_raw_points here -- it's the
+            // service-quality (VS/S/N/D/VD) total accumulated above and used as the CSAT
+            // denominator; this loop reused the same variable name for a different total
+            // (importance ratings), silently doubling that denominator and roughly halving
+            // the reported CSAT score.
 
            
             $i_trp_totals[$dimensionId] = [
@@ -1632,7 +1664,7 @@ class ReportController extends Controller
                                         ->whereBetween('created_at', [$startDate, $endDate])
                                         ->whereYear('created_at', $request->selected_year)->get();
 
-        $comments = $comment_list->where('comment','!=','')->pluck('comment'); 
+        $comments = $comment_list->where('comment','!=','')->map(function ($c) { return ['text' => $c->comment, 'is_complaint' => (bool) $c->is_complaint]; })->values(); 
 
 
         $total_comments = $comment_list->where('comment','!=','')->count();
@@ -1641,104 +1673,175 @@ class ReportController extends Controller
         //Respondents list
         $data = CARResource::collection($respondents_list);
 
-        //send response to front end
-        return Inertia::render('CSI/Index')
-            ->with('cc_data', $cc_data)
-            ->with('user', $user)
-            ->with('assignatorees', $assignatorees)
-            ->with('users', $users)
-            ->with('sub_unit', $sub_unit)
-            ->with('unit_pstos', $unit_pstos)
-            ->with('sub_unit_pstos', $sub_unit_pstos)
-            ->with('sub_unit_types', $sub_unit_types)
-            ->with('dimensions', $dimensions)
-            ->with('service', $request->service)
-            ->with('unit', $request->unit)
-            ->with('respondents_list',$data)
-            ->with('trp_totals', $trp_totals)
-            ->with('grand_total_raw_points', $grand_total_raw_points)
-            ->with('vs_grand_total_raw_points', $vs_grand_total_raw_points)
-            ->with('s_grand_total_raw_points', $s_grand_total_raw_points)
-            ->with('ndvd_grand_total_raw_points', $ndvd_grand_total_raw_points)
-            ->with('p1_total_scores', $p1_total_scores)
-            ->with('vs_grand_total_score', $vs_grand_total_score) 
-            ->with('s_grand_total_score', $s_grand_total_score)
-            ->with('ndvd_grand_total_score', $ndvd_grand_total_score) 
-            ->with('grand_total_score', $grand_total_score) 
-            ->with('lsr_totals', $lsr_totals)
-            ->with('lsr_grand_total', $lsr_grand_total)
-            ->with('lsr_average', $lsr_average ) 
-            ->with('vs_totals', $vs_totals)
-            ->with('s_totals', $s_totals)
-            ->with('n_totals', $n_totals)
-            ->with('d_totals', $d_totals)
-            ->with('vd_totals', $vd_totals)
-            ->with('grand_totals', $grand_totals)
-            ->with('first_month_total_vs_respondents', $first_month_total_vs_respondents)
-            ->with('second_month_total_vs_respondents', $second_month_total_vs_respondents)
-            ->with('third_month_total_vs_respondents', $third_month_total_vs_respondents)
-            ->with('first_month_total_s_respondents', $first_month_total_s_respondents)
-            ->with('second_month_total_s_respondents', $second_month_total_s_respondents)
-            ->with('third_month_total_s_respondents', $third_month_total_s_respondents)
-            ->with('first_month_total_ndvd_respondents', $first_month_total_ndvd_respondents)
-            ->with('second_month_total_ndvd_respondents', $second_month_total_ndvd_respondents)
-            ->with('third_month_total_ndvd_respondents', $third_month_total_ndvd_respondents)
-            ->with('first_month_total_respondents', $first_month_total_respondents)
-            ->with('second_month_total_respondents', $second_month_total_respondents)
-            ->with('third_month_total_respondents', $third_month_total_respondents)
-            ->with('total_respondents', $total_respondents)
-            ->with('total_vss_respondents', $total_vss_respondents)
-            ->with('percentage_vss_respondents', $percentage_vss_respondents)
-            ->with('total_promoters', $total_promoters)
-            ->with('total_detractors', $total_detractors)
-            ->with('vi_totals', $vi_totals)
-            ->with('i_totals', $i_totals)
-            ->with('mi_totals', $mi_totals)
-            ->with('si_totals', $si_totals)
-            ->with('nai_totals', $nai_totals)
-            ->with('i_grand_totals', $i_grand_totals)
-            ->with('i_trp_totals', $i_trp_totals)
-            ->with('i_grand_total_raw_points', $i_grand_total_raw_points)
-            ->with('vi_grand_total_raw_points', $vi_grand_total_raw_points)
-            ->with('s_grand_total_raw_points', $s_grand_total_raw_points)
-            ->with('misinai_grand_total_raw_points', $misinai_grand_total_raw_points)
-            ->with('i_total_scores', $i_total_scores)
-            ->with('vi_grand_total_score', $vi_grand_total_score) 
-            ->with('i_grand_total_score', $i_grand_total_score) 
-            ->with('misinai_grand_total_score', $misinai_grand_total_score)
-            ->with('percentage_promoters', $percentage_promoters)
-            ->with('first_month_percentage_promoters', $first_month_percentage_promoters)
-            ->with('second_month_percentage_promoters', $second_month_percentage_promoters)
-            ->with('third_month_percentage_promoters', $third_month_percentage_promoters)
-            ->with('average_percentage_promoters', $average_percentage_promoters)
-            ->with('first_month_percentage_detractors', $first_month_percentage_detractors)
-            ->with('second_percentage_detractors', $second_month_percentage_detractors)
-            ->with('third_month_percentage_detractors', $third_month_percentage_detractors) 
-            ->with('average_percentage_detractors', $average_percentage_detractors)
-            ->with('first_month_net_promoter_score', $first_month_net_promoter_score)
-            ->with('second_month_net_promoter_score', $second_month_net_promoter_score)
-            ->with('third_month_net_promoter_score', $third_month_net_promoter_score)
-            ->with('ave_net_promoter_score', $ave_net_promoter_score)
-            ->with('customer_satisfaction_rating', $customer_satisfaction_rating)
-            ->with('csi', $customer_satisfaction_index)
-            ->with('first_month_csi', $first_month_csi)
-            ->with('second_month_csi', $second_month_csi)
-            ->with('third_month_csi', $third_month_csi)
-            ->with('first_month_vs_grand_total', $first_month_vs_grand_total)
-            ->with('second_month_vs_grand_total', $second_month_vs_grand_total)
-            ->with('third_month_vs_grand_total', $third_month_vs_grand_total)
-            ->with('first_month_s_grand_total', $first_month_s_grand_total)
-            ->with('second_month_s_grand_total', $second_month_s_grand_total)
-            ->with('third_month_s_grand_total', $third_month_s_grand_total)
-            ->with('first_month_ndvd_grand_total', $first_month_ndvd_grand_total)
-            ->with('second_month_ndvd_grand_total', $second_month_ndvd_grand_total)
-            ->with('third_month_ndvd_grand_total', $third_month_ndvd_grand_total)
-            ->with('first_month_grand_total', $first_month_grand_total)
-            ->with('second_month_grand_total', $second_month_grand_total)
-            ->with('third_month_grand_total', $third_month_grand_total)
-            ->with('total_comments', $total_comments)
-            ->with('total_complaints', $total_complaints)
-            ->with('comments', $comments);
+        // These were only ever accessed as $request->service / $request->unit,
+        // never their own local variables, so get_defined_vars() below would
+        // otherwise silently drop them.
+        $service = $request->service;
+        $unit = $request->unit;
+
+        $reportData = get_defined_vars();
+        $reportData['respondents_list'] = $data;
+        $reportData['csi'] = $customer_satisfaction_index;
+
+        return $reportData;
+    }
+
+    /**
+     * Streams the "By Quarter" CSI report as an actual PDF (opened in a new
+     * tab, browser's native PDF viewer handles printing/saving) instead of
+     * the old approach of hijacking the current page to pop the print dialog.
+     */
+    public function printCSIByQuarter(Request $request)
+    {
+        $psto_id = $request->selected_unit_psto ?: $request->selected_sub_unit_psto;
+        $user = Auth::user();
+
+        // Unlike generateReports()'s GET-refresh path, this route always gets a
+        // fully-populated query string (the frontend serializes the whole form
+        // with bracket notation), so $request->service / ->unit already arrive
+        // as plain arrays -- exactly what buildQuarterReportData() expects.
+        // Skipping convertArraysToObjects() here since it would turn them into
+        // stdClass and break the array-access reads inside that method.
+
+        $reportData = $this->buildQuarterReportData($request, $user->region_id, $psto_id);
+        $reportData['form'] = $request;
+        $reportData['prepared_by'] = $request->prepared_by;
+        $reportData['noted_by'] = $request->noted_by;
+        $reportData['monthLabels'] = match ($request->selected_quarter) {
+            'SECOND QUARTER' => ['APR', 'MAY', 'JUN'],
+            'THIRD QUARTER' => ['JUL', 'AUG', 'SEP'],
+            'FOURTH QUARTER' => ['OCT', 'NOV', 'DEC'],
+            default => ['JAN', 'FEB', 'MAR'],
+        };
+
+        $pdf = \PDF::loadView('reports.csi-quarter-print', $reportData)->setPaper('a4', 'landscape');
+
+        // Unlike its name suggests, page_text() doesn't register a lazy
+        // per-page hook -- it immediately loops over whatever pages already
+        // exist and stamps text onto them. Called before render(), only page
+        // 1 exists yet (hence a wrong "Page 1 of 1"). So render() has to run
+        // first so all real pages (and the final page count) exist, and only
+        // then can the page-number footer be stamped on.
+        $pdf->render();
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+        $canvas->page_text($canvas->get_width() - 90, $canvas->get_height() - 20, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 8, [0.1, 0.14, 0.23]);
+
+        $filename = 'CSI-Quarterly-' . ($request->selected_quarter ?: 'report') . '-' . ($request->selected_year ?: '') . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    public function printCSIByYear(Request $request)
+    {
+        $psto_id = $request->selected_unit_psto ?: $request->selected_sub_unit_psto;
+        $user = Auth::user();
+
+        // As with printCSIByQuarter(), convertArraysToObjects() is deliberately
+        // skipped -- the frontend serializes the form with bracket notation, so
+        // service/unit already arrive as the plain arrays the builder expects.
+        $reportData = $this->buildYearReportData($request, $user->region_id, $psto_id);
+        $reportData['form'] = $request;
+        $reportData['prepared_by'] = $request->prepared_by;
+        $reportData['reviewed_by'] = $request->reviewed_by;
+        $reportData['noted_by'] = $request->noted_by;
+
+        $pdf = \PDF::loadView('reports.csi-year-print', $reportData)->setPaper('a4', 'landscape');
+
+        // See printCSIByQuarter(): page_text() stamps existing pages immediately,
+        // so it has to run after render() for the count to be right.
+        $pdf->render();
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+        $canvas->page_text($canvas->get_width() - 90, $canvas->get_height() - 20, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 8, [0.1, 0.14, 0.23]);
+
+        $filename = 'CSI-Yearly-' . ($request->selected_year ?: 'report') . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    public function printCSIByMonth(Request $request)
+    {
+        $psto_id = $request->selected_unit_psto ?: $request->selected_sub_unit_psto;
+        $user = Auth::user();
+
+        // "By Date" and "By Month" share one printout, so pick the matching
+        // builder. As with the other print routes, convertArraysToObjects()
+        // is skipped -- service/unit already arrive as plain arrays.
+        $reportData = $request->csi_type === 'By Date'
+            ? $this->buildDateReportData($request, $user->region_id, $psto_id)
+            : $this->buildMonthReportData($request, $user->region_id, $psto_id);
+
+        $reportData['form'] = $request;
+        $reportData['prepared_by'] = $request->prepared_by;
+        $reportData['noted_by'] = $request->noted_by;
+
+        // Portrait, unlike the landscape quarterly/yearly sheets -- the monthly
+        // format is unchanged, only the rendering mechanism.
+        $pdf = \PDF::loadView('reports.csi-month-print', $reportData)->setPaper('a4', 'portrait');
+
+        // See printCSIByQuarter(): page_text() stamps existing pages immediately,
+        // so it has to run after render() for the count to be right.
+        $pdf->render();
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+        $canvas->page_text($canvas->get_width() - 90, $canvas->get_height() - 20, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 8, [0.1, 0.14, 0.23]);
+
+        $period = $request->csi_type === 'By Date'
+            ? ($request->date_from ?: '') . '-to-' . ($request->date_to ?: '')
+            : ($request->selected_month ?: '') . '-' . ($request->selected_year ?: '');
+
+        return $pdf->stream('CSI-Monthly-' . $period . '.pdf');
+    }
+
+    public function printAllUnits(Request $request)
+    {
+        // The All Units figures are produced by six separate generators (monthly,
+        // four quarters, yearly) that each return an Inertia response. Rather
+        // than fork all of them, reuse generateAllUnitReports() as-is and read
+        // the props back off the response -- the PDF is then guaranteed to show
+        // exactly the same numbers as the on-screen preview.
+        $response = $this->generateAllUnitReports($request);
+
+        if (!$response instanceof \Inertia\Response) {
+            return redirect('/csi/all-units')
+                ->with('error', 'Could not build that report. Please generate it again before printing.');
+        }
+
+        $reflection = new \ReflectionProperty($response, 'props');
+        $reflection->setAccessible(true);
+        $reportData = $reflection->getValue($response);
+
+        // 'request' is the raw Request object -- Blade wants it as $form, and it
+        // must not be passed through under a name the view might serialize.
+        unset($reportData['request']);
+        $reportData['form'] = $request;
+        $reportData['format'] = $request->format === 'alternative' ? 'alternative' : 'standard';
+        // Yearly reports carry an extra "Reviewed by" signatory.
+        $reportData['prepared_by'] = $request->prepared_by;
+        $reportData['reviewed_by'] = $request->reviewed_by;
+        $reportData['noted_by'] = $request->noted_by;
+
+        $pdf = \PDF::loadView('reports.csi-all-units-print', $reportData)->setPaper('a4', 'landscape');
+
+        // See printCSIByQuarter(): page_text() stamps the pages that already
+        // exist, so it only reports the right count after render().
+        $pdf->render();
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+        $canvas->page_text($canvas->get_width() - 90, $canvas->get_height() - 20, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 8, [0.1, 0.14, 0.23]);
+
+        $period = match ($request->csi_type) {
+            'By Quarter' => ($request->selected_quarter ?: '') . '-' . ($request->selected_year ?: ''),
+            'By Year/Annual' => (string) ($request->selected_year ?: ''),
+            default => ($request->selected_month ?: '') . '-' . ($request->selected_year ?: ''),
+        };
+
+        return $pdf->stream('CSI-All-Units-' . $period . '.pdf');
     }
 
     public function getCitizenCharterByQuarter($request, $customer_ids, $startDate ,$endDate)
@@ -1856,6 +1959,36 @@ class ReportController extends Controller
  
     // YEARLY || ANNUALLY PER UNIT
     public function generateCSIByUnitYearly($request, $region_id, $psto_id)
+    {
+        $reportData = $this->buildYearReportData($request, $region_id, $psto_id);
+
+        return Inertia::render('CSI/Index')->with(\Illuminate\Support\Arr::only($reportData, [
+            'user', 'cc_data', 'assignatorees', 'users', 'sub_unit', 'unit_pstos',
+            'sub_unit_pstos', 'sub_unit_types', 'dimensions', 'service', 'unit', 'respondents_list',
+            'vs_totals', 's_totals', 'n_totals', 'd_totals', 'vd_totals', 'grand_totals',
+            'trp_totals', 'grand_total_raw_points', 'vs_grand_total_raw_points', 's_grand_total_raw_points', 'ndvd_grand_total_raw_points', 'p1_total_scores',
+            'vs_grand_total_score', 's_grand_total_score', 'ndvd_grand_total_score', 'grand_total_score', 'lsr_totals', 'lsr_grand_total',
+            'lsr_average', 'q1_total_vs_respondents', 'q2_total_vs_respondents', 'q3_total_vs_respondents', 'q4_total_vs_respondents', 'q1_total_s_respondents',
+            'q2_total_s_respondents', 'q3_total_s_respondents', 'q4_total_s_respondents', 'q1_total_ndvd_respondents', 'q2_total_ndvd_respondents', 'q3_total_ndvd_respondents',
+            'q4_total_ndvd_respondents', 'q1_total_respondents', 'q2_total_respondents', 'q3_total_respondents', 'q4_total_respondents', 'total_respondents',
+            'q1_total_vss_respondents', 'q2_total_vss_respondents', 'q3_total_vss_respondents', 'q4_total_vss_respondents', 'total_vss_respondents', 'percentage_vss_respondents',
+            'total_promoters', 'total_detractors', 'vi_totals', 'i_totals', 'mi_totals', 'si_totals',
+            'nai_totals', 'i_grand_totals', 'i_trp_totals', 'i_grand_total_raw_points', 'vi_grand_total_raw_points', 'misinai_grand_total_raw_points',
+            'i_total_scores', 'vi_grand_total_score', 'i_grand_total_score', 'misinai_grand_total_score', 'percentage_promoters', 'q1_percentage_promoters',
+            'q2_percentage_promoters', 'q3_percentage_promoters', 'q4_percentage_promoters', 'average_percentage_promoters', 'q1_percentage_detractors', 'q2_percentage_detractors',
+            'q3_percentage_detractors', 'q4_percentage_detractors', 'average_percentage_detractors', 'q1_net_promoter_score', 'q2_net_promoter_score', 'q3_net_promoter_score',
+            'q4_net_promoter_score', 'ave_net_promoter_score', 'customer_satisfaction_rating', 'q1_csi', 'q2_csi', 'q3_csi',
+            'q4_csi', 'csi', 'total_comments', 'total_complaints', 'comments',
+        ]));
+    }
+
+    /**
+     * Runs the whole yearly CSI computation and returns every local it produced.
+     *
+     * Split out of generateCSIByUnitYearly() so the Blade/dompdf print route can
+     * reuse the exact same numbers without duplicating ~700 lines of logic.
+     */
+    private function buildYearReportData($request, $region_id, $psto_id): array
     {
         $unitData = $this->getUnitData($request, true);
         $sub_unit = $unitData['sub_unit'];
@@ -2570,7 +2703,7 @@ class ReportController extends Controller
          $comment_list = CustomerComment::whereIn('customer_id', $customer_ids)
                                         ->whereYear('created_at', $request->selected_year)->get();
 
-        $comments = $comment_list->where('comment','!=','')->pluck('comment'); 
+        $comments = $comment_list->where('comment','!=','')->map(function ($c) { return ['text' => $c->comment, 'is_complaint' => (bool) $c->is_complaint]; })->values(); 
 
         $total_comments = $comment_list->where('comment','!=','')->count();
         $total_complaints = $comment_list->where('is_complaint',1)->count();
@@ -2578,104 +2711,18 @@ class ReportController extends Controller
         //Respondents list
         $data = CARResource::collection($respondents_list);
 
-        //send response to front end
-        return Inertia::render('CSI/Index')
-            ->with('user', $user)
-            ->with('cc_data', $cc_data)
-            ->with('assignatorees', $assignatorees)
-            ->with('users', $users)
-            ->with('sub_unit', $sub_unit)
-            ->with('unit_pstos', $unit_pstos)
-            ->with('sub_unit_pstos', $sub_unit_pstos)
-            ->with('sub_unit_types', $sub_unit_types)
-            ->with('dimensions', $dimensions)
-            ->with('service', $request->service)
-            ->with('unit', $request->unit)
-            ->with('respondents_list',$data)
-            ->with('vs_totals', $vs_totals)
-            ->with('s_totals', $s_totals)
-            ->with('n_totals', $n_totals)
-            ->with('d_totals', $d_totals)
-            ->with('vd_totals', $vd_totals)
-            ->with('grand_totals', $grand_totals)
-            ->with('trp_totals', $trp_totals)
-            ->with('grand_total_raw_points', $grand_total_raw_points)
-            ->with('vs_grand_total_raw_points', $vs_grand_total_raw_points)
-            ->with('s_grand_total_raw_points', $s_grand_total_raw_points)
-            ->with('ndvd_grand_total_raw_points', $ndvd_grand_total_raw_points)
-            ->with('p1_total_scores', $p1_total_scores)
-            ->with('vs_grand_total_score', $vs_grand_total_score) 
-            ->with('s_grand_total_score', $s_grand_total_score) 
-            ->with('ndvd_grand_total_score', $ndvd_grand_total_score) 
-            ->with('grand_total_score', $grand_total_score) 
-            ->with('lsr_totals', $lsr_totals)
-            ->with('lsr_grand_total', $lsr_grand_total)
-            ->with('lsr_average', $lsr_average ) 
-            ->with('q1_total_vs_respondents', $q1_total_vs_respondents)
-            ->with('q2_total_vs_respondents', $q2_total_vs_respondents)
-            ->with('q3_total_vs_respondents', $q3_total_vs_respondents)
-            ->with('q4_total_vs_respondents', $q4_total_vs_respondents)
-            ->with('q1_total_s_respondents', $q1_total_s_respondents)
-            ->with('q2_total_s_respondents', $q2_total_s_respondents)
-            ->with('q3_total_s_respondents', $q3_total_s_respondents)
-            ->with('q4_total_s_respondents', $q4_total_s_respondents)
-            ->with('q1_total_ndvd_respondents', $q1_total_ndvd_respondents)
-            ->with('q2_total_ndvd_respondents', $q2_total_ndvd_respondents)
-            ->with('q3_total_ndvd_respondents', $q3_total_ndvd_respondents)
-            ->with('q4_total_ndvd_respondents', $q4_total_ndvd_respondents)
-            ->with('q1_total_respondents', $q1_total_respondents)
-            ->with('q2_total_respondents', $q2_total_respondents)
-            ->with('q3_total_respondents', $q3_total_respondents)
-            ->with('q4_total_respondents', $q4_total_respondents)
-            ->with('total_respondents', $total_respondents)
-            ->with('q1_total_vss_respondents', $q1_total_vss_respondents)
-            ->with('q2_total_vss_respondents', $q2_total_vss_respondents)
-            ->with('q3_total_vss_respondents', $q3_total_vss_respondents)
-            ->with('q4_total_vss_respondents', $q4_total_vss_respondents)
-            ->with('total_vss_respondents', $total_vss_respondents)
-            ->with('percentage_vss_respondents', $percentage_vss_respondents)
-            ->with('total_promoters', $total_promoters)
-            ->with('total_detractors', $total_detractors)
-            ->with('vi_totals', $vi_totals)
-            ->with('i_totals', $i_totals)
-            ->with('mi_totals', $mi_totals)
-            ->with('si_totals', $si_totals)
-            ->with('nai_totals', $nai_totals)
-            ->with('i_grand_totals', $i_grand_totals)
-            ->with('i_trp_totals', $i_trp_totals)
-            ->with('i_grand_total_raw_points', $i_grand_total_raw_points)
-            ->with('vi_grand_total_raw_points', $vi_grand_total_raw_points)
-            ->with('s_grand_total_raw_points', $s_grand_total_raw_points)
-            ->with('misinai_grand_total_raw_points', $misinai_grand_total_raw_points)
-            ->with('i_total_scores', $i_total_scores)
-            ->with('vi_grand_total_score', $vi_grand_total_score) 
-            ->with('i_grand_total_score', $i_grand_total_score) 
-            ->with('misinai_grand_total_score', $misinai_grand_total_score)
-            ->with('percentage_promoters', $percentage_promoters)
-            ->with('q1_percentage_promoters', $q1_percentage_promoters)
-            ->with('q2_percentage_promoters', $q2_percentage_promoters)
-            ->with('q3_percentage_promoters', $q3_percentage_promoters)
-            ->with('q4_percentage_promoters', $q4_percentage_promoters)
-            ->with('average_percentage_promoters', $average_percentage_promoters)
-            ->with('q1_percentage_detractors', $q1_percentage_detractors)
-            ->with('q2_percentage_detractors', $q2_percentage_detractors)
-            ->with('q3_percentage_detractors', $q3_percentage_detractors) 
-            ->with('q4_percentage_detractors', $q4_percentage_detractors) 
-            ->with('average_percentage_detractors', $average_percentage_detractors)
-            ->with('q1_net_promoter_score', $q1_net_promoter_score)
-            ->with('q2_net_promoter_score', $q2_net_promoter_score)
-            ->with('q3_net_promoter_score', $q3_net_promoter_score)
-            ->with('q4_net_promoter_score', $q4_net_promoter_score)
-            ->with('ave_net_promoter_score', $ave_net_promoter_score)
-            ->with('customer_satisfaction_rating', $customer_satisfaction_rating)
-            ->with('q1_csi', $q1_csi)
-            ->with('q2_csi', $q2_csi)
-            ->with('q3_csi', $q3_csi)
-            ->with('q4_csi', $q4_csi)
-            ->with('csi', $average_csi)
-            ->with('total_comments', $total_comments)
-            ->with('total_complaints', $total_complaints)
-            ->with('comments', $comments);
+        // These two come straight off the request rather than being computed, so
+        // they need locals of their own for get_defined_vars() to pick them up.
+        $service = $request->service;
+        $unit = $request->unit;
+
+        // Hand every computed local back to the caller. generateCSIByUnitYearly()
+        // picks out the keys Inertia needs; the print route passes them to Blade.
+        $reportData = get_defined_vars();
+        $reportData["respondents_list"] = $data;
+        $reportData["csi"] = $average_csi;
+
+        return $reportData;
     }
 
 
@@ -3026,6 +3073,8 @@ class ReportController extends Controller
         //all Services and its units
         $data = ServiceResource::collection($service_units);
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $data);
     
     }
@@ -3679,6 +3728,8 @@ public function generateCSIAllUnitMonthly($request)
 
          //send response to front end
          return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
                     ->with('services_units', $services_units)
                     ->with('cc_data', $cc_data)
                     ->with('all_units_data', $all_units_data)
@@ -3769,6 +3820,8 @@ public function generateCSIAllUnitMonthly($request)
         $total_comments = $comments->where('is_complaint', false)->count();
 
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
             ->with('all_units_data', $all_units_data)
@@ -3859,6 +3912,8 @@ public function generateCSIAllUnitMonthly($request)
         $total_comments = $comments->where('is_complaint', false)->count();
 
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
             ->with('all_units_data', $all_units_data)
@@ -3949,6 +4004,8 @@ public function generateCSIAllUnitMonthly($request)
         $total_comments = $comments->where('is_complaint', false)->count();
 
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
             ->with('all_units_data', $all_units_data)
@@ -4039,6 +4096,8 @@ public function generateCSIAllUnitMonthly($request)
         $total_comments = $comments->where('is_complaint', false)->count();
 
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
             ->with('all_units_data', $all_units_data)
@@ -4128,6 +4187,8 @@ public function generateCSIAllUnitMonthly($request)
         $total_comments = $comments->where('is_complaint', false)->count();
 
         return Inertia::render('CSI/AllServicesUnits/Index')
+            ->with('users', User::all())
+            ->with('assignatorees', Assignatorees::all())
             ->with('services_units', $services_units)
             ->with('cc_data', $cc_data)
             ->with('all_units_data', $all_units_data)

@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { computed, reactive, onMounted } from 'vue';
 
 const props = defineProps({
@@ -11,6 +11,7 @@ const props = defineProps({
         type: Object,
         default: () => ({ rating_filter: 'all', date_filter: 'all' }),
     },
+    available_years: { type: Array, default: () => [] },
 });
 
 const ratingFilters = [
@@ -20,18 +21,53 @@ const ratingFilters = [
     { value: 'negative', label: 'Negative (1-2)', icon: 'ri-emotion-unhappy-line' },
 ];
 
+// Mirrors the report builder: the period type is the top-level choice, and
+// picking one reveals its selector defaulted to the current period.
 const dateFilters = [
     { value: 'all', label: 'All Time' },
     { value: 'today', label: 'Today' },
     { value: 'week', label: 'This Week' },
-    { value: 'month', label: 'This Month' },
-    { value: 'year', label: 'This Year' },
+    { value: 'month', label: 'By Month' },
+    { value: 'quarter', label: 'By Quarter' },
+    { value: 'year', label: 'By Year' },
+    { value: 'range', label: 'Date Range', icon: 'ri-calendar-2-line' },
+];
+
+const monthOptions = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+].map((label, i) => ({ value: i + 1, label }));
+
+const quarterOptions = [
+    { value: 1, label: 'Q1 (Jan-Mar)' },
+    { value: 2, label: 'Q2 (Apr-Jun)' },
+    { value: 3, label: 'Q3 (Jul-Sep)' },
+    { value: 4, label: 'Q4 (Oct-Dec)' },
 ];
 
 const currentRatingFilter = computed(() => props.filters.rating_filter || 'all');
 const currentDateFilter = computed(() => props.filters.date_filter || 'all');
 
-const today = new Date().toLocaleDateString(undefined, {
+// Which extra selector (if any) the chosen period needs.
+const needsMonth = computed(() => currentDateFilter.value === 'month');
+const needsQuarter = computed(() => currentDateFilter.value === 'quarter');
+const needsYear = computed(() => ['month', 'quarter', 'year'].includes(currentDateFilter.value));
+const needsRange = computed(() => currentDateFilter.value === 'range');
+const showPeriodPicker = computed(() => needsYear.value || needsRange.value);
+
+const now = new Date();
+
+// Seeded from whatever the server resolved, so the pickers keep their values
+// across reloads and default to the current period on first use.
+const period = reactive({
+    year: props.filters.year || now.getFullYear(),
+    month: props.filters.month || now.getMonth() + 1,
+    quarter: props.filters.quarter || Math.floor(now.getMonth() / 3) + 1,
+    date_from: props.filters.date_from || '',
+    date_to: props.filters.date_to || '',
+});
+
+const today = now.toLocaleDateString(undefined, {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
 });
 
@@ -39,9 +75,34 @@ const buildFilterUrl = (ratingFilter, dateFilter) => {
     const params = new URLSearchParams();
     if (ratingFilter !== 'all') params.set('rating_filter', ratingFilter);
     if (dateFilter !== 'all') params.set('date_filter', dateFilter);
+
+    if (dateFilter === 'range') {
+        if (period.date_from) params.set('date_from', period.date_from);
+        if (period.date_to) params.set('date_to', period.date_to);
+    } else if (['month', 'quarter', 'year'].includes(dateFilter)) {
+        params.set('year', period.year);
+        if (dateFilter === 'month') params.set('month', period.month);
+        if (dateFilter === 'quarter') params.set('quarter', period.quarter);
+    }
+
     const query = params.toString();
     return query ? `?${query}` : '/dashboard';
 };
+
+const reload = () => {
+    router.get(buildFilterUrl(currentRatingFilter.value, currentDateFilter.value), {}, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
+// Dropdowns reload straight away; a date range waits for Apply since it needs
+// both ends before it means anything.
+const onPeriodChange = () => {
+    if (!needsRange.value) reload();
+};
+
+const canApplyRange = computed(() => Boolean(period.date_from || period.date_to));
 
 const distributionStops = computed(() => {
     const vs = Number(props.distribution?.very_satisfied?.pct || 0);
@@ -56,11 +117,15 @@ const distributionStops = computed(() => {
     };
 });
 
+// Every card reflects the selected period. "Active Users" and "Pending
+// Reviews" were dropped: the first is a system-wide count that ignored the
+// filter entirely, and the second was always 0 for this data.
 const quickStats = computed(() => [
     { label: 'Total Surveys', key: 'total_surveys', icon: 'ri-survey-line', tone: 'blue', suffix: '', value: props.stats?.total_surveys ?? 0 },
-    { label: 'Active Users', key: 'active_users', icon: 'ri-group-line', tone: 'teal', suffix: '', value: props.stats?.active_users ?? 0 },
+    { label: 'Respondents', key: 'total_respondents', icon: 'ri-group-line', tone: 'teal', suffix: '', value: props.stats?.total_respondents ?? 0 },
+    { label: 'Total Ratings', key: 'total_ratings', icon: 'ri-list-check-2', tone: 'indigo', suffix: '', value: props.stats?.total_ratings ?? 0 },
     { label: 'Satisfaction Rate', key: 'satisfaction_rate', icon: 'ri-star-smile-line', tone: 'green', suffix: '%', value: props.stats?.satisfaction_rate ?? 0 },
-    { label: 'Pending Reviews', key: 'pending_reviews', icon: 'ri-time-line', tone: 'amber', suffix: '', value: props.stats?.pending_reviews ?? 0 },
+    { label: 'Average Rating', key: 'average_rating', icon: 'ri-speed-up-line', tone: 'amber', suffix: ' / 5', decimals: 2, value: props.stats?.average_rating ?? 0 },
 ]);
 
 const filteredRatings = computed(() => {
@@ -104,10 +169,14 @@ function countUp(key, to, duration = 1100) {
     requestAnimationFrame(tick);
 }
 
-const fmt = (stat) =>
-    stat.suffix === '%'
-        ? (displays[stat.key] ?? 0).toFixed(1)
-        : Math.round(displays[stat.key] ?? 0).toLocaleString();
+const fmt = (stat) => {
+    const v = displays[stat.key] ?? 0;
+    if (stat.suffix === '%') return v.toFixed(1);
+    // Average Rating is a decimal score -- rounding it to a whole number
+    // would show 4.75 as "5".
+    if (stat.decimals) return v.toFixed(stat.decimals);
+    return Math.round(v).toLocaleString();
+};
 
 onMounted(() => {
     quickStats.value.forEach((s) => countUp(s.key, s.value));
@@ -142,7 +211,7 @@ onMounted(() => {
                 <!-- Quick stats -->
                 <section class="mb-4">
                     <div class="row g-3">
-                        <div v-for="item in quickStats" :key="item.key" class="col-12 col-sm-6 col-xl-3">
+                        <div v-for="item in quickStats" :key="item.key" class="col-12 col-sm-6 col-lg-4 col-xl">
                             <article class="stat-card" :class="'tone-' + item.tone">
                                 <span class="stat-accent"></span>
                                 <div class="stat-icon-chip"><i :class="item.icon"></i></div>
@@ -166,7 +235,7 @@ onMounted(() => {
                             <div class="filter-group">
                                 <label class="filter-label">Time Period</label>
                                 <div class="filter-buttons">
-                                    <Link v-for="dateOption in dateFilters" :key="dateOption.value" :href="buildFilterUrl(currentRatingFilter, dateOption.value)" class="filter-btn" :class="{ active: currentDateFilter === dateOption.value }">{{ dateOption.label }}</Link>
+                                    <Link v-for="dateOption in dateFilters" :key="dateOption.value" :href="buildFilterUrl(currentRatingFilter, dateOption.value)" class="filter-btn" :class="{ active: currentDateFilter === dateOption.value }"><i v-if="dateOption.icon" :class="dateOption.icon" class="me-1"></i>{{ dateOption.label }}</Link>
                                 </div>
                             </div>
                             <div class="filter-group">
@@ -176,8 +245,52 @@ onMounted(() => {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Period selector for the chosen type, like the report builder -->
+                        <div v-if="showPeriodPicker" class="custom-period">
+                            <div class="custom-row">
+                                <div v-if="needsMonth" class="custom-field">
+                                    <label class="filter-label">Month</label>
+                                    <select v-model.number="period.month" class="form-select form-select-sm" @change="onPeriodChange">
+                                        <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
+                                    </select>
+                                </div>
+
+                                <div v-if="needsQuarter" class="custom-field">
+                                    <label class="filter-label">Quarter</label>
+                                    <select v-model.number="period.quarter" class="form-select form-select-sm" @change="onPeriodChange">
+                                        <option v-for="q in quarterOptions" :key="q.value" :value="q.value">{{ q.label }}</option>
+                                    </select>
+                                </div>
+
+                                <div v-if="needsYear" class="custom-field">
+                                    <label class="filter-label">Year</label>
+                                    <select v-model.number="period.year" class="form-select form-select-sm" @change="onPeriodChange">
+                                        <option v-for="y in props.available_years" :key="y" :value="y">{{ y }}</option>
+                                    </select>
+                                </div>
+
+                                <template v-if="needsRange">
+                                    <div class="custom-field">
+                                        <label class="filter-label">From</label>
+                                        <input v-model="period.date_from" type="date" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="custom-field">
+                                        <label class="filter-label">To</label>
+                                        <input v-model="period.date_to" type="date" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="custom-field custom-actions">
+                                        <button type="button" class="btn btn-primary btn-sm" :disabled="!canApplyRange" @click="reload">
+                                            <i class="ri-search-line me-1"></i>Apply
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                            <p v-if="needsRange && !canApplyRange" class="custom-hint mb-0">Pick a From and/or To date to apply this range.</p>
+                        </div>
+
                         <div v-if="currentRatingFilter !== 'all' || currentDateFilter !== 'all'" class="filter-summary">
-                            <span class="summary-text">Showing <strong>{{ props.stats?.filtered_total_ratings ?? 0 }}</strong> ratings<span v-if="currentRatingFilter !== 'all'"> with <strong>{{ currentRatingFilter }}</strong> rating</span><span v-if="currentDateFilter !== 'all'"> from <strong>{{ dateFilters.find(d => d.value === currentDateFilter)?.label }}</strong></span></span>
+                            <span class="summary-text">Showing <strong>{{ (props.stats?.filtered_total_respondents ?? 0).toLocaleString() }}</strong> respondents<span v-if="currentRatingFilter !== 'all'"> who gave a <strong>{{ currentRatingFilter }}</strong> score</span><span v-if="props.filters?.period_label && props.filters.period_label !== 'All Time'"> within <strong>{{ props.filters.period_label }}</strong></span><span v-else> across <strong>all time</strong></span></span>
                             <Link :href="buildFilterUrl('all', 'all')" class="clear-filter"><i class="ri-close-line me-1"></i> Clear Filters</Link>
                         </div>
                     </div>
@@ -191,7 +304,7 @@ onMounted(() => {
                             <div class="panel-body">
                                 <div class="row g-3">
                                     <div v-for="module in modules" :key="module.href" class="col-12 col-sm-6">
-                                        <Link :href="module.href" class="text-decoration-none">
+                                        <Link :href="module.href" class="module-link">
                                             <article class="module-tile" :class="'tone-' + module.tone">
                                                 <div class="module-icon"><i :class="module.icon"></i></div>
                                                 <div class="module-main">
@@ -329,6 +442,8 @@ onMounted(() => {
 .tone-teal .stat-icon-chip { background: linear-gradient(135deg, #22d3ee, #0e7490); }
 .tone-green .stat-accent { background: linear-gradient(90deg, #34d399, #059669); }
 .tone-green .stat-icon-chip { background: linear-gradient(135deg, #34d399, #059669); }
+.tone-indigo .stat-accent { background: linear-gradient(90deg, #818cf8, #4338ca); }
+.tone-indigo .stat-icon-chip { background: linear-gradient(135deg, #818cf8, #4338ca); }
 .tone-amber .stat-accent { background: linear-gradient(90deg, #fbbf24, #d97706); }
 .tone-amber .stat-icon-chip { background: linear-gradient(135deg, #fbbf24, #d97706); }
 
@@ -347,6 +462,13 @@ onMounted(() => {
 .filter-btn.btn-positive.active { background: linear-gradient(135deg, #34d399, #059669); box-shadow: 0 6px 16px rgba(52, 211, 153, 0.35); }
 .filter-btn.btn-neutral.active { background: linear-gradient(135deg, #fbbf24, #d97706); box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35); }
 .filter-btn.btn-negative.active { background: linear-gradient(135deg, #f87171, #dc2626); box-shadow: 0 6px 16px rgba(248, 113, 113, 0.35); }
+.custom-period { padding: 14px 18px; background: #f7fafd; border-top: 1px solid #dbe7f4; }
+.custom-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.custom-field { display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.custom-field .filter-label { margin-bottom: 0; }
+.custom-actions { min-width: auto; }
+.custom-hint { margin-top: 8px; font-size: 0.8rem; color: #6b7c93; }
+
 .filter-summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: #f0f9f4; border-top: 1px solid #dbe7f4; flex-wrap: wrap; gap: 8px; }
 .summary-text { font-size: 0.85rem; color: #3f6c9e; }
 .summary-text strong { color: #10214a; }
@@ -360,6 +482,14 @@ onMounted(() => {
 .panel-body { padding: 16px; }
 
 /* Module tiles */
+/* The global `a:not(nav a)` rule in app.css leaves these links without any
+   focus styling, so a clicked tile keeps the browser's default dark ring and
+   reads as a black border. Suppress that and use an on-brand ring instead --
+   only for keyboard focus, so clicking doesn't leave a tile outlined. */
+.module-link { display: block; text-decoration: none; color: inherit; border-radius: 14px; outline: none; }
+.module-link:focus { outline: none; box-shadow: none; }
+.module-link:focus-visible { outline: 2px solid #2f66b3; outline-offset: 3px; }
+
 .module-tile { display: grid; grid-template-columns: 48px 1fr 20px; gap: 12px; align-items: center; border: 1px solid #e2ecfa; border-radius: 14px; padding: 14px; background: #fff; transition: all 0.25s ease; }
 .module-tile:hover { border-color: #bcd6f2; box-shadow: 0 10px 22px rgba(13, 47, 84, 0.12); transform: translateY(-3px); }
 .module-icon { width: 48px; height: 48px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; }

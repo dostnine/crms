@@ -2,7 +2,6 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { reactive, ref, computed, onMounted, nextTick } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { Printd } from "printd";
 import Swal from 'sweetalert2';
 import MonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/Content.vue';
 import AltMonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/AltContent.vue';
@@ -27,6 +26,8 @@ const props = defineProps({
   comments: Object,
   respondent_profile: Object,
   request: Object,
+  users: Object,
+  assignatorees: Object,
 });
 
 
@@ -151,303 +152,55 @@ const generateCSIReport = async () => {
   };
 
 
+  // Builds a PHP-compatible query string (bracket notation for nested
+  // objects/arrays) so Laravel can rebuild the form server-side.
+  const toQueryString = (data, prefix = '') => {
+      const parts = [];
+      for (const key in data) {
+          if (data[key] === null || data[key] === undefined) continue;
+          const value = data[key];
+          const paramKey = prefix ? `${prefix}[${key}]` : key;
+          if (typeof value === 'object') {
+              parts.push(toQueryString(value, paramKey));
+          } else {
+              parts.push(`${encodeURIComponent(paramKey)}=${encodeURIComponent(value)}`);
+          }
+      }
+      return parts.filter(Boolean).join('&');
+  };
+
+  // Yearly reports add a "Reviewed by" signatory between the preparer and the
+  // noter; every other period is just Prepared by / Noted by.
+  const isYearlyReport = computed(() => form.csi_type === 'By Year/Annual');
+
+  const show_assignatoree_modal = ref(false);
+  const assignatorees_form = reactive({
+      prepared_by: {},
+      reviewed_by: {},
+      noted_by: {},
+  });
+
   const is_printing = ref(false);
-  const printCSIReport = async () => {
-      is_printing.value = true;
-      await nextTick();
+  const printCSIReport = () => {
+      show_assignatoree_modal.value = true;
+  };
 
-      // Force-close any open native dropdown/focused control before cloning the DOM for print.
-      const activeElement = document.activeElement;
-      if (activeElement && typeof activeElement.blur === 'function') {
-        activeElement.blur();
+  const confirmPrint = () => {
+      show_assignatoree_modal.value = false;
+      // Opens a real PDF in a new tab (rendered by Blade + dompdf) instead of
+      // cloning the DOM into a print popup. `format` selects which of the two
+      // layouts the server renders.
+      let query = toQueryString(form)
+          + '&format=' + encodeURIComponent(report_format.value)
+          + '&' + toQueryString(assignatorees_form.prepared_by || {}, 'prepared_by')
+          + '&' + toQueryString(assignatorees_form.noted_by || {}, 'noted_by');
+
+      if (isYearlyReport.value) {
+          query += '&' + toQueryString(assignatorees_form.reviewed_by || {}, 'reviewed_by');
       }
 
-      document.querySelectorAll('select').forEach((select) => {
-        if (typeof select.blur === 'function') {
-          select.blur();
-        }
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      
-      // Add body class for alt format printing
-      if (report_format.value === 'alternative') {
-        document.body.classList.add('printing-alt');
-      }
-      
-      //  router.get('/generate-pdf', form , { preserveState: true, preserveScroll: true})
-      //Create an instance of Printd
-        let d = await new Printd();
-        let css = ` 
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-          * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          body {
-            margin: 0;
-            color: #111827;
-            font-size: 11px;
-            line-height: 1.3;
-          }
-          h4, h5 {
-            margin: 0 0 8px 0;
-            color: #1f2937;
-          }
-          .m-5 {
-            margin: 0 !important;
-          }
-          .mb-3 {
-            margin-bottom: 12px !important;
-          }
-          .mb-4 {
-            margin-bottom: 14px !important;
-          }
-          .mt-4 {
-            margin-top: 14px !important;
-          }
-          .text-center {
-            text-align: center !important;
-          }
-          .text-right {
-            text-align: right !important;
-          }
-          .text-left {
-            text-align: left !important;
-          }
-          .pl-5, .pl-10, .pl-14 {
-            padding-left: 8px !important;
-          }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-          }
-          th, td {
-            border: 1px solid #9ca3af;
-            padding: 5px;
-            vertical-align: middle;
-            word-wrap: break-word;
-            word-break: break-word;
-            white-space: normal;
-          }
-          thead th {
-            background: #1f3b6e !important;
-            color: #ffffff !important;
-            font-weight: 700;
-            white-space: normal;
-          }
-          .bg-blue-200 {
-            background-color: #e3f2fd !important;
-          }
-          .bg-yellow-50 {
-            background-color: #fef9e7 !important;
-          }
-          .bg-green-50 {
-            background-color: #e8f5e9 !important;
-          }
-          .total-row {
-            font-weight: 700;
-            background-color: #eef2ff !important;
-          }
-          .assessment {
-            margin-top: 10px !important;
-          }
-          .assessment p {
-            margin: 0 0 6px 0;
-          }
-
-          .pie-grid {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-          }
-          .print-only {
-            display: none !important;
-          }
-          .print-header,
-          .print-title,
-          .print-subtitle,
-          .alt-header,
-          .alt-title,
-          .alt-subtitle {
-            width: 100% !important;
-            text-align: center !important;
-            display: none !important;
-          }
-          /* Show alt header only when printing alternative format */
-          body.printing-alt .alt-header,
-          body.printing-alt .alt-title,
-          body.printing-alt .alt-subtitle {
-            display: block !important;
-          }
-          body.printing-alt .print-only {
-            display: block !important;
-          }
-          /* Show standard print header when printing standard format */
-          body:not(.printing-alt) .print-only,
-          body:not(.printing-alt) .print-header,
-          body:not(.printing-alt) .print-title,
-          body:not(.printing-alt) .print-subtitle {
-            display: block !important;
-          }
-          .pie-chart-collapsible {
-            display: grid !important;
-          }
-          .pie-toggle-btn,
-          .pie-collapsed-note,
-          .comment-controls,
-          .comment-filter-select,
-          .print-hidden {
-            display: none !important;
-          }
-          .pie-card {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 8px;
-            page-break-inside: avoid;
-          }
-          .comments-section-card {
-            display: block !important;
-            clear: both !important;
-            break-before: page !important;
-            page-break-before: always !important;
-          }
-          .comment-print-section {
-            display: block !important;
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .complaint-print-section {
-            break-before: page !important;
-            page-break-before: always !important;
-          }
-          .alt-comments-section {
-            display: block !important;
-            clear: both !important;
-            break-before: page !important;
-            page-break-before: always !important;
-          }
-          .alt-comment-print-section {
-            display: block !important;
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .alt-complaint-print-section {
-            break-before: page !important;
-            page-break-before: always !important;
-          }
-          .service-category-summary {
-            page-break-inside: avoid;
-          }
-          .service-category-summary table {
-            width: 100% !important;
-            table-layout: fixed !important;
-            border: 1px solid #64748b !important;
-          }
-          .service-category-summary th,
-          .service-category-summary td {
-            border: 1px solid #94a3b8 !important;
-            padding: 4px 3px !important;
-            font-size: 9px !important;
-            line-height: 1.2 !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            word-break: break-word !important;
-            white-space: normal !important;
-          }
-          .service-category-summary thead th {
-            background: #1f3b6e !important;
-            color: #ffffff !important;
-            font-weight: 700 !important;
-            white-space: normal !important;
-            word-break: break-word !important;
-          }
-          .service-overview-table th,
-          .service-overview-table td {
-            font-size: 9.5px !important;
-            line-height: 1.2 !important;
-            padding: 4px !important;
-          }
-          .service-category-summary tr > th:nth-child(1),
-          .service-category-summary tr > td:nth-child(1) {
-            width: 25% !important;
-            text-align: left !important;
-            font-weight: 700 !important;
-          }
-          .service-category-summary tr > th:nth-child(2),
-          .service-category-summary tr > td:nth-child(2),
-          .service-category-summary tr > th:nth-child(3),
-          .service-category-summary tr > td:nth-child(3),
-          .service-category-summary tr > th:nth-child(4),
-          .service-category-summary tr > td:nth-child(4),
-          .service-category-summary tr > th:nth-child(5),
-          .service-category-summary tr > td:nth-child(5) {
-            width: 18.75% !important;
-          }
-          .pie-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-align: center;
-          }
-          .pie-subtitle {
-            font-size: 10px;
-            text-align: center;
-            color: #334155;
-            margin-bottom: 6px;
-          }
-          .pie-circle {
-            width: 120px !important;
-            height: 120px !important;
-            border-radius: 50%;
-            margin: 0 auto 8px auto;
-            border: 1px solid #94a3b8;
-          }
-          /* Ensure pie charts print with colors */
-          .pie-circle {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .pie-total {
-            text-align: center;
-            font-size: 10px;
-            margin-bottom: 6px;
-          }
-          .pie-legend-table th,
-          .pie-legend-table td {
-            font-size: 9px !important;
-            padding: 3px !important;
-          }
-          .legend-label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-          .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-          }
-
-          .new-page,
-          .page-break {
-            page-break-before: always;
-          }
-        `;
-
-       d.print(document.querySelector(".print-id"), [css]);
-       
-       // Clean up body class after printing
-       document.body.classList.remove('printing-alt');
-       is_printing.value = false;
-};
+      window.open('/csi/print/all-units?' + query, '_blank');
+  };
 
 </script>
 
@@ -666,6 +419,77 @@ const generateCSIReport = async () => {
                 </div>
             </div>
         </div>
+
+        <!-- Select Assignatoree modal, shown before the PDF opens -->
+        <div class="modal fade" :class="{ 'show': show_assignatoree_modal, 'd-block': show_assignatoree_modal }" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="ri-user-line me-2"></i>
+                            Select Assignatoree
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" @click="show_assignatoree_modal = false" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Prepared By:</label>
+                                <vue-multiselect
+                                    v-model="assignatorees_form.prepared_by"
+                                    :options="users || []"
+                                    :multiple="false"
+                                    placeholder="Select Prepared By"
+                                    label="name"
+                                    track-by="id"
+                                    :allow-empty="false"
+                                >
+                                </vue-multiselect>
+                            </div>
+                        </div>
+                        <div class="row mb-3" v-if="isYearlyReport">
+                            <div class="col-12">
+                                <label class="form-label">Reviewed By:</label>
+                                <vue-multiselect
+                                    v-model="assignatorees_form.reviewed_by"
+                                    :options="assignatorees || []"
+                                    :multiple="false"
+                                    placeholder="Select Reviewed By"
+                                    label="name"
+                                    track-by="name"
+                                    :allow-empty="false"
+                                >
+                                </vue-multiselect>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="form-label">Noted By:</label>
+                                <vue-multiselect
+                                    v-model="assignatorees_form.noted_by"
+                                    :options="assignatorees || []"
+                                    :multiple="false"
+                                    placeholder="Select Noted By"
+                                    label="name"
+                                    track-by="name"
+                                    :allow-empty="false"
+                                >
+                                </vue-multiselect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="show_assignatoree_modal = false">
+                            <i class="ri-close-line me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-success" @click="confirmPrint()">
+                            <i class="ri-printer-line me-1"></i>Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="show_assignatoree_modal" class="modal-backdrop fade show"></div>
     </AppLayout>
 </template>
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
