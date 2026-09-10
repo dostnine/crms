@@ -250,7 +250,7 @@
                             <tr>
                                 <td class="text-center">4</td>
                                 <td>Satisfied</td>
-                                <td v-if="data.s_totals" class="border-t p-5 w-1/8 text-center"  v-for="total in data.s_totals[index+1]">
+                                <td v-if="data.s_totals" class="text-center"  v-for="total in data.s_totals[index+1]">
                                     <span v-if="total > 0">
                                         {{ total }}
                                     </span>
@@ -275,7 +275,7 @@
                             <tr>
                                 <td class="text-center">3</td>
                                 <td>Neither</td>
-                                <td v-if="data.n_totals" class="border-t p-5 w-1/8 text-center"  v-for="total in data.n_totals[index+1]">
+                                <td v-if="data.n_totals" class="text-center"  v-for="total in data.n_totals[index+1]">
                                     <span v-if="total > 0">
                                         {{ total }}
                                     </span>
@@ -301,7 +301,7 @@
                             <tr>
                                 <td class="text-center">2</td>
                                  <td>Dissatisfied</td>
-                                <td v-if="data.d_totals" class="border-t p-5 w-1/8 text-center"  v-for="total in data.d_totals[index+1]">
+                                <td v-if="data.d_totals" class="text-center"  v-for="total in data.d_totals[index+1]">
                                     <span v-if="total > 0">
                                         {{ total }}
                                     </span>
@@ -325,7 +325,7 @@
                             <tr>
                                 <td class="text-center">1</td>
                                  <td>Very Dissatisfied</td>
-                                <td v-if="data.vd_totals" class="border-t p-5 w-1/8 text-center"  v-for="total in data.vd_totals[index+1]">
+                                <td v-if="data.vd_totals" class="text-center"  v-for="total in data.vd_totals[index+1]">
                                     <span v-if="total > 0">
                                         {{ total }}
                                     </span>
@@ -855,7 +855,7 @@
                 <span v-if="data.comments">       
                     <template v-for="(comment, index) in data.comments" class="m-5 mb-10">
                         <table>
-                        <p>[{{ index +1 }}] {{ comment }}</p>
+                        <p>[{{ index +1 }}] {{ comment.text }}</p>
                         </table>
                     </template>
                 </span>
@@ -865,13 +865,13 @@
                 <div style="margin-top: 5px ; font-size: 13px">
                     ANALYSIS : 
                     <div  style="text-align: justify; margin: 5px">
-                       The <span>{{ data.unit.unit_name }}</span>  for the year <span>{{ form.selected_year }}</span> had a total of <span>{{ data.total_respondents }}</span> respondents 
+                       The <span>{{ data.unit.data?.[0]?.unit_name }}</span>  for the year <span>{{ form.selected_year }}</span> had a total of <span>{{ data.total_respondents }}</span> respondents 
                        who filled out and rated the Customer Satisfaction Feedback. <span>{{ data.total_respondents }}</span> of the respondents rated the CSF as either very satisfied (VS) 
                        or satisfied (S), which resulted in an overall average Customer Satisfaction Index (CSI) of <span>{{ data.total_respondents }}</span>, 
                        a Net Promoter Score of {{ data.ave_net_promoter_score }}%, and an average Likert Scale Rating of <span>{{ data.ave_net_promoter_score }}%</span>, 
                        which translates to "very satisfied" for the year <span>{{ form.selected_year }}</span>.
 
-                        The <span>{{ data.unit.unit_name }}</span> unit's Customer Satisfaction Survey resulted in an Overall Customer Satisfaction Score Rating of <span>{{ data.customer_satisfaction_rating }}</span>% 
+                        The <span>{{ data.unit.data?.[0]?.unit_name }}</span> unit's Customer Satisfaction Survey resulted in an Overall Customer Satisfaction Score Rating of <span>{{ data.customer_satisfaction_rating }}</span>% 
                         for the year <span>{{ form.selected_year }}</span>, which <span v-if="data.customer_satisfaction_rating < 95">does not</span> achieved its quality objective of at least 95% of customers being satisfied with the S&T services.
                     </div>
                 </div>
