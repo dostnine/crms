@@ -55,6 +55,12 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
                         </svg>
                         Start Your Survey
                     </a>
+                    <a href="/citizens-charter" class="btn btn-outline">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.5C10.5 5 8 4.5 4 4.5v13c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-13c-4 0-6.5.5-8 2zm0 0v13" />
+                        </svg>
+                        Citizen's Charter
+                    </a>
                     <a href="#about" class="btn btn-outline">Learn more</a>
                 </div>
             </div>

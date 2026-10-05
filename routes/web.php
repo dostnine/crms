@@ -48,6 +48,9 @@ Route::get('/form/csf/msg', [SurveyFormController::class, 'msg_index'])->name('m
 // Pinged periodically by the CSF form while it's open so a long fill-out
 // session doesn't outlive SESSION_LIFETIME and 419 on submit.
 Route::get('/services/csf/keep-alive', fn () => response()->noContent())->name('csf_keep_alive');
+// The DOST IX Citizen's Charter is a self-contained page book in public/charter
+// (static HTML, not an Inertia page), so this only sends the browser to it.
+Route::redirect('/citizens-charter', '/charter/index.html')->name('citizens_charter');
 Route::get('captcha/{config?}', '\Mews\Captcha\CaptchaController@getCaptcha')->middleware('web');
 // Route::post('/captcha/verify', [SurveyFormController::class, 'verifyCaptcha']);
 Route::post('/csf_submission', [SurveyFormController::class, 'store']);
