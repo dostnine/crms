@@ -265,6 +265,28 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .pill { padding: 0 20px; font-size: 1rem; }
 .round { width: 52px; font-size: 1.25rem; }
 .pill:active, .round:active { transform: scale(0.95); border-color: var(--brand); }
+/* the Light / 3D switch: two options, the one in use filled in */
+.mode {
+    display: inline-flex;
+    height: 52px;
+    padding: 4px;
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+.mode-opt {
+    min-width: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.mode-opt[aria-pressed="true"] { background: var(--cta); color: var(--on-cta); cursor: default; }
 
 /* ---------- the book ---------- */
 .stage {
@@ -466,6 +488,11 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 @media (max-width: 480px) {
     .brand-name { display: none; }
     .bar-actions { gap: 8px; }
+    /* room for the Light / 3D switch on a phone */
+    .pill, .round { width: 44px; height: 44px; }
+    .mode { height: 44px; padding: 3px; }
+    .mode-opt { min-width: 38px; padding: 0 10px; font-size: 0.82rem; }
+    #fs-btn { display: none; }
 }
 
 /* =====================================================================
@@ -1153,8 +1180,40 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .menu-item.is-here { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--brand); color: var(--ink); }
 @media (hover: hover) { .menu-item:hover { background: var(--accent-soft); } }
 
+/* The floor grid reaches past both sides of the screen. Unclipped, a phone
+   lays the whole page out wider than its screen and shows it zoomed out. */
+.app { overflow: hidden; }
+
+/* ---------- light version ----------
+   html.lite, chosen with the Light / 3D switch. Made so a phone with 2 GB
+   of memory can run the book. The pages and what is on them are the same,
+   but nothing is drawn in 3D: the open pages lie flat and a turn swaps
+   them with a short fade. Also left out: the particle background, the
+   floor grid, the wave lines, blur, glows, shadows, the decorations that
+   never stop animating, and the page sound. The script keeps a page in
+   the document only while it is on screen. */
+.lite .field, .lite .floor, .lite .floor-shadow, .lite .holo, .lite #sound-btn { display: none; }
+.lite .pg-cover::before { content: none; }
+/* no wave lines */
+.lite .app { background: var(--stage); }
+.lite .seal::after, .lite .cover-hint, .lite .orb::before, .lite .orb::after { animation: none; }
+.lite .pill, .lite .round, .lite .mode, .lite .menu { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.lite .brand img, .lite .seal img, .lite .cover-title { filter: none; }
+.lite .nav, .lite .rule, .lite .meter-fill, .lite .menu { box-shadow: none; }
+/* flat pages: every leaf stays on the right half of the book, and the back
+   of a leaf is moved, not turned, onto the left half */
+.lite .book { perspective: none; animation: none; }
+.lite .book-wrap { transition: none; }
+.lite .leaf, .lite .leaf.flipped { transform: none; transform-style: flat; transition: none; will-change: auto; }
+.lite .face, .lite .face.is-shown { box-shadow: 0 0 0 1px var(--line); }
+.lite .face { -webkit-backface-visibility: visible; backface-visibility: visible; visibility: hidden; }
+.lite .face.back { transform: translateX(-100%); }
+.lite .face.is-shown { visibility: visible; animation: page-in 0.2s ease-out; }
+@keyframes page-in { from { opacity: 0.2; } }
+
 @media (prefers-reduced-motion: reduce) {
     :root { --flip: 1ms; }
+    .lite .face.is-shown { animation: none; }
     .menu, .menu-open .menu, .menu-scrim { transition: none; }
     .floor, .book, .holo, .seal::after, .cover-hint, .orb::before, .orb::after { animation: none; }
 }
@@ -1177,6 +1236,10 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             <button class="pill" id="contents-btn" type="button" aria-controls="menu" aria-expanded="false">
                 <svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Contents</span>
             </button>
+            <div class="mode" role="group" aria-label="Version of the book">
+                <button class="mode-opt" id="mode-light" type="button" aria-pressed="false" title="Light version: flat pages, for phones and slower devices">Light</button>
+                <button class="mode-opt" id="mode-3d" type="button" aria-pressed="false" title="3D version: turning pages and effects">3D</button>
+            </div>
             <button class="round" id="sound-btn" type="button" aria-label="Turn page sound off"></button>
             <button class="round" id="theme-btn" type="button" aria-label="Switch theme"></button>
             <button class="round" id="fs-btn" type="button" aria-label="Enter full screen">
@@ -1229,6 +1292,22 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     const PAGE_RATIO = 0.9;
     const STEP_MS = 130;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // The book comes in two versions, chosen with the Light / 3D switch in
+    // the top bar. The light one is made so a phone with 2 GB of memory can
+    // run it (see the ".lite" styles). Until someone chooses, phones and
+    // devices that report 2 GB or less get the light version and everything
+    // else gets 3D. ?lite=1 or ?lite=0 in the address overrides both.
+    let lite = (() => {
+        const forced = new URLSearchParams(window.location.search).get('lite');
+        if (forced === '1' || forced === '0') return forced === '1';
+        let chosen = null;
+        try { chosen = localStorage.getItem('cc-version'); } catch (err) { /* no storage: decide by device */ }
+        if (chosen === 'light' || chosen === '3d') return chosen === 'light';
+        if (navigator.deviceMemory && navigator.deviceMemory <= 2) return true;
+        return Math.min(window.screen.width, window.screen.height) < 600;
+    })();
+    document.documentElement.classList.toggle('lite', lite);
 
     // ------------------------------------------------------------------
     // Page-turn sound, synthesized with Web Audio so there is no audio file
@@ -1287,6 +1366,12 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             setEnabled(on) {
                 enabled = on;
                 try { localStorage.setItem('cc-sound', on ? 'on' : 'off'); } catch (err) { /* ignore */ }
+            },
+            // lets go of the audio engine (the light version has no page sound)
+            release() {
+                if (ctx) ctx.close().catch(() => {});
+                ctx = null;
+                noise = null;
             },
             // quick: a page passing by during a multi-page jump
             flip(quick = false) {
@@ -3563,13 +3648,19 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             ? Array.from({ length: PAGES.length / 2 }, (_, i) => ({ front: PAGES[i * 2], back: PAGES[i * 2 + 1] }))
             : SINGLE.map((p) => ({ front: p, back: { type: 'verso', number: p.number } }));
 
+        // In the light version every leaf starts empty; update() puts in the open pages.
         book.innerHTML = '<div class="depth depth-l"></div><div class="depth depth-r"></div>' + leaves.map((leaf, i) => `
             <div class="leaf" data-i="${i}">
-                <div class="face front">${pageHTML(leaf.front, 'right')}</div>
-                <div class="face back">${pageHTML(leaf.back, 'left')}</div>
+                <div class="face front">${lite ? '' : pageHTML(leaf.front, 'right')}</div>
+                <div class="face back">${lite ? '' : pageHTML(leaf.back, 'left')}</div>
             </div>`).join('');
         update();
     }
+
+    // Light version: a page is in the document only while it is on screen.
+    const putPage = (face, show, page, side) => {
+        if (show !== Boolean(face.firstChild)) face.innerHTML = show ? pageHTML(page, side) : '';
+    };
 
     function update() {
         const n = leaves.length;
@@ -3596,6 +3687,10 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             back.inert = !backVisible;
             front.classList.toggle('is-shown', frontVisible);
             back.classList.toggle('is-shown', backVisible);
+            if (lite) {
+                putPage(front, frontVisible, leaves[i].front, 'right');
+                putPage(back, backVisible, leaves[i].back, 'left');
+            }
         });
 
         const atStart = current === 0;
@@ -3643,8 +3738,19 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     // in about a second instead of riffling through the whole book.
     const MAX_RIFFLE = 4;
 
+    // the timers of a jump's page turns, so the Light / 3D switch can stop them
+    const stepTimers = [];
+
     function flipTo(target) {
         target = Math.max(0, Math.min(maxCurrent(), target));
+        if (lite) {
+            // Light version: nothing turns; the open pages are swapped.
+            if (target !== current) {
+                current = target;
+                update();
+            }
+            return;
+        }
         if (pending > 0 || target === current) return;
         const forward = target > current;
         let steps = Math.abs(target - current);
@@ -3658,8 +3764,9 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             book.classList.remove('is-jumping');
         }
         pending = steps;
+        stepTimers.length = 0;
         for (let s = 0; s < steps; s++) {
-            setTimeout(() => {
+            stepTimers.push(setTimeout(() => {
                 const leaf = forward ? current : current - 1;
                 // A jump riffles through pages: every turn but the last one
                 // gets a short, quieter swish, and only the last one lands.
@@ -3669,7 +3776,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
                 pending -= 1;
                 update();
                 setTimeout(() => { turning.delete(leaf); update(); }, FLIP_MS);
-            }, reduceMotion ? 0 : s * STEP_MS);
+            }, reduceMotion ? 0 : s * STEP_MS));
         }
     }
     const next = () => flipTo(current + 1);
@@ -3850,8 +3957,56 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         if (pageSound.enabled) pageSound.flip();
     });
     paintSoundButton();
-    window.addEventListener('pointerdown', pageSound.unlock, { once: true });
-    window.addEventListener('keydown', pageSound.unlock, { once: true });
+    // the light version has no page sound, so it never starts the audio engine
+    const unlockSound = () => { if (!lite) pageSound.unlock(); };
+    window.addEventListener('pointerdown', unlockSound, { once: true });
+    window.addEventListener('keydown', unlockSound, { once: true });
+
+    // ------------------------------------------------------------------
+    // Light / 3D switch. The version changes in place, without reloading
+    // the page: the open page stays open, and a kiosk in full screen stays
+    // in full screen.
+    // ------------------------------------------------------------------
+    const paintVersion = () => {
+        $('mode-light').setAttribute('aria-pressed', String(lite));
+        $('mode-3d').setAttribute('aria-pressed', String(!lite));
+    };
+    const chooseVersion = (wantLight) => {
+        if (wantLight === lite) return;
+        try { localStorage.setItem('cc-version', wantLight ? 'light' : '3d'); } catch (err) { /* this visit only */ }
+        // a ?lite= left in the address would undo the choice on the next visit
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('lite')) {
+            url.searchParams.delete('lite');
+            window.history.replaceState(null, '', url);
+        }
+        // stop a page turn that is still under way
+        stepTimers.forEach(clearTimeout);
+        stepTimers.length = 0;
+        pending = 0;
+        turning.clear();
+
+        lite = wantLight;
+        document.documentElement.classList.toggle('lite', lite);
+        paintVersion();
+        book.classList.add('is-jumping');
+        render();
+        void book.offsetWidth; // put the leaves in place without turning them
+        book.classList.remove('is-jumping');
+        if (lite) {
+            // let go of what only the 3D version uses
+            canvas.width = 0;
+            canvas.height = 0;
+            points = [];
+            pageSound.release();
+        } else {
+            startField();
+            pageSound.unlock();
+        }
+    };
+    paintVersion();
+    $('mode-light').addEventListener('click', () => chooseVersion(true));
+    $('mode-3d').addEventListener('click', () => chooseVersion(false));
 
     // ------------------------------------------------------------------
     // Theme: follows the device until someone picks one, then remembers it.
@@ -3939,7 +4094,13 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         }
     }
 
+    let fieldRunning = false;
     function tick() {
+        // the light version has no particle background: the loop ends itself
+        if (lite) {
+            fieldRunning = false;
+            return;
+        }
         if (!document.hidden) {
             const w = canvas.clientWidth;
             const h = canvas.clientHeight;
@@ -3958,15 +4119,30 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     // ------------------------------------------------------------------
     // Boot
     // ------------------------------------------------------------------
+    // Sizes the particle background and sets it moving (3D version only).
+    function startField() {
+        sizeField();
+        readFieldColor();
+        if (reduceMotion) {
+            drawField();
+        } else if (!fieldRunning) {
+            fieldRunning = true;
+            requestAnimationFrame(tick);
+        }
+    }
+
     layout();
-    sizeField();
-    readFieldColor();
-    if (reduceMotion) drawField(); else requestAnimationFrame(tick);
+    if (!lite) startField();
 
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => { layout(); sizeField(); if (reduceMotion) drawField(); }, 120);
+        resizeTimer = setTimeout(() => {
+            layout();
+            if (lite) return;
+            sizeField();
+            if (reduceMotion) drawField();
+        }, 120);
     });
 })();
 </script>
