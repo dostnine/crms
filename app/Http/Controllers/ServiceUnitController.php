@@ -32,6 +32,15 @@ class ServiceUnitController extends Controller
             ->with('user',  $user);
     }
 
+    // The blank Customer Satisfaction Feedback form for clients who answer on
+    // paper, as a PDF. It replaces the copy that was kept on Google Drive.
+    public function printManualCSFForm()
+    {
+        return \PDF::loadView('reports.csf-manual-form')
+            ->setPaper('a4', 'portrait')
+            ->stream('CSF-Form-Manual.pdf');
+    }
+
     public function getServiceUnits(Request $request)
     {
         $service_units = Unit::where('services_id',$request->code)
