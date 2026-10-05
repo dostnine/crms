@@ -732,6 +732,10 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 
 /* programs and service pages (from the printed charter) */
 .prog {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: calc(2 * var(--u));
+    align-items: baseline;
     margin-top: calc(1 * var(--u));
     padding: calc(3 * var(--u)) calc(3.2 * var(--u));
     border-radius: calc(2.4 * var(--u));
@@ -739,19 +743,20 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     color: var(--box-ink);
     box-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) var(--shadow);
 }
-.prog-num { font-family: var(--f-mono); font-size: calc(2.4 * var(--u)); font-weight: 600; color: var(--box-ink); opacity: 0.85; }
-.prog-name { margin: calc(0.6 * var(--u)) 0 calc(1.6 * var(--u)); font-family: var(--f-display); font-size: calc(4 * var(--u)); font-weight: 700; line-height: 1.2; text-wrap: balance; color: var(--box-title); }
+.prog-num { font-family: var(--f-display); font-size: calc(4 * var(--u)); font-weight: 700; line-height: 1.2; color: var(--box-ink); }
+.prog-name { margin: 0 0 calc(1.6 * var(--u)); font-family: var(--f-display); font-size: calc(4 * var(--u)); font-weight: 700; line-height: 1.2; text-wrap: balance; color: var(--box-title); }
 .prog-about { margin: 0; font-size: calc(2.9 * var(--u)); line-height: 1.5; color: var(--box-ink); }
 .prog-about + .prog-about { margin-top: calc(1.4 * var(--u)); }
 /* a long program description plus a long list of services */
 .is-dense .prog { padding: calc(2.2 * var(--u)) calc(2.8 * var(--u)); }
+.is-dense .prog-num { font-size: calc(3.4 * var(--u)); }
 .is-dense .prog-name { margin-bottom: calc(1.2 * var(--u)); font-size: calc(3.4 * var(--u)); }
 .is-dense .prog-about { font-size: calc(2.5 * var(--u)); line-height: 1.42; }
 .is-dense .prog-about + .prog-about { margin-top: calc(1 * var(--u)); }
 .is-dense .prog-list { gap: calc(0.8 * var(--u)); font-size: calc(2.6 * var(--u)); }
 .prog-list { display: grid; gap: calc(1.2 * var(--u)); margin: 0; padding: 0; list-style: none; font-size: calc(2.9 * var(--u)); font-weight: 600; }
 .prog-list li { display: flex; gap: calc(1.6 * var(--u)); }
-.prog-list span { font-family: var(--f-mono); color: var(--accent); }
+.prog-list span { flex-shrink: 0; min-width: 3.4ch; font-family: var(--f-mono); color: var(--accent); }
 
 .pg-svc > * { flex-shrink: 0; }
 .svc-check td { padding-block: calc(0.5 * var(--u)); font-size: calc(2.05 * var(--u)); line-height: 1.26; }
@@ -3436,8 +3441,10 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
                 <p class="kicker">${esc(p.office)}</p>
                 <div class="prog">
                     <span class="prog-num">${esc(p.program.num)}</span>
-                    <h3 class="prog-name">${esc(p.program.name)}</h3>
-                    ${[].concat(p.program.about || []).map((t) => `<p class="prog-about">${esc(t)}</p>`).join('')}
+                    <div class="prog-text">
+                        <h3 class="prog-name">${esc(p.program.name)}</h3>
+                        ${[].concat(p.program.about || []).map((t) => `<p class="prog-about">${esc(t)}</p>`).join('')}
+                    </div>
                 </div>
                 <p class="label">Services under this program</p>
                 <ol class="prog-list">
