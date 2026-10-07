@@ -11,11 +11,11 @@
 /* Layout: one floating instrument-grade book on a calibration-grid bench;
    chrome is a thin top bar and a bottom dock, the book owns the stage. */
 :root {
-    /* Colours of the DOST IX office poster: white running into azure,
-       royal blue and navy; navy boxes with yellow titles and white text.
-       Light mode is the top of the poster: white pages on the gradient. */
-    --ground: #cfe6fb;
-    --stage: linear-gradient(165deg, #ffffff 0%, #eaf4ff 16%, #8ccbf8 38%, #1492ec 58%, #0268f1 76%, #053cae 90%, #062a86 100%);
+    /* Colours of the DOST IX office poster: azure, royal blue and navy;
+       navy boxes with yellow titles and white text. Light mode is white
+       pages on a plain white bench, where the white wave lines do not show. */
+    --ground: #ffffff;
+    --stage: #ffffff;
     --waves: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='none' fill='none' stroke='white'><path stroke-opacity='.20' stroke-width='2' d='M-40 640C260 470 560 800 900 590S1420 330 1640 470'/><path stroke-opacity='.16' stroke-width='1.5' d='M-40 700C280 540 600 850 950 650S1440 410 1640 540'/><path stroke-opacity='.12' stroke-width='1.5' d='M-40 760C300 620 640 900 1000 720S1460 500 1640 610'/><path stroke-opacity='.10' stroke-width='3' d='M-40 830C320 710 680 940 1050 790S1480 590 1640 690'/><path stroke-opacity='.16' stroke-width='1.5' d='M820 -20C960 130 1220 60 1640 250'/><path stroke-opacity='.10' stroke-width='2.5' d='M980 -20C1100 90 1320 40 1640 170'/></svg>");
     --paper: #ffffff;
     --paper-2: #f1f7ff;
@@ -34,8 +34,8 @@
     --box-bg: linear-gradient(135deg, #0a55c4, #042e8c);
     --glow: rgba(2, 104, 241, 0.28);
     --shadow: rgba(3, 20, 80, 0.32);
-    --grid: rgba(255, 255, 255, 0.3);
-    --field: #ffffff;
+    --grid: rgba(67, 56, 202, 0.16);
+    --field: #8f88ff;
     --edge-a: #d3e2f6;
     --edge-b: #ffffff;
     --spine: rgba(6, 20, 90, 0.18);
@@ -45,26 +45,31 @@
     --scrim: rgba(4, 16, 70, 0.45);
     --menu-bg: rgba(255, 255, 255, 0.97);
 
-    /* the poster's yellow on navy, the white text of the bottom bar (the
-       gradient is always dark down there), and the cover, which runs from
-       azure to navy with a yellow title. Dark mode keeps the yellow and
-       white and turns the blues, cover included, to indigo. */
+    /* the poster's yellow on navy, the bottom bar (dark text and an indigo
+       page meter on the white bench; white and yellow in dark mode), and
+       the cover, which is indigo with a yellow title in both modes. Dark
+       mode keeps the yellow and turns the blues inside the book to indigo. */
     --cta: #ffe81a;
     --on-cta: #0a1a6e;
     --box-title: #ffe81a;
     --box-ink: #ffffff;
-    --dock-ink: #ffffff;
-    --dock-soft: rgba(255, 255, 255, 0.82);
-    --dock-line: rgba(255, 255, 255, 0.28);
-    --cover-hi: #5cc0fb;
-    --cover-a: #0a84e8;
-    --cover-b: #0258d6;
-    --cover-c: #04257e;
+    --dock-ink: #0c1550;
+    --dock-soft: #46507e;
+    --dock-line: rgba(12, 21, 80, 0.14);
+    --meter-fill: linear-gradient(90deg, #5d54f0, #4338ca);
+    --meter-glow: rgba(93, 84, 240, 0.4);
+    --cover-hi: #8f88ff;
+    --cover-a: #5d54f0;
+    --cover-b: #4338ca;
+    --cover-c: #1e1b4b;
     --foil: #ffe81a;
     --foil-2: #ffc400;
     --foil-rgb: 255, 255, 255;
     --foil-ink: #ffffff;
-    --foil-soft: #e2eeff;
+    --foil-soft: #e6e3ff;
+    /* the head of a poster: muted indigo (deeper in dark mode), under the
+       white and yellow words of the sheet */
+    --poster-head: #3b3786;
 
     --f-display: 'Unbounded', 'Segoe UI', system-ui, sans-serif;
     --f-body: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -106,11 +111,12 @@
         --glass-line: rgba(255, 255, 255, 0.24);
         --scrim: rgba(10, 7, 45, 0.62);
         --menu-bg: rgba(31, 27, 94, 0.97);
-        --cover-hi: #8f88ff;
-        --cover-a: #5d54f0;
-        --cover-b: #4338ca;
-        --cover-c: #1e1b4b;
-        --foil-soft: #e6e3ff;
+        --dock-ink: #ffffff;
+        --dock-soft: rgba(255, 255, 255, 0.82);
+        --dock-line: rgba(255, 255, 255, 0.28);
+        --meter-fill: linear-gradient(90deg, var(--cta), #ffffff);
+        --meter-glow: rgba(255, 232, 26, 0.5);
+        --poster-head: #2b2778;
         color-scheme: dark;
     }
 }
@@ -145,11 +151,12 @@
     --glass-line: rgba(255, 255, 255, 0.24);
     --scrim: rgba(10, 7, 45, 0.62);
     --menu-bg: rgba(31, 27, 94, 0.97);
-    --cover-hi: #8f88ff;
-    --cover-a: #5d54f0;
-    --cover-b: #4338ca;
-    --cover-c: #1e1b4b;
-    --foil-soft: #e6e3ff;
+    --dock-ink: #ffffff;
+    --dock-soft: rgba(255, 255, 255, 0.82);
+    --dock-line: rgba(255, 255, 255, 0.28);
+    --meter-fill: linear-gradient(90deg, var(--cta), #ffffff);
+    --meter-glow: rgba(255, 232, 26, 0.5);
+    --poster-head: #2b2778;
     color-scheme: dark;
 }
 
@@ -230,15 +237,6 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     height: 46px;
     filter: drop-shadow(0 0 7px var(--glow));
 }
-.brand-top {
-    display: block;
-    font-family: var(--f-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-}
 .brand-name {
     display: block;
     font-family: var(--f-display);
@@ -246,7 +244,9 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     font-weight: 700;
     letter-spacing: 0.01em;
 }
-.bar-actions { display: flex; gap: 10px; }
+.bar-nav, .bar-actions { display: flex; gap: 10px; }
+/* Contents, Posters and Feedback sit with the other controls, on the right */
+.bar-nav { margin-left: auto; }
 .pill, .round {
     display: inline-flex;
     align-items: center;
@@ -265,6 +265,8 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .pill { padding: 0 20px; font-size: 1rem; }
 .round { width: 52px; font-size: 1.25rem; }
 .pill:active, .round:active { transform: scale(0.95); border-color: var(--brand); }
+/* the way to the feedback form, in the yellow of the page buttons */
+.pill-cta { border-color: transparent; background: var(--cta); color: var(--on-cta); }
 /* the Light / 3D switch: two options, the one in use filled in */
 .mode {
     display: inline-flex;
@@ -287,6 +289,35 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     cursor: pointer;
 }
 .mode-opt[aria-pressed="true"] { background: var(--cta); color: var(--on-cta); cursor: default; }
+/* the zoom level, shown for a moment while the book is being zoomed, and
+   the notice that the display is changing by itself */
+.zoom-note, .auto-note {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    z-index: 5;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--menu-bg);
+    box-shadow: 0 4px 14px var(--shadow);
+    font-family: var(--f-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.zoom-note.is-on, .is-auto .auto-note { opacity: 1; }
+.auto-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 16px);
+    font-family: var(--f-body);
+    white-space: nowrap;
+}
 
 /* ---------- the book ---------- */
 .stage {
@@ -296,11 +327,19 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     /* one column as wide as the stage, so a book wider than the screen
        (single-page mode on a portrait kiosk) is centred, not left-aligned */
     grid-template-columns: minmax(0, 1fr);
+    /* and one row as tall as the stage, so a zoomed book is centred too */
+    grid-template-rows: minmax(0, 1fr);
     place-items: center;
     min-height: 0;
     overflow: hidden;
     touch-action: none;
 }
+/* a zoomed book is larger than the stage and is dragged about inside it */
+.stage.is-zoomed { cursor: grab; }
+.stage.is-dragging { cursor: grabbing; }
+/* what the drag moves; as wide as the book, so the stage centres it even
+   when the book is wider than the stage */
+.pan { width: max-content; }
 .book-wrap {
     position: relative;
     flex-shrink: 0;
@@ -311,7 +350,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .book {
     position: absolute;
     inset: 0;
-    perspective: 2600px;
+    perspective: calc(2600px * var(--zoom, 1));
     animation: hover 9s ease-in-out infinite;
 }
 @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
@@ -330,10 +369,11 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .leaf.flipped { transform: rotateY(-180deg); }
 /* a long jump moves the skipped leaves at once, without turning them */
 .book.is-jumping .leaf { transition: none; }
-/* Leaves buried in either stack are not drawn at all: a thick book would
-   otherwise keep every page painted at once and run the browser out of
-   drawing memory, letting other pages show through the open one. */
-.leaf.is-away { visibility: hidden; will-change: auto; }
+/* Leaves buried in either stack are left out altogether: a thick book
+   would otherwise keep every page painted at once and run the browser out
+   of drawing memory, letting other pages show through the open one. Being
+   out of the layout as well, they cost nothing when the book is zoomed. */
+.leaf.is-away { display: none; }
 
 .face {
     position: absolute;
@@ -449,7 +489,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     justify-content: space-between;
     gap: 12px;
 }
-#meter-title {
+#meter-title, #poster-name {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -457,7 +497,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     font-weight: 700;
     font-size: 1rem;
 }
-#meter-sub {
+#meter-sub, #poster-count {
     flex-shrink: 0;
     font-family: var(--f-mono);
     font-size: 0.8rem;
@@ -475,18 +515,33 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     height: 100%;
     width: 0;
     border-radius: 99px;
-    background: linear-gradient(90deg, var(--cta), #ffffff);
-    box-shadow: 0 0 12px rgba(255, 232, 26, 0.5);
+    background: var(--meter-fill);
+    box-shadow: 0 0 12px var(--meter-glow);
     transition: width 0.7s var(--ease);
 }
 
-@media (max-width: 640px) {
-    .nav span, .pill span, .brand-top { display: none; }
-    .nav { padding: 0 20px; }
+@media (max-width: 1020px) {
+    /* Contents, Posters and Feedback as icons */
+    .pill span { display: none; }
     .pill { width: 52px; padding: 0; }
 }
-@media (max-width: 480px) {
+@media (max-width: 780px) {
     .brand-name { display: none; }
+}
+@media (max-width: 640px) {
+    .nav span { display: none; }
+    .nav { padding: 0 20px; }
+}
+@media (max-width: 600px) {
+    /* a phone: Contents, Posters and Feedback get a row of their own, and
+       their names back */
+    .bar { flex-wrap: wrap; row-gap: 8px; }
+    .bar-actions { margin-left: auto; }
+    .bar-nav { order: 3; flex: 1 0 100%; gap: 8px; margin-left: 0; }
+    .bar-nav .pill { flex: 1 1 0; gap: 6px; width: auto; min-width: 0; height: 44px; padding: 0 6px; font-size: 0.88rem; }
+    .bar-nav .pill span { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 480px) {
     .bar-actions { gap: 8px; }
     /* room for the Light / 3D switch on a phone */
     .pill, .round { width: 44px; height: 44px; }
@@ -1180,6 +1235,734 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .menu-item.is-here { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--brand); color: var(--ink); }
 @media (hover: hover) { .menu-item:hover { background: var(--accent-soft); } }
 
+/* ---------- layers over the book: the posters and the feedback form ---------- */
+.layer {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+}
+.layer.is-open { display: grid; }
+
+/* posters: one sheet at a time, on the same bench as the book */
+.posters {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding-inline: max(16px, env(safe-area-inset-left, 0px));
+    background: var(--waves) center / 100% 100% no-repeat, var(--stage);
+}
+.posters-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-block: max(14px, env(safe-area-inset-top, 0px)) 10px;
+}
+/* the names of the sheets: on a second row where one is not enough, and on
+   a phone a single row that scrolls */
+.poster-tabs {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 0;
+    /* room for the focus ring, which the scrolling would cut off */
+    margin: -6px;
+    padding: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.poster-tabs::-webkit-scrollbar { display: none; }
+.poster-tab {
+    flex-shrink: 0;
+    height: 52px;
+    padding: 0 20px;
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+    background: var(--glass);
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.poster-tab[aria-pressed="true"] { border-color: transparent; background: var(--cta); color: var(--on-cta); }
+/* On a small screen (a phone, held either way) the names are one dropdown
+   instead: a row of them would run off the side. */
+.poster-pick { position: relative; display: none; flex: 1; min-width: 0; }
+.poster-pick::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+}
+.poster-pick select {
+    width: 100%;
+    height: 44px;
+    padding: 0 46px 0 18px;
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+    background: var(--menu-bg);
+    color: inherit;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+.poster-pick select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 600px), (max-height: 520px) {
+    .posters-bar { align-items: center; gap: 8px; }
+    .poster-tabs { display: none; }
+    .poster-pick { display: block; }
+}
+.poster-stage {
+    display: grid;
+    min-height: 0;
+    padding-block: 8px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    container: poster-stage / size;
+    /* sideways a finger changes the poster; up and down it scrolls a long one */
+    touch-action: pan-y;
+}
+.poster-stage::-webkit-scrollbar { display: none; }
+/* a zoomed poster is larger than the stage and is dragged about inside it
+   (by the script: a finger no longer scrolls it by itself) */
+.poster-stage.is-zoomed { cursor: grab; touch-action: none; }
+.poster-stage.is-dragging { cursor: grabbing; }
+/* the notice that the display is changing by itself, over the top of the
+   poster the carousel is showing */
+.posters-bar { grid-row: 1; }
+.poster-stage { grid-area: 2 / 1; }
+.posters > .dock { grid-row: 3; }
+.posters .auto-note, .posters .zoom-note {
+    position: relative;
+    top: auto;
+    left: auto;
+    grid-area: 2 / 1;
+    align-self: start;
+    justify-self: center;
+    margin-top: 6px;
+    transform: none;
+}
+/* ...with room made for it above the sheet, so it covers none of the poster */
+.is-auto .poster-stage { padding-top: 46px; }
+/* The sheet, as large as the stage lets it be, times the zoom (--pz, set by
+   the script). On an upright stage it is an upright A-size sheet; on a
+   stage wider than tall it grows sideways, up to the shape of that sheet
+   laid on its side, or to the width chosen with the grips at its sides
+   (--pr, its width against its height). --h1 and --w1 are its height and
+   width at 100%. Like the pages of the book, what is on it is sized in
+   --u, so a zoomed sheet is drawn sharp. */
+.poster {
+    position: relative;
+    --h1: min(100cqh, 141.42cqw);
+    --w1: min(100cqw, calc(var(--h1) * var(--pr, 1.4142)));
+    width: calc(var(--w1) * var(--pz, 1));
+    height: calc(var(--h1) * var(--pz, 1));
+    /* (in whole pixels, where the browser can round) */
+    width: round(calc(var(--w1) * var(--pz, 1)), 1px);
+    height: round(calc(var(--h1) * var(--pz, 1)), 1px);
+    /* Drawn on a layer of its own: as its side is dragged, a sheet drawn
+       straight onto the stage left thin lines of itself behind on some
+       screens. */
+    will-change: transform;
+    /* in the middle of the stage, or from its top if it is the taller */
+    margin: auto;
+    overflow: hidden;
+    border-radius: 14px;
+    background: linear-gradient(170deg, var(--cover-b), var(--cover-c));
+    box-shadow: 0 18px 50px var(--shadow);
+    container-type: size;
+    /* a hundredth of the width of an upright sheet; on a wider one, the
+       measure that leaves its words the same room downwards */
+    --u: min(1cqw, calc(100cqh / 130));
+    /* the margin down both sides of the sheet */
+    --side: calc(8.5 * var(--u));
+}
+/* A zoomed sheet keeps the gaps it has around it at 100% as margins: that
+   is the room the stage needs to scroll any point of the sheet to wherever
+   it was aimed at. */
+.poster-stage.is-zoomed .poster {
+    margin: calc((100cqh - var(--h1)) / 2) calc((100cqw - var(--w1)) / 2);
+}
+/* The two sides of a sheet can be dragged out or in to make the sheet wider
+   or narrower: a strip down each side takes the drag (it is not drawn; the
+   pointer shows it). Not on a zoomed sheet, which is dragged about instead,
+   nor where the sheet is as wide as the screen anyway. */
+.poster-grip {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 3;
+    width: 16px;
+    cursor: ew-resize;
+    touch-action: none;
+}
+.poster-grip.on-left { left: 0; }
+.poster-grip.on-right { right: 0; }
+.poster-stage.is-zoomed .poster-grip, .poster.is-image .poster-grip { display: none; }
+/* a poster that is a picture keeps the picture's own shape (and is zoomed
+   no further than the picture is large) */
+.poster.is-image { width: auto; height: auto; background: none; container-type: normal; }
+.poster.is-image img { display: block; max-width: calc(100cqw * var(--pz, 1)); max-height: calc(100cqh * var(--pz, 1)); }
+.poster-stage.is-zoomed .poster.is-image { margin: auto; }
+.po {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-size: calc(2.7 * var(--u));
+    line-height: 1.45;
+    color: var(--foil-ink);
+}
+/* the head of the sheet: a band of muted indigo over a yellow rule */
+.po-head {
+    display: flex;
+    align-items: center;
+    gap: calc(3 * var(--u));
+    padding: calc(4 * var(--u)) var(--side) calc(3.4 * var(--u));
+    border-bottom: calc(0.7 * var(--u)) solid var(--foil);
+    background: var(--poster-head);
+    color: var(--foil-ink);
+}
+.po-head img { width: calc(10 * var(--u)); height: calc(10 * var(--u)); object-fit: contain; }
+.po-head p { display: grid; gap: calc(0.7 * var(--u)); margin: 0; }
+.po-head span {
+    font-family: var(--f-mono);
+    font-size: calc(1.9 * var(--u));
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--foil);
+}
+.po-head b { font-family: var(--f-display); font-size: calc(3.6 * var(--u)); font-weight: 700; line-height: 1.1; }
+.po-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: calc(3.6 * var(--u)) var(--side);
+    overflow: hidden;
+}
+/* in the middle of the room they have, or from its top if they need more */
+.po-main > :first-child { margin-top: auto; }
+.po-main > :last-child { margin-bottom: auto; }
+.po-kicker {
+    margin: 0 0 calc(1.6 * var(--u));
+    font-family: var(--f-mono);
+    font-size: calc(2.1 * var(--u));
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--foil);
+}
+.po-title {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: calc(7.2 * var(--u));
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    background: linear-gradient(180deg, #ffffff 25%, var(--foil) 75%, var(--foil-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.po-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc(3 * var(--u));
+    margin: 0 var(--side);
+    padding: calc(2.4 * var(--u)) 0 calc(3.8 * var(--u));
+    border-top: 1px solid rgba(var(--foil-rgb), 0.3);
+    font-family: var(--f-mono);
+    font-size: calc(1.7 * var(--u));
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--foil-soft);
+}
+/* Mandate, Mission and Vision: the name beside its statement */
+.po-tenets .po-main { gap: calc(6 * var(--u)); }
+.po-tenet { display: grid; grid-template-columns: calc(24 * var(--u)) minmax(0, 1fr); align-items: center; gap: calc(4 * var(--u)); }
+.po-tenet h3 {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: calc(4.2 * var(--u));
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: right;
+    color: var(--foil);
+}
+.po-tenet small {
+    display: block;
+    margin-top: calc(0.8 * var(--u));
+    font-family: var(--f-mono);
+    font-size: calc(2 * var(--u));
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--foil-soft);
+}
+.po-tenet p {
+    margin: 0;
+    padding-left: calc(4 * var(--u));
+    border-left: calc(0.5 * var(--u)) solid rgba(var(--foil-rgb), 0.45);
+    font-size: calc(3 * var(--u));
+    text-wrap: pretty;
+}
+.po-tenet.is-lead p { font-size: calc(4 * var(--u)); font-weight: 600; line-height: 1.32; }
+/* Directory: the organizational structure, in three tiers. The Regional
+   Director at the top, the two Assistant Regional Directors under her, then
+   the heads of the provincial and city offices, four across. Each box is a
+   round picture of the person (or their initials), their name, their
+   position and their office. */
+.po-org .po-title { font-size: calc(6.2 * var(--u)); }
+.po-chart { display: grid; margin-top: calc(2.6 * var(--u)); }
+.po-chart ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(1.4 * var(--u)); margin: 0; padding: 0; list-style: none; }
+.po-chart ul:not(.po-field) { justify-self: center; width: min(100%, calc(100 * var(--u))); }
+.po-chart ul.po-field { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(1.2 * var(--u)); }
+.po-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(1.1 * var(--u));
+    padding: calc(1.8 * var(--u)) calc(1.2 * var(--u));
+    border: 1px solid rgba(var(--foil-rgb), 0.28);
+    border-radius: calc(2 * var(--u));
+    background: rgba(var(--foil-rgb), 0.09);
+}
+.po-who { display: grid; justify-items: center; gap: calc(0.35 * var(--u)); min-width: 0; text-align: center; }
+/* the picture, cut round; where there is none, the person's initials */
+.po-box .po-face {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: calc(9 * var(--u));
+    height: calc(9 * var(--u));
+    border: calc(0.4 * var(--u)) solid var(--foil);
+    border-radius: 50%;
+    background: rgba(var(--foil-rgb), 0.14);
+    object-fit: cover;
+    font-family: var(--f-display);
+    font-size: calc(2.8 * var(--u));
+    font-weight: 700;
+    line-height: 1;
+    color: var(--foil-soft);
+}
+.po-who strong { font-size: calc(2.6 * var(--u)); font-weight: 700; line-height: 1.2; text-wrap: balance; }
+.po-who em { font-size: calc(2.1 * var(--u)); font-style: normal; font-weight: 600; line-height: 1.25; color: var(--foil); text-wrap: balance; }
+/* the short name of the office, as the office writes it, then its name */
+.po-who small { font-family: var(--f-mono); font-size: calc(1.8 * var(--u)); font-weight: 500; }
+.po-who span { font-size: calc(1.9 * var(--u)); line-height: 1.3; color: var(--foil-soft); text-wrap: balance; }
+/* the head of the office: larger, the picture beside the words */
+.po-box.is-head {
+    flex-direction: row;
+    justify-content: center;
+    justify-self: center;
+    gap: calc(2.6 * var(--u));
+    width: min(76%, calc(70 * var(--u)));
+    padding: calc(1.6 * var(--u)) calc(2 * var(--u));
+    border-color: var(--foil);
+}
+.po-box.is-head .po-face { width: calc(14 * var(--u)); height: calc(14 * var(--u)); }
+.po-box.is-head .po-who { justify-items: start; text-align: left; }
+.po-box.is-head strong { font-size: calc(3.3 * var(--u)); }
+.po-box.is-head em { font-size: calc(2.4 * var(--u)); }
+/* four across: smaller */
+.po-field .po-face { width: calc(8 * var(--u)); height: calc(8 * var(--u)); font-size: calc(2.5 * var(--u)); }
+.po-field strong { font-size: calc(2.15 * var(--u)); }
+.po-field em { font-size: calc(1.85 * var(--u)); }
+.po-field small { font-size: calc(1.65 * var(--u)); }
+.po-field span { font-size: calc(1.75 * var(--u)); }
+/* the line from the head of the office down to the two under her */
+.po-stem { justify-self: center; width: 1px; height: calc(2.4 * var(--u)); background: rgba(var(--foil-rgb), 0.5); }
+.po-tier {
+    margin: calc(2.4 * var(--u)) 0 calc(1.2 * var(--u));
+    font-family: var(--f-mono);
+    font-size: calc(1.9 * var(--u));
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--foil);
+}
+/* Frontline Services: the services, each with its parts; a touch opens the
+   book at the service */
+.po-services .po-main { padding-block: calc(2.6 * var(--u)); }
+.po-services .po-kicker { margin-bottom: calc(1 * var(--u)); }
+.po-services .po-title { font-size: calc(5.4 * var(--u)); }
+.po-services ol { display: grid; margin: calc(1.4 * var(--u)) 0 0; padding: 0; list-style: none; }
+/* one service: its number, its name, the page it starts on; under the name,
+   its parts */
+.po-svc {
+    display: grid;
+    grid-template-columns: calc(4.6 * var(--u)) minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: calc(0.5 * var(--u)) calc(1.6 * var(--u));
+    width: 100%;
+    padding: calc(0.95 * var(--u)) 0;
+    border: 0;
+    border-top: 1px solid rgba(var(--foil-rgb), 0.26);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+.po-services li:first-child .po-svc { border-top: 0; }
+.po-svc:focus-visible { outline-color: var(--foil); outline-offset: 0; }
+.po-svc > b { font-family: var(--f-display); font-size: calc(3 * var(--u)); font-weight: 700; color: var(--foil); }
+.po-svc > strong { font-size: calc(2.45 * var(--u)); font-weight: 700; line-height: 1.22; text-wrap: balance; }
+.po-svc > em {
+    padding: calc(0.3 * var(--u)) calc(1.1 * var(--u));
+    border: 1px solid rgba(var(--foil-rgb), 0.4);
+    border-radius: 99px;
+    font-family: var(--f-mono);
+    font-size: calc(1.7 * var(--u));
+    font-style: normal;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--foil-soft);
+}
+/* the parts: a lettered list in two columns, each part kept whole, its
+   letter in a column of its own and its words hanging beside it */
+.po-parts {
+    display: block;
+    grid-column: 2 / -1;
+    columns: 2;
+    column-gap: calc(2.6 * var(--u));
+    font-size: calc(1.8 * var(--u));
+    line-height: 1.28;
+    color: var(--foil-soft);
+}
+.po-part {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: calc(0.9 * var(--u));
+    padding-bottom: calc(0.35 * var(--u));
+    font-style: normal;
+    break-inside: avoid;
+}
+.po-part b { min-width: 2ch; font-family: var(--f-mono); font-size: 0.92em; font-weight: 600; color: var(--foil); }
+/* Bulletin and Events: what is posted, or a line saying that nothing is */
+.po-posts ul { display: grid; gap: calc(1.6 * var(--u)); margin: calc(3.4 * var(--u)) 0 0; padding: 0; list-style: none; }
+.po-posts li {
+    display: grid;
+    gap: calc(0.6 * var(--u));
+    padding: calc(2.4 * var(--u)) calc(2.8 * var(--u));
+    border: 1px solid rgba(var(--foil-rgb), 0.26);
+    border-radius: calc(2 * var(--u));
+    background: rgba(var(--foil-rgb), 0.08);
+}
+.po-posts li i { font-family: var(--f-mono); font-size: calc(2 * var(--u)); font-style: normal; letter-spacing: 0.06em; color: var(--foil); }
+.po-posts li b { font-size: calc(3 * var(--u)); font-weight: 700; line-height: 1.25; }
+.po-posts li span { font-size: calc(2.5 * var(--u)); line-height: 1.4; color: var(--foil-soft); }
+.po-none {
+    margin: calc(4 * var(--u)) 0 0;
+    padding: calc(6 * var(--u)) calc(4 * var(--u));
+    border: 1px dashed rgba(var(--foil-rgb), 0.45);
+    border-radius: calc(2.4 * var(--u));
+    font-size: calc(3 * var(--u));
+    font-weight: 500;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--foil-soft);
+}
+
+/* The DOST Logo: the logo in its parts, standing off a plate at different
+   depths, and what each part stands for. It sways by itself, turns with the
+   pointer or a dragging finger (--rx and --ry, set by the script), and the
+   part named by the line of the legend that is lit (data-part on the
+   sheet) comes forward while the rest fades. */
+.po-logo .po-title { font-size: calc(6.2 * var(--u)); }
+.po-logo-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(1.6 * var(--u)) calc(2.4 * var(--u)); margin-top: calc(2.6 * var(--u)); }
+.logo3d {
+    position: relative;
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(29 * var(--u));
+    aspect-ratio: 1;
+    margin: calc(3.4 * var(--u)) 0 calc(4.2 * var(--u));
+    perspective: calc(150 * var(--u));
+    cursor: grab;
+    /* a finger on the logo turns it; it does not scroll or swipe the sheet */
+    touch-action: none;
+}
+.logo3d.is-held { cursor: grabbing; }
+.logo3d-turn, .logo3d-sway { position: absolute; inset: 0; transform-style: preserve-3d; }
+.logo3d-turn {
+    transform: rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.logo3d.is-held .logo3d-turn { transition: none; }
+.logo3d-sway { animation: logo-sway 11s ease-in-out infinite; }
+@keyframes logo-sway {
+    0%, 100% { transform: rotateX(5deg) rotateY(-16deg); }
+    50% { transform: rotateX(-4deg) rotateY(16deg); }
+}
+/* the plate the logo stands off: light, so that the black of the logo reads */
+.logo3d-plate {
+    position: absolute;
+    inset: -11%;
+    border-radius: 15%;
+    background: linear-gradient(145deg, #ffffff, #d9d8ff);
+    box-shadow: 0 calc(2.4 * var(--u)) calc(6 * var(--u)) rgba(8, 5, 40, 0.5);
+    transform: translateZ(calc(-5 * var(--u)));
+}
+.logo3d svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 calc(0.5 * var(--u)) calc(0.7 * var(--u)) rgba(10, 8, 50, 0.38));
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.45s ease;
+}
+.logo3d path, .logo3d circle { transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.logo3d .l-black { transform: translateZ(0); }
+.logo3d .l-blue { transform: translateZ(calc(3.2 * var(--u))); }
+.logo3d .l-white { transform: translateZ(calc(6.4 * var(--u))); }
+.logo3d .l-star { transform: translateZ(calc(9.6 * var(--u))); }
+.logo3d .l-rings { transform: translateZ(calc(11 * var(--u))); opacity: 0; filter: none; }
+/* black, white, blue: that colour comes forward, the others fade. (Black
+   is the black halves of the circles; the star at the centre is not part
+   of it: that is the space at the centre, which has a line of its own.) */
+.po-logo[data-part="black"] .l-black,
+.po-logo[data-part="white"] .l-white,
+.po-logo[data-part="blue"] .l-blue { transform: translateZ(calc(14 * var(--u))); }
+.po-logo[data-part="black"] :is(.l-blue, .l-white, .l-star),
+.po-logo[data-part="white"] :is(.l-black, .l-blue, .l-star),
+.po-logo[data-part="blue"] :is(.l-black, .l-white, .l-star),
+.po-logo[data-part="centre"] :is(.l-black, .l-blue, .l-white) { opacity: 0.22; }
+/* the space at the centre: the star alone, forward and larger */
+.po-logo[data-part="centre"] .l-star { transform: translateZ(calc(16 * var(--u))) scale(1.22); }
+/* circles: the parts close up into four whole circles, each ringed */
+.po-logo:is([data-part="circles"], [data-part="four"]) :is(.l-blue, .l-white) { transform: translateZ(calc(0.6 * var(--u))); }
+.po-logo:is([data-part="circles"], [data-part="four"]) .l-rings { transform: translateZ(calc(2 * var(--u))); opacity: 1; }
+.po-logo:is([data-part="circles"], [data-part="four"]) .l-star { opacity: 0.22; transform: translateZ(0); }
+/* four circles: they stand apart */
+.po-logo[data-part="four"] .c-tl { transform: translate(-22px, -22px); }
+.po-logo[data-part="four"] .c-tr { transform: translate(22px, -22px); }
+.po-logo[data-part="four"] .c-bl { transform: translate(-22px, 22px); }
+.po-logo[data-part="four"] .c-br { transform: translate(22px, 22px); }
+/* the legend: one line for each part; a touch lights it */
+.po-key {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: calc(0.3 * var(--u)) calc(1.6 * var(--u));
+    width: 100%;
+    padding: calc(1.2 * var(--u)) calc(1.6 * var(--u));
+    border: 1px solid rgba(var(--foil-rgb), 0.2);
+    border-radius: calc(2 * var(--u));
+    background: rgba(var(--foil-rgb), 0.06);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+}
+.po-key:focus-visible { outline-color: var(--foil); }
+.po-key.is-on { border-color: var(--foil); background: rgba(var(--foil-rgb), 0.18); }
+.po-logo[data-part] .po-key:not(.is-on) { opacity: 0.6; }
+.po-key b { font-family: var(--f-display); font-size: calc(2.3 * var(--u)); font-weight: 700; line-height: 1.15; text-transform: uppercase; color: var(--foil); }
+.po-key span { grid-column: 2; font-size: calc(2.05 * var(--u)); line-height: 1.32; color: var(--foil-soft); text-wrap: pretty; }
+.po-key strong { font-weight: 700; color: var(--foil-ink); }
+/* beside the name: the colour itself, or a small picture of the part */
+.po-chip {
+    grid-row: 1 / span 2;
+    width: calc(4.6 * var(--u));
+    height: calc(4.6 * var(--u));
+    border: calc(0.3 * var(--u)) solid rgba(var(--foil-rgb), 0.7);
+    border-radius: 50%;
+}
+svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stroke-width: 9; }
+.po-key.is-wide { grid-column: 1 / -1; }
+
+/* An upright sheet (a kiosk standing on end) has the height for a larger logo. */
+@container (max-aspect-ratio: 4/5) {
+    .logo3d { width: calc(33 * var(--u)); margin: calc(4.2 * var(--u)) 0 calc(5 * var(--u)); }
+}
+
+/* A wide sheet (a screen wider than tall) has room to spare on two of the
+   sheets: their words are larger there. */
+@container (min-aspect-ratio: 5/4) {
+    .po-tenets .po-main { gap: calc(7 * var(--u)); }
+    .po-tenet { grid-template-columns: calc(30 * var(--u)) minmax(0, 1fr); gap: calc(5 * var(--u)); }
+    .po-tenet h3 { font-size: calc(5.4 * var(--u)); }
+    .po-tenet small { font-size: calc(2.4 * var(--u)); }
+    .po-tenet p { padding-left: calc(5 * var(--u)); font-size: calc(3.9 * var(--u)); }
+    .po-tenet.is-lead p { font-size: calc(5.2 * var(--u)); }
+    .po-logo-body { grid-template-columns: minmax(0, 1fr) calc(68 * var(--u)) minmax(0, 1.3fr); align-items: center; gap: calc(2.4 * var(--u)) calc(3 * var(--u)); margin-top: calc(8 * var(--u)); }
+    .logo3d { grid-column: 2; grid-row: 1 / span 3; width: calc(52 * var(--u)); margin: 0; }
+    .po-key { grid-column: 3; grid-row: var(--row); padding: calc(1.6 * var(--u)) calc(2 * var(--u)); }
+    .po-key.is-colour { grid-column: 1; }
+    .po-key.is-wide { grid-column: 3; }
+    .po-key b { font-size: calc(3 * var(--u)); }
+    .po-key span { font-size: calc(2.6 * var(--u)); }
+    .po-chip { width: calc(6 * var(--u)); height: calc(6 * var(--u)); }
+    .po-services .po-title { font-size: calc(5.8 * var(--u)); }
+    .po-svc { grid-template-columns: calc(5.2 * var(--u)) minmax(0, 1fr) auto; }
+    .po-svc > b { font-size: calc(3.3 * var(--u)); }
+    .po-svc > strong { font-size: calc(2.75 * var(--u)); }
+    .po-svc > em { font-size: calc(1.85 * var(--u)); }
+    .po-parts { font-size: calc(2.02 * var(--u)); }
+}
+
+/* A sheet fitted to a small stage (a phone, held either way) would be too
+   small to read. There the poster is as wide as the stage lets it be, its
+   words are sized for reading, and it scrolls. */
+@container poster-stage (max-height: 520px) or (max-width: 438px) {
+    .poster {
+        --w1: min(100cqw, 900px);
+        width: calc(var(--w1) * var(--pz, 1));
+        height: auto;
+        container-type: normal;
+        /* the sheet's own measure, but never so small that a phone cannot be read */
+        --u: calc(max(calc(var(--w1) / 140), 5.2px) * var(--pz, 1));
+        --side: calc(5.5 * var(--u));
+    }
+    .poster-stage.is-zoomed .poster { margin: auto calc((100cqw - var(--w1)) / 2); }
+    .poster-grip { display: none; }
+    .po-head span { font-size: calc(2.05 * var(--u)); letter-spacing: 0.1em; }
+    .po-head b { font-size: calc(3.2 * var(--u)); }
+    /* the small labels of a sheet, large enough for a phone */
+    .po-kicker { font-size: calc(2.3 * var(--u)); letter-spacing: 0.18em; }
+    .po-tier { font-size: calc(2.2 * var(--u)); letter-spacing: 0.14em; }
+    .po-foot { font-size: calc(2 * var(--u)); }
+    .po-tenet small { font-size: calc(2.3 * var(--u)); }
+    .poster.is-image img { max-height: none; }
+    .po { height: auto; }
+    .po-main { padding-block: calc(6 * var(--u)); }
+    .po-title { font-size: calc(6 * var(--u)); }
+    .po-tenet { grid-template-columns: minmax(0, 1fr); gap: calc(1.8 * var(--u)); }
+    .po-tenet h3 { text-align: left; }
+    .po-parts { font-size: calc(2.3 * var(--u)); line-height: 1.34; }
+    .po-part { padding-bottom: calc(0.7 * var(--u)); }
+    .po-svc { padding: calc(1.6 * var(--u)) 0; }
+    .po-svc > strong { font-size: calc(2.8 * var(--u)); }
+    .po-services .po-main { padding-block: calc(6 * var(--u)); }
+    .po-svc > em { font-size: calc(2.1 * var(--u)); }
+    .logo3d { width: min(100%, calc(42 * var(--u))); touch-action: pan-y; }
+    .po-key b { font-size: calc(2.8 * var(--u)); }
+    .po-key span { font-size: calc(2.5 * var(--u)); }
+    .po-who strong { font-size: calc(3 * var(--u)); }
+    .po-who em, .po-who span { font-size: calc(2.4 * var(--u)); }
+    .po-who small { font-size: calc(2.2 * var(--u)); }
+    .po-box.is-head { width: 100%; }
+}
+/* (a phone: the four across are two across, the parts of a service one list) */
+@container poster-stage (max-width: 438px) {
+    .po-chart ul.po-field { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .po-logo-body { grid-template-columns: minmax(0, 1fr); }
+    .po-box.is-head { flex-direction: column; gap: calc(1.6 * var(--u)); }
+    .po-box.is-head .po-who { justify-items: center; text-align: center; }
+    .po-parts { columns: 1; }
+}
+
+/* the feedback form: a card with the dropdowns the survey needs */
+.csf {
+    place-items: center;
+    padding: 16px;
+    overflow-y: auto;
+    background: var(--scrim);
+}
+.csf-card {
+    width: min(540px, 100%);
+    padding: 28px 28px 24px;
+    border: 1px solid var(--glass-line);
+    border-radius: 24px;
+    background: var(--menu-bg);
+    box-shadow: 0 30px 70px var(--shadow);
+}
+.csf-text { margin: 12px 0 0; line-height: 1.5; color: var(--ink-soft); }
+.csf-fields { display: grid; gap: 14px; margin-top: 20px; }
+.csf-fields:empty { display: none; }
+.csf-field { display: grid; gap: 6px; }
+.csf-label {
+    font-family: var(--f-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+.csf-pick { position: relative; display: block; }
+.csf-pick::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--ink-soft);
+    border-bottom: 2px solid var(--ink-soft);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+}
+/* 54px tall: the dropdowns are tapped with a finger on the kiosk */
+.csf-pick select {
+    width: 100%;
+    height: 54px;
+    padding: 0 46px 0 16px;
+    border: 1px solid var(--accent-line);
+    border-radius: 14px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+.csf-pick select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* the same survey as a QR code, to scan and answer on one's own phone
+   (always black on white, whatever the theme: that is what scanners read) */
+.csf-qr {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--accent-soft);
+}
+.csf-qr[hidden] { display: none; }
+.csf-qr img { flex-shrink: 0; width: 148px; height: 148px; border-radius: 8px; background: #ffffff; }
+.csf-qr p { display: grid; gap: 4px; margin: 0; line-height: 1.4; color: var(--ink-soft); }
+.csf-qr b { font-size: 1.05rem; color: var(--ink); }
+.csf-status { margin: 14px 0 0; font-size: 0.92rem; line-height: 1.45; color: var(--ink-soft); }
+.csf-status:empty { display: none; }
+.csf-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.csf-cancel {
+    height: 54px;
+    padding: 0 22px;
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+    background: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+.csf-go { height: 54px; white-space: nowrap; }
+@media (max-width: 480px) {
+    .csf { padding: 12px; }
+    .csf-card { padding: 22px 20px 20px; border-radius: 20px; }
+    .csf-fields { gap: 12px; margin-top: 16px; }
+    .csf-pick select { height: 50px; }
+    .csf-qr { gap: 12px; margin-top: 14px; padding: 10px; }
+    .csf-qr img { width: 112px; height: 112px; }
+    .csf-actions { margin-top: 20px; }
+    .csf-cancel, .csf-go { height: 50px; }
+    .csf-go { flex: 1; justify-content: center; padding: 0 16px; }
+}
+
 /* The floor grid reaches past both sides of the screen. Unclipped, a phone
    lays the whole page out wider than its screen and shows it zoomed out. */
 .app { overflow: hidden; }
@@ -1199,7 +1982,11 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .lite .seal::after, .lite .cover-hint, .lite .orb::before, .lite .orb::after { animation: none; }
 .lite .pill, .lite .round, .lite .mode, .lite .menu { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .lite .brand img, .lite .seal img, .lite .cover-title { filter: none; }
-.lite .nav, .lite .rule, .lite .meter-fill, .lite .menu { box-shadow: none; }
+.lite .nav, .lite .rule, .lite .meter-fill, .lite .menu, .lite .poster, .lite .csf-card { box-shadow: none; }
+.lite .posters { background: var(--stage); }
+.lite .logo3d-sway { animation: none; transform: rotateX(5deg) rotateY(-14deg); }
+.lite .logo3d svg { filter: none; }
+.lite .logo3d-plate { box-shadow: none; }
 /* flat pages: every leaf stays on the right half of the book, and the back
    of a leaf is moved, not turned, onto the left half */
 .lite .book { perspective: none; animation: none; }
@@ -1215,7 +2002,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     :root { --flip: 1ms; }
     .lite .face.is-shown { animation: none; }
     .menu, .menu-open .menu, .menu-scrim { transition: none; }
-    .floor, .book, .holo, .seal::after, .cover-hint, .orb::before, .orb::after { animation: none; }
+    .floor, .book, .holo, .seal::after, .cover-hint, .orb::before, .orb::after, .logo3d-sway { animation: none; }
 }
 </style>
 </head>
@@ -1227,15 +2014,20 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     <header class="bar">
         <button class="brand" id="brand-btn" type="button" aria-label="Close the book">
             <img src="assets/dost-logo.png" alt="">
-            <span>
-                <span class="brand-top">DOST Region IX</span>
-                <span class="brand-name">Citizen's Charter</span>
-            </span>
+            <span class="brand-name">DOST Region IX</span>
         </button>
-        <div class="bar-actions">
+        <div class="bar-nav">
             <button class="pill" id="contents-btn" type="button" aria-controls="menu" aria-expanded="false">
                 <svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Contents</span>
             </button>
+            <button class="pill" id="posters-btn" type="button" aria-haspopup="dialog" aria-label="Posters: sheets about DOST Region IX, for display">
+                <svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span>Posters</span>
+            </button>
+            <button class="pill pill-cta" id="csf-btn" type="button" aria-haspopup="dialog" aria-label="Feedback: answer the Customer Satisfaction Feedback survey">
+                <svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 13.5c1.6 1.6 5.4 1.6 7 0"/></svg><span>Feedback</span>
+            </button>
+        </div>
+        <div class="bar-actions">
             <div class="mode" role="group" aria-label="Version of the book">
                 <button class="mode-opt" id="mode-light" type="button" aria-pressed="false" title="Light version: flat pages, for phones and slower devices">Light</button>
                 <button class="mode-opt" id="mode-3d" type="button" aria-pressed="false" title="3D version: turning pages and effects">3D</button>
@@ -1249,9 +2041,13 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     </header>
 
     <main class="stage" id="stage">
-        <div class="book-wrap" id="book-wrap">
-            <div class="book" id="book"></div>
-            <div class="floor-shadow"></div>
+        <div class="zoom-note" id="zoom-note" aria-hidden="true">100%</div>
+        <div class="auto-note" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>Auto display &middot; touch to read</div>
+        <div class="pan" id="pan">
+            <div class="book-wrap" id="book-wrap">
+                <div class="book" id="book"></div>
+                <div class="floor-shadow"></div>
+            </div>
         </div>
     </main>
 
@@ -1286,9 +2082,67 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     <nav class="menu-list" id="menu-list" aria-label="Pages of the book"></nav>
 </aside>
 
+<div class="layer posters" id="posters" role="dialog" aria-modal="true" aria-label="Posters" inert>
+    <div class="posters-bar">
+        <div class="poster-tabs" id="poster-tabs"></div>
+        <label class="poster-pick"><select id="poster-pick" aria-label="Poster"></select></label>
+        <button class="round" id="posters-close" type="button" aria-label="Close the posters">
+            <svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+    </div>
+    <div class="poster-stage" id="poster-stage">
+        <article class="poster" id="poster"></article>
+    </div>
+    <div class="auto-note" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>Auto display &middot; touch to browse</div>
+    <div class="zoom-note" id="poster-zoom-note" aria-hidden="true">100%</div>
+    <footer class="dock">
+        <button class="nav" id="poster-prev" type="button" aria-label="Previous poster">
+            <svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span>Previous</span>
+        </button>
+        <div class="meter">
+            <div class="meter-text" aria-live="polite">
+                <span id="poster-name"></span>
+                <span id="poster-count"></span>
+            </div>
+            <div class="meter-track"><div class="meter-fill" id="poster-fill"></div></div>
+        </div>
+        <button class="nav" id="poster-next" type="button" aria-label="Next poster">
+            <span>Next</span><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+    </footer>
+</div>
+
+<div class="layer csf" id="csf" role="dialog" aria-modal="true" aria-labelledby="csf-title" inert>
+    <form class="csf-card" id="csf-form">
+        <span class="menu-kicker">Customer Satisfaction Feedback (CSF)</span>
+        <h2 class="menu-title" id="csf-title">Tell us how we did</h2>
+        <p class="csf-text">Choose the unit you transacted with, then answer the survey. It only takes a few minutes.</p>
+        <div class="csf-fields" id="csf-fields"></div>
+        <div class="csf-qr" id="csf-qr" hidden>
+            <img id="csf-qr-code" alt="" width="148" height="148">
+            <p><b>Scan QR Code</b><span>Answer the survey on your own phone.</span></p>
+        </div>
+        <p class="csf-status" id="csf-status" aria-live="polite"></p>
+        <div class="csf-actions">
+            <button class="csf-cancel" id="csf-cancel" type="button">Cancel</button>
+            <button class="nav csf-go" id="csf-go" type="submit" title="Opens in a new tab" disabled>Start the survey<svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+    </form>
+</div>
+
 <script>
 (() => {
-    const IDLE_MS = 120000;
+    // Kiosk timing: after IDLE_MS without a touch nobody is around, and the
+    // display changes by itself every AUTO_MS (see the carousel, below).
+    // Both can be set in the address, in seconds: ?idle=60&auto=15, and
+    // ?auto=0 for a display that never changes by itself.
+    const seconds = (name, fallback, least) => {
+        const given = parseFloat(new URLSearchParams(window.location.search).get(name));
+        if (!Number.isFinite(given) || given < 0) return fallback;
+        return given === 0 ? 0 : Math.max(least, given * 1000);
+    };
+    const IDLE_MS = seconds('idle', 60000, 5000) || 60000;
+    const AUTO_MS = seconds('auto', 10000, 3000);
     const PAGE_RATIO = 0.9;
     const STEP_MS = 130;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -3172,6 +4026,35 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         },
     ];
 
+    // Who DOST IX is and what it pledges, as printed in the charter. The
+    // first pages of the book and the posters both read from here.
+    const ABOUT = {
+        mandate: 'The Department of Science and Technology (DOST) shall provide central direction, leadership, and coordination of scientific and technological efforts and ensure that the results therefrom are geared and utilized in areas of maximum economic and social benefits for the people.',
+        mission: 'Advances Science, Technology, and Innovation for a Sustainable and Inclusive Development.',
+        vision: 'The forefront of scientific, technological, and innovative solutions for the growth and ultimate satisfaction of the society.',
+        policy: {
+            rev: 'Rev. 12, 1 August 2025',
+            lead: 'We are committed to make a significant difference in Region IX that addresses the needs and expectations of the customers and other interested parties based on all applicable regulatory and statutory requirement by:',
+            // HTML: one commitment is partly in italics
+            items: [
+                'providing quality and relevant scientific, technological, and innovative (STI) programs and services;',
+                'advancing an inclusive, smart and sustainable STI development <em>through gender responsive STI interventions;</em>',
+                'empowering communities through appropriate STI interventions;',
+                'strengthening partnerships in STI initiatives;',
+                'sustaining an effective service continuity management practices;',
+                'improving the effectiveness and efficiency of the working environment and the work processes of our operations; and',
+                'managing potential risks and opportunities that may affect the implementation of our Quality Management System.',
+            ],
+        },
+        objectives: {
+            rev: 'Rev. 6, 1 August 2025',
+            items: [
+                'To continually improve the DOST IX Quality Management System (QMS) and achieve a satisfactory rating from at least 95% of customers surveyed.',
+                'To deliver quality and relevant STI programs and services according to mutually agreed terms and conditions and applicable statutory and regulatory requirements.',
+            ],
+        },
+    };
+
     // Feedback and Complaints Mechanism and List of Offices, the closing
     // pages of the printed charter. `pages` lists the rows on each book page.
     const FEEDBACK = {
@@ -3207,6 +4090,178 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         ],
         pages: [[0, 1], [2, 3], [4, 'offices']],
     };
+
+    // Who heads what, for the Directory poster: the office's organizational
+    // chart, as DOST IX gave it in October 2026 (the names, the positions,
+    // the short name of each office, and the pictures). `photo` is a square
+    // picture of the person, head and shoulders; without one the box shows
+    // their initials. `at` is the office's place in FEEDBACK.offices, which
+    // has its name in full.
+    const ORG = {
+        head: { name: 'Rosemarie S. Salazar', post: 'Regional Director', office: 'Office of the Regional Director', photo: 'assets/people/rosemarie-salazar.jpg' },
+        services: [
+            { name: 'Ricardo J. Apolinario III', post: 'Assistant Regional Director', code: 'TOS', office: 'Technical Operations Services', photo: 'assets/people/ricardo-apolinario.jpg' },
+            { name: 'Ronnel B. Gundoy', post: 'OIC - Assistant Regional Director', code: 'FASS', office: 'Finance and Administrative Support Services', photo: 'assets/people/ronnel-gundoy.jpg' },
+        ],
+        field: [
+            { name: 'Ricardo J. Apolinario III', post: 'City Director', code: 'CSTC-ZCIC', at: 1, photo: 'assets/people/ricardo-apolinario.jpg' },
+            { name: 'Christian Carl R. Resente', post: 'OIC - Provincial Director', code: 'PSTO-ZDS', at: 2, photo: 'assets/people/christian-carl-resente.jpg' },
+            { name: 'Nuhman M. Aljani', post: 'Provincial Director', code: 'PSTO-ZDN', at: 3, photo: 'assets/people/nuhman-aljani.jpg' },
+            { name: 'Jennifer A. Pidor', post: 'Provincial Director', code: 'PSTO-ZSP', at: 4, photo: 'assets/people/jennifer-pidor.jpg' },
+        ],
+    };
+
+    // The DOST logo and what it stands for, as the office's own sheet on it
+    // says. The logo is drawn here from its parts, for the poster that shows
+    // them at different depths: four circles of radius 100 in a square of
+    // 400, each a black half with a white and a blue quarter, and the black
+    // star in the space between them. (Checked against the logo file,
+    // assets/dost-logo.png: the same shapes, and its blue.)
+    const LOGO_BLUE = '#0265cb';
+    const LOGO_PARTS = [
+        { part: 'circles', name: 'Circles', text: 'symbolize unit particles, the building blocks of nature which are the subject and substance of S&T', wide: true },
+        { part: 'black', name: 'Black', text: 'the unknown', chip: '#000000', row: 1 },
+        { part: 'white', name: 'White', text: 'truth and enlightenment', chip: '#ffffff', row: 2 },
+        { part: 'blue', name: 'Blue', text: 'progress', chip: LOGO_BLUE, row: 3 },
+        { part: 'centre', name: 'Space at the center', text: 'scientific creativity' },
+        // (HTML: the four principles are in bold)
+        { part: 'four', name: 'Four circles', html: 'four guiding principles in our S&T development: <strong>excellence, relevance, cooperation,</strong> and <strong>cost-effectiveness</strong>', wide: true },
+    ];
+    const logoLayer = (kind) => {
+        const R = 100;
+        // the point of a circle a number of quarter turns round from the east (clockwise)
+        const on = (cx, cy, quarter) => `${cx + R * [1, 0, -1, 0][quarter % 4]},${cy + R * [0, 1, 0, -1][quarter % 4]}`;
+        // a slice of the circle at (cx, cy): from a quarter turn, so many quarter turns round
+        const slice = (cx, cy, from, turns) => `M${cx},${cy}L${on(cx, cy, from)}${Array.from({ length: turns }, (_, i) => `A${R},${R} 0 0 1 ${on(cx, cy, from + i + 1)}`).join('')}Z`;
+        // each circle: where it is, and where its black half, white quarter and blue quarter start
+        const circles = [
+            { cls: 'c-tl', cx: 100, cy: 100, black: 2, white: 0, blue: 1 },
+            { cls: 'c-tr', cx: 300, cy: 100, black: 3, white: 1, blue: 2 },
+            { cls: 'c-bl', cx: 100, cy: 300, black: 1, white: 3, blue: 0 },
+            { cls: 'c-br', cx: 300, cy: 300, black: 0, white: 2, blue: 3 },
+        ];
+        const fill = { black: '#000000', white: '#ffffff', blue: LOGO_BLUE }[kind];
+        const shapes = kind === 'star'
+            ? '<path class="c-mid" fill="#000000" d="M200,100A100,100 0 0 1 100,200A100,100 0 0 1 200,300A100,100 0 0 1 300,200A100,100 0 0 1 200,100Z"/>'
+            : kind === 'rings'
+                ? circles.map((c) => `<circle class="${c.cls}" cx="${c.cx}" cy="${c.cy}" r="${R + 7}" fill="none" stroke="#ffe81a" stroke-width="6"/>`).join('')
+                : circles.map((c) => `<path class="${c.cls}" fill="${fill}" d="${slice(c.cx, c.cy, c[kind], kind === 'black' ? 2 : 1)}"/>`).join('');
+        return `<svg class="l-${kind}" viewBox="0 0 400 400" aria-hidden="true">${shapes}</svg>`;
+    };
+    // beside a line of the legend: the colour, or a small drawing of the part
+    const logoChip = (item) => (item.chip
+        ? `<i class="po-chip" style="background:${item.chip}"></i>`
+        : `<svg class="po-chip" viewBox="0 0 100 100" aria-hidden="true">${{
+            circles: '<circle cx="50" cy="50" r="36"/>',
+            centre: '<path d="M50,8A42,42 0 0 1 8,50A42,42 0 0 1 50,92A42,42 0 0 1 92,50A42,42 0 0 1 50,8Z" fill="#ffe81a"/>',
+            four: '<circle cx="28" cy="28" r="20"/><circle cx="72" cy="28" r="20"/><circle cx="28" cy="72" r="20"/><circle cx="72" cy="72" r="20"/>',
+        }[item.part]}</svg>`);
+
+    // What is posted on the Bulletin and Events sheets, newest first, each
+    // { title: 'Office closed on 30 November', when: '28 November 2026', text: 'Regular holiday.' }
+    // (`when` and `text` may be left out). Both are empty until DOST IX has
+    // something to post.
+    const BULLETIN = [];
+    const EVENTS = [];
+
+    // Posters: single sheets for display, opened with the Posters button.
+    // Their words are the charter's own (ABOUT and FEEDBACK above, and the
+    // contents of the book). A poster that is a picture needs only a title
+    // and its file:
+    //     { title: 'ISO 9001:2015 Certificate', image: 'assets/posters/iso-9001.jpg' },
+    const posterSheet = (kind, inner) => `
+        <div class="po po-${kind}">
+            <header class="po-head">
+                <img src="assets/dost-logo.png" alt="">
+                <p><span>Department of Science and Technology</span><b>Regional Office IX</b></p>
+            </header>
+            <div class="po-main">${inner}</div>
+            <footer class="po-foot"><span>DOST Region IX</span></footer>
+        </div>`;
+    const postsSheet = (title, posts, none) => posterSheet('posts', `
+        <p class="po-kicker">DOST Region IX</p>
+        <h2 class="po-title">${esc(title)}</h2>
+        ${posts.length
+            ? `<ul>${posts.map((post) => `<li>${post.when ? `<i>${esc(post.when)}</i>` : ''}<b>${esc(post.title)}</b>${post.text ? `<span>${esc(post.text)}</span>` : ''}</li>`).join('')}</ul>`
+            : `<p class="po-none">${esc(none)}</p>`}`);
+    const POSTERS = [
+        {
+            title: 'Mandate, Mission & Vision',
+            html: () => posterSheet('tenets', `
+                <section class="po-tenet"><h3>Mandate</h3><p>${esc(ABOUT.mandate)}</p></section>
+                <section class="po-tenet is-lead"><h3>Mission <small>(2026)</small></h3><p>${esc(ABOUT.mission)}</p></section>
+                <section class="po-tenet is-lead"><h3>Vision</h3><p>${esc(ABOUT.vision)}</p></section>`),
+        },
+        {
+            title: 'Directory',
+            html: () => {
+                // the first and last initials of a name ("III" and "Jr." are not names)
+                const initials = (name) => {
+                    const words = name.split(' ').filter((word) => !/^(jr|sr|ii|iii|iv)\.?$/i.test(word));
+                    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                };
+                // One box: the person's picture (or initials), their name and
+                // position, and the office. An office of FEEDBACK.offices is
+                // named by its place alone ("Zamboanga del Sur"): its short
+                // name says the rest.
+                const box = (who, tag = 'li', head = false) => {
+                    const office = who.office || FEEDBACK.offices[who.at][0].split(' \u2013 ').pop();
+                    return `<${tag} class="po-box${head ? ' is-head' : ''}">
+                        ${who.photo ? `<img class="po-face" src="${esc(who.photo)}" alt="">` : `<span class="po-face" aria-hidden="true">${esc(initials(who.name))}</span>`}
+                        <div class="po-who"><strong>${esc(who.name)}</strong><em>${esc(who.post)}</em>${who.code ? `<small>(${esc(who.code)})</small>` : ''}<span>${esc(office)}</span></div>
+                    </${tag}>`;
+                };
+                return posterSheet('org', `
+                    <p class="po-kicker">Organizational Structure</p>
+                    <h2 class="po-title">Directory</h2>
+                    <div class="po-chart">
+                        ${box(ORG.head, 'div', true)}
+                        <div class="po-stem"></div>
+                        <ul>${ORG.services.map((who) => box(who)).join('')}</ul>
+                        <p class="po-tier">Provincial and City Offices</p>
+                        <ul class="po-field">${ORG.field.map((who) => box(who)).join('')}</ul>
+                    </div>`);
+            },
+        },
+        {
+            // The frontline services as the contents of the book have them
+            // (its first group), each with its parts and the page of the
+            // book it starts on. A touch opens the book there.
+            title: 'Frontline Services',
+            html: () => {
+                const from = NAV.findIndex((n) => n.group);
+                const upTo = NAV.findIndex((n, i) => i > from && n.group);
+                const entries = NAV.slice(from + 1, upTo === -1 ? NAV.length : upTo);
+                const services = [];
+                entries.forEach((n) => {
+                    if (n.level === 1) services.push({ ...n, parts: [] });
+                    else if (n.level === 2) services[services.length - 1].parts.push(n);
+                });
+                return posterSheet('services', `
+                    <p class="po-kicker">${esc(entries.filter((n) => n.level === 0).map((n) => n.title).join(', '))}</p>
+                    <h2 class="po-title">${esc(NAV[from].title)}</h2>
+                    <ol>${services.map((sv) => `<li><button class="po-svc" type="button" data-book="${sv.page}" aria-label="${esc(sv.title)}: open the book at page ${PAGES[sv.page].number}"><b>${esc(sv.num)}</b><strong>${esc(sv.title)}</strong><em>Page ${pad(PAGES[sv.page].number)}</em>${sv.parts.length ? `<span class="po-parts">${sv.parts.map((part) => `<i class="po-part"><b>${esc(part.num)}</b><span>${esc(part.title)}</span></i>`).join('')}</span>` : ''}</button></li>`).join('')}</ol>`);
+            },
+        },
+        {
+            title: 'The DOST Logo',
+            html: () => posterSheet('logo', `
+                <p class="po-kicker">Department of Science and Technology</p>
+                <h2 class="po-title">The DOST Logo</h2>
+                <div class="po-logo-body">
+                    <div class="logo3d" role="img" aria-label="The DOST logo: four circles, each a black half with a white and a blue quarter, around a star-shaped space">
+                        <div class="logo3d-turn"><div class="logo3d-sway">
+                            <div class="logo3d-plate"></div>
+                            ${['black', 'blue', 'white', 'star', 'rings'].map(logoLayer).join('')}
+                        </div></div>
+                    </div>
+                    ${LOGO_PARTS.map((item) => `<button class="po-key${item.chip ? ' is-colour' : ''}${item.wide ? ' is-wide' : ''}" type="button" data-part="${item.part}" style="--row:${item.row || { circles: 1, centre: 2, four: 3 }[item.part]}">${logoChip(item)}<b>${esc(item.name)}</b><span>${item.html || esc(item.text)}</span></button>`).join('')}
+                </div>`),
+        },
+        // (`empty`: nothing is posted, so the carousel leaves the sheet out)
+        { title: 'Bulletin', empty: () => !BULLETIN.length, html: () => postsSheet('Bulletin', BULLETIN, 'No announcements are posted at this time.') },
+        { title: 'Events', empty: () => !EVENTS.length, html: () => postsSheet('Events', EVENTS, 'No upcoming events are posted at this time.') },
+    ];
 
     const itemNo = (html) => html.replace(/^(\d+\.(?:\d+\.?)*)\s+/, '<span class="svc-n">$1</span>');
     const checkTable = (list, from = 0, to) => `
@@ -3451,19 +4506,15 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
                 <div class="rule"></div>
                 <section class="tenet">
                     <h3><span>01</span>Mandate</h3>
-                    <p>The Department of Science and Technology (DOST) shall provide central direction,
-                    leadership, and coordination of scientific and technological efforts and ensure that the
-                    results therefrom are geared and utilized in areas of maximum economic and social
-                    benefits for the people.</p>
+                    <p>${esc(ABOUT.mandate)}</p>
                 </section>
                 <section class="tenet">
                     <h3><span>02</span>Mission (2026)</h3>
-                    <p class="tenet-lead">Advances Science, Technology, and Innovation for a Sustainable and Inclusive Development.</p>
+                    <p class="tenet-lead">${esc(ABOUT.mission)}</p>
                 </section>
                 <section class="tenet">
                     <h3><span>03</span>Vision</h3>
-                    <p class="tenet-lead">The forefront of scientific, technological, and innovative solutions for the growth and
-                    ultimate satisfaction of the society.</p>
+                    <p class="tenet-lead">${esc(ABOUT.vision)}</p>
                 </section>
             </div>`;
             return `
@@ -3471,23 +4522,14 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
                 ${furniture(p, side)}
                 <section class="tenet">
                     <h3><span>04</span>Service Pledge</h3>
-                    <p class="tenet-note">Quality Policy (Rev. 12, 1 August 2025)</p>
-                    <p>We are committed to make a significant difference in Region IX that addresses
-                    the needs and expectations of the customers and other interested parties
-                    based on all applicable regulatory and statutory requirement by:</p>
+                    <p class="tenet-note">Quality Policy (${esc(ABOUT.policy.rev)})</p>
+                    <p>${esc(ABOUT.policy.lead)}</p>
                     <ul class="pledge">
-                        <li>providing quality and relevant scientific, technological, and innovative (STI) programs and services;</li>
-                        <li>advancing an inclusive, smart and sustainable STI development <em>through gender responsive STI interventions;</em></li>
-                        <li>empowering communities through appropriate STI interventions;</li>
-                        <li>strengthening partnerships in STI initiatives;</li>
-                        <li>sustaining an effective service continuity management practices;</li>
-                        <li>improving the effectiveness and efficiency of the working environment and the work processes of our operations; and</li>
-                        <li>managing potential risks and opportunities that may affect the implementation of our Quality Management System.</li>
+                        ${ABOUT.policy.items.map((item) => `<li>${item}</li>`).join('')}
                     </ul>
-                    <p class="tenet-note tenet-sub">Quality Objectives (Rev. 6, 1 August 2025)</p>
+                    <p class="tenet-note tenet-sub">Quality Objectives (${esc(ABOUT.objectives.rev)})</p>
                     <ol class="objectives">
-                        <li>To continually improve the DOST IX Quality Management System (QMS) and achieve a satisfactory rating from at least 95% of customers surveyed.</li>
-                        <li>To deliver quality and relevant STI programs and services according to mutually agreed terms and conditions and applicable statutory and regulatory requirements.</li>
+                        ${ABOUT.objectives.items.map((item) => `<li>${esc(item)}</li>`).join('')}
                     </ol>
                 </section>
             </div>`;
@@ -3628,7 +4670,22 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     let leaves = [];
     let current = 0;        // number of leaves turned over
     let pending = 0;        // queued page turns from a multi-page jump
+    let auto = false;       // nobody is around: the display is changing by itself
     const turning = new Map();
+
+    // Zoom. There are no zoom buttons: the book is zoomed at the point aimed
+    // at, with the mouse wheel (at the pointer) or two fingers (between
+    // them). Zooming makes the book itself larger, so its text is drawn
+    // sharp at any size; the stage then shows part of it, and dragging
+    // moves it. A double tap or double click on a zoomed book goes back to 100%.
+    const ZOOM_MAX = 4;
+    const ZOOM_STEP = 0.5;
+    const pan = $('pan');
+    let zoom = 1;
+    let basePageW = 0;      // width of a page at 100%, worked out by layout()
+    let panX = 0;           // how far a zoomed book is moved from the centre of the stage
+    let panY = 0;
+    let toStart = false;    // a page turn is under way: show the top left of the new pages
 
     const maxCurrent = () => (mode === 'spread' ? leaves.length : leaves.length - 1);
 
@@ -3731,7 +4788,123 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         $('meter-fill').style.width = `${(current / maxCurrent()) * 100}%`;
         $('prev-btn').disabled = current === 0;
         $('next-btn').disabled = current >= maxCurrent();
+
+        if (zoom > 1) {
+            // the open pages changed, or the book opened or closed
+            if (toStart) showStart(); else placeBook();
+            if (pending === 0) toStart = false;
+        }
     }
+
+    // How far a zoomed book may be moved each way. Its edges may come in as
+    // far as where they are at 100%, no further: that is exactly the room
+    // needed to keep any point of the book still while zooming at it, and
+    // it stops the book being dragged off the stage.
+    const panLimit = () => {
+        const closed = mode === 'spread' && (current === 0 || current === leaves.length);
+        const bookW = mode === 'single' || closed ? basePageW : basePageW * 2;
+        return {
+            x: ((zoom - 1) * bookW) / 2,
+            y: ((zoom - 1) * basePageW) / PAGE_RATIO / 2,
+        };
+    };
+    const placeBook = () => {
+        const limit = panLimit();
+        panX = Math.min(limit.x, Math.max(-limit.x, panX));
+        panY = Math.min(limit.y, Math.max(-limit.y, panY));
+        pan.style.transform = zoom === 1 ? '' : `translate(${Math.round(panX)}px, ${Math.round(panY)}px)`;
+    };
+    // the top left corner of the open pages, where reading starts
+    const showStart = () => {
+        const limit = panLimit();
+        panX = limit.x;
+        panY = limit.y;
+        placeBook();
+    };
+    // Sets the zoom, keeping the point at (fx, fy) from the centre of the
+    // stage where it is.
+    const setZoom = (wanted, fx = 0, fy = 0) => {
+        const next = Math.round(Math.min(ZOOM_MAX, Math.max(1, wanted)) * 100) / 100;
+        const grow = next / zoom;
+        zoom = next;
+        wrap.style.setProperty('--zoom', String(zoom));
+        wrap.style.setProperty('--page-w', `${Math.floor(basePageW * zoom)}px`);
+        panX = zoom === 1 ? 0 : fx - (fx - panX) * grow;
+        panY = zoom === 1 ? 0 : fy - (fy - panY) * grow;
+        placeBook();
+        stage.classList.toggle('is-zoomed', zoom > 1);
+        noteZoom(zoom);
+    };
+    // Shows the zoom level for a moment (the book's, or with its own note a poster's).
+    const noteTimers = {};
+    const noteZoom = (level, id = 'zoom-note') => {
+        const note = $(id);
+        const text = `${Math.round(level * 100)}%`;
+        if (note.textContent === text && !note.classList.contains('is-on')) return;
+        note.textContent = text;
+        note.classList.add('is-on');
+        clearTimeout(noteTimers[id]);
+        noteTimers[id] = setTimeout(() => note.classList.remove('is-on'), 1100);
+    };
+    // the + and - keys zoom about the middle of the stage
+    const zoomBy = (step) => setZoom(zoom + step);
+
+    // A zoom in progress: fingers still down, or the wheel still turning.
+    // Until it ends the book is only stretched, which is quick; it is drawn
+    // again at its new size when the fingers lift or the wheel stops.
+    let live = null;    // the zoom and place it began from, the point aimed at, and the stretch so far
+    // a point on the screen, measured from the middle of the stage
+    const aim = (x, y) => {
+        const rect = stage.getBoundingClientRect();
+        return [x - rect.left - rect.width / 2, y - rect.top - rect.height / 2];
+    };
+    // the 3D book floats up and down a little: how far up it is just now
+    const lift = () => new DOMMatrix(getComputedStyle(book).transform).f;
+    // Begins a zoom at a point on the screen.
+    const startLive = (x, y) => {
+        const [fx, fy] = aim(x, y);
+        live = { zoom, panX, panY, fx, fy, x, y, scale: 1, dx: 0, dy: 0, mark: null };
+        // What is under that point, and where in it. Rules and borders do not
+        // grow with the text, so a page laid out again at a new size is not
+        // quite the stretched one; this is how the point is found again.
+        // (Other leaves of the book may lie over the open pages, unseen.)
+        const el = document.elementsFromPoint(x, y).find((under) => under.closest('.face.is-shown'));
+        const rect = el ? el.getBoundingClientRect() : null;
+        if (rect && rect.width && rect.height) {
+            live.mark = { el, u: (x - rect.left) / rect.width, v: (y - rect.top) / rect.height, lift: lift() };
+        }
+    };
+    // Stretches the book by so much; (dx, dy) is how far the fingers have
+    // carried it meanwhile.
+    const stretch = (by, dx = 0, dy = 0) => {
+        live.scale = Math.min(ZOOM_MAX, Math.max(1, live.zoom * by)) / live.zoom;
+        live.dx = dx;
+        live.dy = dy;
+        // keep the point aimed at under the pointer or the fingers
+        const x = live.fx + dx - (live.fx - live.panX) * live.scale;
+        const y = live.fy + dy - (live.fy - live.panY) * live.scale;
+        pan.style.transform = `translate(${x}px, ${y}px) scale(${live.scale})`;
+        noteZoom(live.zoom * live.scale);
+    };
+    const endLive = () => {
+        if (!live) return;
+        const done = live;
+        live = null;
+        setZoom(done.zoom * done.scale, done.fx, done.fy);
+        if (zoom === 1) return;
+        let moveX = done.dx;
+        let moveY = done.dy;
+        // put what was aimed at back exactly where it was
+        const mark = done.mark;
+        const rect = mark && mark.el.isConnected ? mark.el.getBoundingClientRect() : null;
+        if (rect && rect.width && rect.height) {
+            moveX += done.x - (rect.left + mark.u * rect.width);
+            moveY += done.y - (rect.top + mark.v * rect.height) + lift() - mark.lift;
+        }
+        panX += moveX;
+        panY += moveY;
+        placeBook();
+    };
 
     // A jump of more than a few leaves (from the side menu, or back to the
     // cover) skips ahead unseen and turns only the last ones, so it lands
@@ -3747,11 +4920,13 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             // Light version: nothing turns; the open pages are swapped.
             if (target !== current) {
                 current = target;
+                toStart = true;
                 update();
             }
             return;
         }
         if (pending > 0 || target === current) return;
+        toStart = true;
         const forward = target > current;
         let steps = Math.abs(target - current);
         if (steps > MAX_RIFFLE) {
@@ -3770,7 +4945,8 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
                 const leaf = forward ? current : current - 1;
                 // A jump riffles through pages: every turn but the last one
                 // gets a short, quieter swish, and only the last one lands.
-                pageSound.flip(s < steps - 1);
+                // (Pages that turn by themselves turn quietly.)
+                if (!auto) pageSound.flip(s < steps - 1);
                 turning.set(leaf, forward ? 'fwd' : 'back');
                 current += forward ? 1 : -1;
                 pending -= 1;
@@ -3796,7 +4972,8 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         const singlePage = Math.min(w * 0.94, h * PAGE_RATIO);
         const nextMode = singlePage > spreadPage * 1.25 ? 'single' : 'spread';
         wrap.style.setProperty('--page-ratio', String(PAGE_RATIO));
-        wrap.style.setProperty('--page-w', `${Math.floor(nextMode === 'spread' ? spreadPage : singlePage)}px`);
+        basePageW = Math.floor(nextMode === 'spread' ? spreadPage : singlePage);
+        wrap.style.setProperty('--page-w', `${Math.floor(basePageW * zoom)}px`);
 
         if (nextMode !== mode) {
             const page = mode ? focusPage() : 0;
@@ -3805,19 +4982,94 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             turning.clear();
             render();
         }
+        // the stage changed size: keep a zoomed book within it
+        placeBook();
     }
 
     // ------------------------------------------------------------------
     // Input: swipe, tap a side of the book, keyboard, page buttons
     // ------------------------------------------------------------------
-    let touchStart = null;
+    // At 100% one finger turns pages: a swipe, or a tap on either side of
+    // the book. Two fingers zoom at the place between them (and carry the
+    // book along as they move), and a zoomed book is dragged with one finger
+    // or the mouse; while it is zoomed, pages are turned with the buttons,
+    // the keyboard or the contents.
+    let touchStart = null;      // where a page-turning touch began
+    const fingers = new Map();  // every finger (or the mouse button) down on the stage
+    let drag = null;            // a zoomed book being dragged: where the finger and the book began
+    let pinch = null;           // two fingers zooming: how far apart they began, and where
+    let lastTap = null;         // the last tap on a zoomed book: a second one close by goes back to 100%
+
+    const fingerGap = () => {
+        const [a, b] = [...fingers.values()];
+        return { gap: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    };
+
     stage.addEventListener('pointerdown', (e) => {
-        if (e.target.closest('button')) return;
-        touchStart = { x: e.clientX, y: e.clientY };
+        if (e.target.closest('button') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        // keep hearing from this finger if it slides off the stage
+        try { stage.setPointerCapture(e.pointerId); } catch (err) { /* not available: fine */ }
+        touchStart = null;
+        drag = null;
+        stage.classList.remove('is-dragging');
+        if (fingers.size === 2) {
+            endLive();
+            pinch = fingerGap();
+            pinch.gap = pinch.gap || 1;
+            startLive(pinch.x, pinch.y);
+        } else if (fingers.size === 1 && zoom > 1) {
+            drag = { x: e.clientX, y: e.clientY, panX, panY, moved: false };
+            stage.classList.add('is-dragging');
+        } else if (fingers.size === 1) {
+            touchStart = { x: e.clientX, y: e.clientY };
+        }
     });
-    stage.addEventListener('pointercancel', () => { touchStart = null; });
+    stage.addEventListener('pointermove', (e) => {
+        const finger = fingers.get(e.pointerId);
+        if (!finger) return;
+        finger.x = e.clientX;
+        finger.y = e.clientY;
+        if (pinch && fingers.size === 2) {
+            const at = fingerGap();
+            stretch(at.gap / pinch.gap, at.x - pinch.x, at.y - pinch.y);
+        } else if (drag) {
+            if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 10) drag.moved = true;
+            panX = drag.panX + e.clientX - drag.x;
+            panY = drag.panY + e.clientY - drag.y;
+            placeBook();
+        }
+    });
+    // A finger left the stage. True if it was a plain touch at 100%, which
+    // may turn a page.
+    const liftFinger = (e) => {
+        if (!fingers.delete(e.pointerId)) return false;
+        if (pinch) {
+            pinch = null;
+            endLive();
+            return false;
+        }
+        if (drag) {
+            const tapped = !drag.moved;
+            drag = null;
+            stage.classList.remove('is-dragging');
+            if (tapped) {
+                // two taps (or clicks) close together on a zoomed book: back to 100%
+                const now = Date.now();
+                const again = lastTap && now - lastTap.at < 350 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40;
+                lastTap = again ? null : { at: now, x: e.clientX, y: e.clientY };
+                if (again) setZoom(1);
+            }
+            return false;
+        }
+        return true;
+    };
+    stage.addEventListener('pointercancel', (e) => {
+        liftFinger(e);
+        touchStart = null;
+    });
     stage.addEventListener('pointerup', (e) => {
-        if (!touchStart) return;
+        if (!liftFinger(e) || !touchStart) return;
         const dx = e.clientX - touchStart.x;
         const dy = e.clientY - touchStart.y;
         touchStart = null;
@@ -3837,6 +5089,28 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
             next();
         }
     });
+
+    // The mouse wheel zooms at the pointer: away from you to zoom in, towards
+    // you to zoom out. (A trackpad sends the same events for two fingers.)
+    let wheelTurn = 0;      // how far the wheel has turned in this zoom
+    let wheelTimer;
+    stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (fingers.size) return;
+        if (!live) {
+            startLive(e.clientX, e.clientY);
+            wheelTurn = 0;
+        }
+        // lines and pages (Firefox with a mouse) counted as pixels; a pinch
+        // on a trackpad arrives with Ctrl held and small steps
+        const unit = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1;
+        wheelTurn += e.deltaY * unit * (e.ctrlKey ? 4 : 1);
+        stretch(Math.exp(-wheelTurn * 0.0015));
+        // turning on past the smallest or largest size counts for nothing
+        wheelTurn = -Math.log(live.scale) / 0.0015;
+        clearTimeout(wheelTimer);
+        wheelTimer = setTimeout(endLive, 140);
+    }, { passive: false });
 
     $('prev-btn').addEventListener('click', prev);
     $('next-btn').addEventListener('click', next);
@@ -3895,7 +5169,475 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         goToPage(Number(item.dataset.page));
     });
 
+    // ------------------------------------------------------------------
+    // Layers over the book: the posters and the feedback form. One at a
+    // time; while one is open the book behind it cannot be reached.
+    // ------------------------------------------------------------------
+    const app = document.querySelector('.app');
+    const LAYERS = { posters: $('posters'), csf: $('csf') };
+    const posterEl = $('poster');
+    let layer = null;       // the name of the layer that is open
+    let layerFrom = null;   // the button it was opened with, which gets the focus back
+    const setLayer = (name) => {
+        if (name === layer) return;
+        if (name) {
+            setMenu(false);
+            if (!layer) layerFrom = document.activeElement;
+        }
+        layer = name;
+        Object.entries(LAYERS).forEach(([key, el]) => {
+            el.classList.toggle('is-open', key === name);
+            el.inert = key !== name;
+        });
+        app.inert = Boolean(name);
+        if (name !== 'posters') {
+            setPosterZoom(1);
+            posterEl.innerHTML = '';
+            clearInterval(logoTimer);
+        }
+        if (!name && layerFrom) {
+            layerFrom.focus({ preventScroll: true });
+            layerFrom = null;
+        }
+    };
+
+    // Posters: the tabs name them, Previous and Next (or a swipe, or the
+    // arrow keys) go through them in order.
+    const posterTabs = $('poster-tabs');
+    const posterStage = $('poster-stage');
+
+    // The width of a sheet can be changed: either side of it is dragged out
+    // or in (a strip down each side, the "grip", takes the drag). The sheet
+    // stays in the middle, so its width changes by twice what the side moves. The width is kept as the sheet's shape
+    // (width against height), remembered on this device; a double click on
+    // a grip goes back to the usual shape.
+    const POSTER_SHAPE = 1.4142;    // the usual shape: an A-size sheet on its side, where the stage has the room
+    const POSTER_GRIPS = '<div class="poster-grip on-left" title="Drag to change the width of the sheet"></div><div class="poster-grip on-right" title="Drag to change the width of the sheet"></div>';
+    let posterShape = POSTER_SHAPE;
+    try {
+        const kept = parseFloat(localStorage.getItem('cc-poster-shape'));
+        if (kept >= 0.7 && kept <= 3) posterShape = kept;
+    } catch (err) { /* nothing kept: the usual shape */ }
+    const setPosterShape = (shape, keep) => {
+        // (no narrower than an upright sheet; the stage itself stops it being too wide)
+        posterShape = Math.round(Math.min(3, Math.max(0.7071, shape)) * 1000) / 1000;
+        posterStage.style.setProperty('--pr', String(posterShape));
+        if (!keep) return;
+        try { localStorage.setItem('cc-poster-shape', String(posterShape)); } catch (err) { /* this visit only */ }
+    };
+    setPosterShape(posterShape, false);
+    let posterGrip = null;      // a grip being dragged: which, where it was taken, and the size of the sheet then
+    posterEl.addEventListener('pointerdown', (e) => {
+        const grip = e.target.closest('.poster-grip');
+        if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault();
+        const rect = posterEl.getBoundingClientRect();
+        posterGrip = { grip, id: e.pointerId, x: e.clientX, width: rect.width, height: rect.height, way: grip.classList.contains('on-left') ? -1 : 1 };
+        grip.classList.add('is-held');
+        try { grip.setPointerCapture(e.pointerId); } catch (err) { /* not available: fine */ }
+    });
+    posterEl.addEventListener('pointermove', (e) => {
+        if (!posterGrip || e.pointerId !== posterGrip.id) return;
+        setPosterShape((posterGrip.width + 2 * posterGrip.way * (e.clientX - posterGrip.x)) / posterGrip.height, false);
+    });
+    const dropPosterGrip = (e) => {
+        if (!posterGrip || e.pointerId !== posterGrip.id) return;
+        posterGrip.grip.classList.remove('is-held');
+        posterGrip = null;
+        // what is kept is the shape the sheet really has: the stage may have stopped it short
+        const rect = posterEl.getBoundingClientRect();
+        setPosterShape(rect.width / rect.height, true);
+    };
+    posterEl.addEventListener('pointerup', dropPosterGrip);
+    posterEl.addEventListener('pointercancel', dropPosterGrip);
+    posterEl.addEventListener('dblclick', (e) => { if (e.target.closest('.poster-grip')) setPosterShape(POSTER_SHAPE, true); });
+    let posterAt = 0;
+    posterTabs.innerHTML = POSTERS.map((p, i) => `<button class="poster-tab" type="button" data-poster="${i}" aria-pressed="false">${esc(p.title)}</button>`).join('');
+    // (on a small screen the same names are a dropdown: see .poster-pick)
+    const posterPick = $('poster-pick');
+    posterPick.innerHTML = POSTERS.map((p, i) => `<option value="${i}">${esc(p.title)}</option>`).join('');
+    posterPick.addEventListener('change', () => showPoster(Number(posterPick.value)));
+    const showPoster = (i) => {
+        posterAt = (i + POSTERS.length) % POSTERS.length;
+        const p = POSTERS[posterAt];
+        posterEl.classList.toggle('is-image', Boolean(p.image));
+        posterEl.innerHTML = (p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)}">` : p.html()) + POSTER_GRIPS;
+        posterEl.setAttribute('aria-label', p.title);
+        // a new poster starts whole, from its top
+        setPosterZoom(1);
+        posterAim = null;
+        posterStage.scrollTop = 0;
+        posterStage.scrollLeft = 0;
+        [...posterTabs.children].forEach((tab, n) => {
+            tab.setAttribute('aria-pressed', String(n === posterAt));
+            if (n === posterAt) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        });
+        posterPick.value = String(posterAt);
+        $('poster-name').textContent = p.title;
+        $('poster-count').textContent = `${posterAt + 1} of ${POSTERS.length}`;
+        $('poster-fill').style.width = `${((posterAt + 1) / POSTERS.length) * 100}%`;
+        tourLogo();
+    };
+
+    // The DOST Logo sheet. A touch on a line of its legend lights that line
+    // and brings its part of the logo forward (a second touch lets it go);
+    // a mouse over a line does the same for as long as it is there. Left
+    // alone, the 3D version goes through the lines by itself.
+    const LOGO_TOUR_MS = 2800;
+    let logoPinned = '';        // the line that was touched
+    let logoTimer;
+    let logoTouched = -1e9;     // when someone last touched the logo or its legend
+    const showLogoPart = (part) => {
+        const sheet = posterEl.querySelector('.po-logo');
+        if (!sheet) return;
+        if (part) sheet.dataset.part = part; else delete sheet.dataset.part;
+        sheet.querySelectorAll('.po-key').forEach((key) => {
+            key.classList.toggle('is-on', key.dataset.part === part);
+            key.setAttribute('aria-pressed', String(key.dataset.part === part));
+        });
+    };
+    function tourLogo() {
+        clearInterval(logoTimer);
+        logoPinned = '';
+        if (!posterEl.querySelector('.po-logo') || lite || reduceMotion) return;
+        const parts = ['', ...LOGO_PARTS.map((item) => item.part)];
+        let at = 0;
+        logoTimer = setInterval(() => {
+            // not while the tab is hidden, a line is held, or someone has just been at it
+            if (document.hidden || logoPinned || performance.now() - logoTouched < 8000) return;
+            at = (at + 1) % parts.length;
+            showLogoPart(parts[at]);
+        }, LOGO_TOUR_MS);
+    }
+    posterEl.addEventListener('click', (e) => {
+        const key = e.target.closest('.po-key');
+        if (!key) return;
+        logoTouched = performance.now();
+        logoPinned = logoPinned === key.dataset.part ? '' : key.dataset.part;
+        showLogoPart(logoPinned);
+    });
+    posterEl.addEventListener('pointerover', (e) => {
+        const key = e.pointerType === 'mouse' && e.target.closest('.po-key');
+        if (!key) return;
+        logoTouched = performance.now();
+        showLogoPart(key.dataset.part);
+    });
+    posterEl.addEventListener('pointerout', (e) => {
+        if (e.pointerType === 'mouse' && e.target.closest('.po-key') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.po-key'))) showLogoPart(logoPinned);
+    });
+    // the logo leans towards a mouse moving over the sheet
+    const leanLogo = (e) => {
+        const logo = posterEl.querySelector('.logo3d');
+        if (!logo || logo.classList.contains('is-held')) return;
+        if (!e) {
+            logo.style.removeProperty('--rx');
+            logo.style.removeProperty('--ry');
+            return;
+        }
+        const rect = logo.getBoundingClientRect();
+        const across = Math.max(-1, Math.min(1, (e.clientX - rect.left - rect.width / 2) / rect.width));
+        const down = Math.max(-1, Math.min(1, (e.clientY - rect.top - rect.height / 2) / rect.height));
+        logo.style.setProperty('--ry', (across * 26).toFixed(1));
+        logo.style.setProperty('--rx', (-down * 18).toFixed(1));
+    };
+    posterStage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' && !e.buttons) leanLogo(e); });
+    posterStage.addEventListener('pointerleave', () => leanLogo(null));
+    $('posters-btn').addEventListener('click', () => {
+        setLayer('posters');
+        showPoster(0);
+        // the first name, or the dropdown where that is what shows
+        (posterTabs.offsetParent ? posterTabs.firstElementChild : posterPick).focus({ preventScroll: true });
+    });
+    $('posters-close').addEventListener('click', () => setLayer(null));
+    posterTabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.poster-tab');
+        if (tab) showPoster(Number(tab.dataset.poster));
+    });
+    // a service on the Frontline Services sheet opens the book at its page
+    posterEl.addEventListener('click', (e) => {
+        const row = e.target.closest('[data-book]');
+        if (!row) return;
+        setLayer(null);
+        goToPage(Number(row.dataset.book));
+    });
+    $('poster-prev').addEventListener('click', () => showPoster(posterAt - 1));
+    $('poster-next').addEventListener('click', () => showPoster(posterAt + 1));
+
+    // Zoom on a poster, as on the book: the mouse wheel zooms at the pointer,
+    // two fingers at the place between them (and carry the sheet along), a
+    // zoomed sheet is dragged about, and a double tap or double click puts
+    // it back to 100%. The sheet itself is made larger (--pz), so its words
+    // stay sharp, and the stage is scrolled so that what was aimed at stays
+    // where it is. At 100% a sideways swipe still changes the poster, and a
+    // finger still scrolls a long sheet.
+    let posterZoom = 1;
+    let posterAim = null;       // a run of wheel turns: what they are aimed at, and where the pointer is
+    let posterWheelAt = 0;      // when the wheel last turned
+    // What is under a point of the screen, and where in it: found again
+    // after the sheet has been laid out at its new size.
+    const aimAtPoster = (x, y) => {
+        const el = document.elementsFromPoint(x, y).find((under) => posterEl.contains(under)) || posterEl;
+        const rect = el.getBoundingClientRect();
+        return { el, u: rect.width ? (x - rect.left) / rect.width : 0.5, v: rect.height ? (y - rect.top) / rect.height : 0.5 };
+    };
+    // Sets the zoom, and brings what was aimed at to (x, y) on the screen.
+    const setPosterZoom = (wanted, aim = null, x = 0, y = 0) => {
+        const next = Math.round(Math.min(ZOOM_MAX, Math.max(1, wanted)) * 100) / 100;
+        if (next !== posterZoom) {
+            posterZoom = next;
+            posterStage.style.setProperty('--pz', String(next));
+            posterStage.classList.toggle('is-zoomed', next > 1);
+            noteZoom(next, 'poster-zoom-note');
+        }
+        if (aim && aim.el.isConnected) {
+            const rect = aim.el.getBoundingClientRect();
+            posterStage.scrollLeft += rect.left + aim.u * rect.width - x;
+            posterStage.scrollTop += rect.top + aim.v * rect.height - y;
+        }
+    };
+    // the + and - keys zoom about the middle of the stage
+    const zoomPosterBy = (step) => {
+        const rect = posterStage.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        setPosterZoom(step ? posterZoom + step : 1, aimAtPoster(x, y), x, y);
+    };
+    posterStage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        // one aim for a run of wheel turns in one place
+        if (!posterAim || e.timeStamp - posterWheelAt > 400 || Math.hypot(e.clientX - posterAim.x, e.clientY - posterAim.y) > 4) {
+            posterAim = { ...aimAtPoster(e.clientX, e.clientY), x: e.clientX, y: e.clientY };
+        }
+        posterWheelAt = e.timeStamp;
+        // lines and pages (Firefox with a mouse) counted as pixels; a pinch
+        // on a trackpad arrives with Ctrl held and small steps
+        const unit = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1;
+        setPosterZoom(posterZoom * Math.exp(-e.deltaY * unit * (e.ctrlKey ? 4 : 1) * 0.0015), posterAim, e.clientX, e.clientY);
+    }, { passive: false });
+
+    const posterFingers = new Map();    // every finger (or the mouse button) down on the stage
+    let posterDrag = null;      // one finger or the mouse: where it went down, and how the stage was scrolled then
+    let posterPinch = null;     // two fingers: how far apart they began, the zoom then, and what is between them
+    let posterTap = null;       // the last tap on a zoomed poster: a second one close by goes back to 100%
+    let posterDragged = false;  // the sheet was dragged with the mouse: the click that follows is not a click
+    const posterGap = () => {
+        const [a, b] = [...posterFingers.values()];
+        return { gap: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    };
+    posterStage.addEventListener('pointerdown', (e) => {
+        if ((e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('.poster-grip')) return;
+        posterFingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        posterDragged = false;
+        posterDrag = null;
+        if (posterFingers.size === 2) {
+            const at = posterGap();
+            posterPinch = { gap: at.gap || 1, zoom: posterZoom, aim: aimAtPoster(at.x, at.y) };
+        } else if (posterFingers.size === 1) {
+            // (a finger at 100% scrolls a long sheet by itself; the mouse, and a finger on a zoomed sheet, are followed here)
+            posterDrag = { x: e.clientX, y: e.clientY, left: posterStage.scrollLeft, top: posterStage.scrollTop, moved: false, followed: e.pointerType === 'mouse' || posterZoom > 1 };
+            // on the logo of the DOST Logo sheet (not zoomed) the drag turns the logo instead
+            const logo = posterZoom === 1 ? e.target.closest('.logo3d') : null;
+            if (logo) posterDrag.spin = { logo, rx: parseFloat(logo.style.getPropertyValue('--rx')) || 0, ry: parseFloat(logo.style.getPropertyValue('--ry')) || 0 };
+        }
+    });
+    posterStage.addEventListener('pointermove', (e) => {
+        const finger = posterFingers.get(e.pointerId);
+        if (!finger) return;
+        finger.x = e.clientX;
+        finger.y = e.clientY;
+        if (posterPinch && posterFingers.size === 2) {
+            const at = posterGap();
+            setPosterZoom((posterPinch.zoom * at.gap) / posterPinch.gap, posterPinch.aim, at.x, at.y);
+        } else if (posterDrag) {
+            const dx = e.clientX - posterDrag.x;
+            const dy = e.clientY - posterDrag.y;
+            if (!posterDrag.moved && Math.hypot(dx, dy) > 8) {
+                posterDrag.moved = true;
+                if (posterDrag.followed || posterDrag.spin) {
+                    // keep hearing from it if it slides off the stage
+                    try { posterStage.setPointerCapture(e.pointerId); } catch (err) { /* not available: fine */ }
+                    if (posterDrag.spin) posterDrag.spin.logo.classList.add('is-held'); else posterStage.classList.add('is-dragging');
+                }
+            }
+            if (posterDrag.moved && posterDrag.spin) {
+                const { logo, rx, ry } = posterDrag.spin;
+                logo.style.setProperty('--ry', Math.max(-80, Math.min(80, ry + dx * 0.4)).toFixed(1));
+                logo.style.setProperty('--rx', Math.max(-65, Math.min(65, rx - dy * 0.4)).toFixed(1));
+                logoTouched = performance.now();
+            } else if (posterDrag.moved && posterDrag.followed) {
+                posterStage.scrollLeft = posterDrag.left - dx;
+                posterStage.scrollTop = posterDrag.top - dy;
+            }
+        }
+    });
+    const liftPosterFinger = (e, cancelled) => {
+        if (!posterFingers.delete(e.pointerId)) return;
+        posterStage.classList.remove('is-dragging');
+        const drag = posterDrag;
+        posterDrag = null;
+        if (drag && drag.spin) {
+            // let go, the logo swings back to rest
+            drag.spin.logo.classList.remove('is-held');
+            drag.spin.logo.style.removeProperty('--rx');
+            drag.spin.logo.style.removeProperty('--ry');
+        }
+        if (posterPinch) {
+            posterPinch = null;
+            return;
+        }
+        if (!drag || cancelled) return;
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        if (drag.moved) {
+            posterDragged = drag.followed || Boolean(drag.spin);
+            // at 100% a sideways swipe changes the poster (but not one that turned the logo)
+            if (!drag.spin && posterZoom === 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPoster(posterAt + (dx < 0 ? 1 : -1));
+        } else if (posterZoom > 1) {
+            // two taps (or clicks) close together on a zoomed poster: back to 100%
+            const now = Date.now();
+            const again = posterTap && now - posterTap.at < 350 && Math.hypot(e.clientX - posterTap.x, e.clientY - posterTap.y) < 40;
+            posterTap = again ? null : { at: now, x: e.clientX, y: e.clientY };
+            if (again) setPosterZoom(1, aimAtPoster(e.clientX, e.clientY), e.clientX, e.clientY);
+        }
+    };
+    posterStage.addEventListener('pointerup', (e) => liftPosterFinger(e, false));
+    posterStage.addEventListener('pointercancel', (e) => liftPosterFinger(e, true));
+    // the click that ends a drag with the mouse is not a click on what is under it
+    posterStage.addEventListener('click', (e) => {
+        if (!posterDragged) return;
+        posterDragged = false;
+        e.stopPropagation();
+        e.preventDefault();
+    }, true);
+    // two fingers are for zooming: the browser is not to scroll the sheet with them
+    posterStage.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
+    // Feedback: the Customer Satisfaction Feedback (CSF) survey is answered
+    // for one unit. The form asks what the survey's own pages ask (region,
+    // service, unit, then a sub unit and a PSTO or type where the unit has
+    // them) as dropdowns, each choice bringing the next, and then opens the
+    // survey for that choice. The choices come from the CRMS as one tree of
+    // steps: { label, options: [{ name, url } or { name, next: step }] }.
+    const CSF_OPTIONS = '/services/csf/options';
+    const CSF_QR = '/services/csf/qr';          // draws the address of a survey as a QR code
+    const CSF_START = '/services/csf/regions';  // the survey's own first page
+    const csfFields = $('csf-fields');
+    const csfGo = $('csf-go');
+    let csfTree = null;     // the first step, once it has been fetched
+    let csfPicks = [];      // the choice made at each step: its place in the options
+    let csfUrl = '';        // where the survey for those choices is, once they are complete
+    const csfSay = (text) => { $('csf-status').textContent = text; };
+    // With the choices complete, the survey they lead to is also shown as a
+    // QR code, for answering it on one's own phone. The CRMS draws the code.
+    const csfQr = $('csf-qr');
+    const csfQrCode = $('csf-qr-code');
+    const drawCsfQr = (url, name = '') => {
+        csfQr.hidden = !url;
+        if (!url) {
+            csfQrCode.removeAttribute('src');
+            return;
+        }
+        csfQrCode.alt = `QR code of the survey for ${name}`;
+        csfQrCode.src = `${CSF_QR}?to=${encodeURIComponent(url)}`;
+    };
+    // no code to show (the CRMS did not draw one): the form works without it
+    csfQrCode.addEventListener('error', () => { csfQr.hidden = true; });
+    // Draws the dropdowns from step `from` on.
+    const drawCsf = (from = 0) => {
+        [...csfFields.children].slice(from).forEach((el) => el.remove());
+        csfUrl = '';
+        let step = csfTree;
+        let chosen = '';    // the last choice made: the unit, or its sub unit, PSTO or type
+        for (let i = 0; step; i++) {
+            // a step with a single choice is made already
+            if (i >= from && step.options.length === 1) csfPicks[i] = 0;
+            const pick = step.options[csfPicks[i]];
+            if (i >= from) {
+                csfFields.insertAdjacentHTML('beforeend', `
+                    <label class="csf-field">
+                        <span class="csf-label">${esc(step.label)}</span>
+                        <span class="csf-pick"><select data-step="${i}" required>
+                            <option value="" disabled hidden${pick ? '' : ' selected'}>Select ${esc(step.label)}</option>
+                            ${step.options.map((o, n) => `<option value="${n}"${pick === o ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}
+                        </select></span>
+                    </label>`);
+            }
+            csfUrl = pick && pick.url ? pick.url : '';
+            if (pick) chosen = pick.name;
+            step = pick ? pick.next : null;
+        }
+        csfGo.disabled = !csfUrl;
+        drawCsfQr(csfUrl, chosen);
+    };
+    csfFields.addEventListener('change', (e) => {
+        const at = Number(e.target.dataset.step);
+        csfPicks.length = at;
+        csfPicks[at] = Number(e.target.value);
+        drawCsf(at + 1);
+    });
+    const openCsf = async () => {
+        setLayer('csf');
+        csfPicks = [];
+        csfFields.innerHTML = '';
+        csfUrl = '';
+        csfGo.disabled = true;
+        drawCsfQr('');
+        if (!csfTree) {
+            csfSay('Loading the list of units\u2026');
+            $('csf-cancel').focus({ preventScroll: true });
+            try {
+                const answer = await fetch(CSF_OPTIONS, { headers: { Accept: 'application/json' } });
+                if (!answer.ok) throw new Error(`HTTP ${answer.status}`);
+                const tree = await answer.json();
+                if (!tree || !Array.isArray(tree.options) || !tree.options.length) throw new Error('no choices');
+                csfTree = tree;
+            } catch (err) {
+                // No list (offline, or the CRMS did not answer): the survey's
+                // own first page asks the same questions.
+                if (layer !== 'csf') return;
+                csfSay('The list of units could not be loaded here. The survey will ask for your unit on its first pages.');
+                csfUrl = CSF_START;
+                csfGo.disabled = false;
+                return;
+            }
+            if (layer !== 'csf') return;
+        }
+        csfSay('');
+        drawCsf();
+        const first = csfFields.querySelector('select:invalid') || csfFields.querySelector('select');
+        if (first) first.focus({ preventScroll: true });
+    };
+    $('csf-btn').addEventListener('click', openCsf);
+    $('csf-cancel').addEventListener('click', () => setLayer(null));
+    // a touch outside the card closes the form
+    LAYERS.csf.addEventListener('pointerdown', (e) => { if (e.target === LAYERS.csf) setLayer(null); });
+    $('csf-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!csfUrl) return;
+        // The survey opens in a tab of its own, so the book stays as it is.
+        // (Where the browser will not open one, it opens here instead.)
+        const tab = window.open(csfUrl, '_blank');
+        if (tab) {
+            tab.opener = null;
+            setLayer(null);
+        } else {
+            window.location.assign(csfUrl);
+        }
+    });
+
     window.addEventListener('keydown', (e) => {
+        if (layer) {
+            if (e.key === 'Escape') setLayer(null);
+            else if (e.target === posterPick) return;
+            else if (layer === 'posters' && e.key === 'ArrowRight') showPoster(posterAt + 1);
+            else if (layer === 'posters' && e.key === 'ArrowLeft') showPoster(posterAt - 1);
+            // + and - zoom the poster, 0 goes back to 100% (with Ctrl they are the browser's own zoom)
+            else if (layer !== 'posters' || e.ctrlKey || e.metaKey) return;
+            else if (e.key === '+' || e.key === '=') zoomPosterBy(ZOOM_STEP);
+            else if (e.key === '-') zoomPosterBy(-ZOOM_STEP);
+            else if (e.key === '0') zoomPosterBy(0);
+            return;
+        }
         if (menuIsOpen()) {
             if (e.key === 'Escape') setMenu(false);
             return;
@@ -3904,18 +5646,80 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
         else if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
         else if (e.key === 'Home') flipTo(0);
         else if (e.key === 'End') flipTo(maxCurrent());
+        // + and - zoom, 0 goes back to 100% (with Ctrl they are the browser's own zoom)
+        else if (e.ctrlKey || e.metaKey) return;
+        else if (e.key === '+' || e.key === '=') zoomBy(ZOOM_STEP);
+        else if (e.key === '-') zoomBy(-ZOOM_STEP);
+        else if (e.key === '0') setZoom(1);
     });
 
     // ------------------------------------------------------------------
-    // Kiosk behaviour: close the book after two idle minutes, keep the
-    // screen awake, full screen on demand.
+    // Kiosk behaviour: when nobody has touched the book for a minute it
+    // is tidied up and closed, and the display becomes a carousel until
+    // someone touches it. It also keeps the screen awake, and goes full
+    // screen on demand.
+    //
+    // The carousel: the book turns its own pages, cover to cover and round
+    // again, and after every few pages one of the posters is shown for a
+    // while, each in its turn. A sheet with nothing posted on it is left out.
     // ------------------------------------------------------------------
+    const AUTO_PAGES = 3;       // page turns between two posters
+    const AUTO_POSTER = 2;      // how long a poster stays up, in page turns
     let idleTimer;
-    const poke = () => {
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => { setMenu(false); flipTo(0); }, IDLE_MS);
+    let autoTimer;
+    let autoTurns = 0;          // pages turned since the last poster
+    let autoHeld = 0;           // how long the poster on show has been up
+    let autoPoster = -1;        // the poster shown last
+    let lastSeen = 0;
+    const autoStep = () => {
+        // nobody is looking at a tab that is hidden
+        if (document.hidden) return;
+        if (layer === 'posters') {
+            autoHeld += 1;
+            if (autoHeld < AUTO_POSTER) return;
+            // the poster has had its time: back to the book, on its next pages
+            setLayer(null);
+        } else if (autoTurns >= AUTO_PAGES) {
+            for (let n = 1; n <= POSTERS.length; n++) {
+                const i = (autoPoster + n) % POSTERS.length;
+                if (POSTERS[i].empty && POSTERS[i].empty()) continue;
+                autoPoster = i;
+                autoTurns = 0;
+                autoHeld = 0;
+                setLayer('posters');
+                showPoster(i);
+                return;
+            }
+        }
+        autoTurns += 1;
+        if (current >= maxCurrent()) flipTo(0); else next();
     };
-    ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, poke, { passive: true }));
+    const setAuto = (on) => {
+        if (on === auto) return;
+        auto = on;
+        document.body.classList.toggle('is-auto', on);
+        clearInterval(autoTimer);
+        if (!on) return;
+        autoTurns = 0;
+        autoHeld = 0;
+        autoTimer = setInterval(autoStep, AUTO_MS);
+    };
+    // Someone is here: a touch, a key, the wheel, or a mouse on the move.
+    const poke = (e) => {
+        // (a moving mouse says so many times a second: once is enough)
+        if (e && e.type === 'pointermove' && !auto && e.timeStamp - lastSeen < 1000) return;
+        lastSeen = e ? e.timeStamp : 0;
+        setAuto(false);
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            setMenu(false);
+            setLayer(null);
+            setZoom(1);
+            flipTo(0);
+            if (AUTO_MS) setAuto(true);
+        }, IDLE_MS);
+    };
+    ['pointerdown', 'pointermove', 'keydown', 'wheel'].forEach((ev) => window.addEventListener(ev, poke, { passive: true }));
     poke();
 
     let wakeLock = null;

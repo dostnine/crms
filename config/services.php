@@ -31,4 +31,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // The public (live) address of this site, e.g. https://crms.example.gov.ph.
+    // It is written into the QR codes that open the CSF survey on a visitor's
+    // phone, so they must hold an address a phone can reach. Left empty, the
+    // codes hold the address the page was opened with: right on the live
+    // server, but a local name (crms_csf.test, an office IP) on a test or
+    // kiosk machine.
+    'csf' => [
+        'public_url' => env('CSF_PUBLIC_URL'),
+    ],
+
 ];
