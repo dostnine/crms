@@ -218,9 +218,16 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 }
 .brand {
     display: flex;
+    flex: none;
     align-items: center;
-    gap: 12px;
-    min-width: 0;
+    /* the logo and name are drawn in ems of this size (15 of them wide), so
+       that a narrow screen can have them smaller, whole */
+    font-size: 1rem;
+    gap: 0.75em;
+    /* they stand a little taller than the controls beside them: they reach
+       into the bar's own margins, and the bar keeps the height of its
+       controls */
+    margin-block: -0.375em;
     padding: 0;
     border: 0;
     background: none;
@@ -228,17 +235,19 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     text-align: left;
 }
 .brand img {
-    width: 46px;
-    height: 46px;
+    width: 3.5em;
+    height: 3.5em;
     filter: drop-shadow(0 0 7px var(--glow));
 }
-.brand-name {
-    display: block;
-    font-family: var(--f-display);
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-}
+/* the name beside the logo, as DOST IX signs itself: four lines of one
+   width (the spacing of their letters makes them so, in the fonts of the
+   book) */
+.brand-name { display: grid; row-gap: 0.125em; line-height: 1; white-space: nowrap; }
+.brand-name > * { display: block; }
+.brand-top { font-size: 0.625em; font-weight: 600; letter-spacing: 0.085em; text-transform: uppercase; }
+.brand-name b { font-family: var(--f-display); font-size: 2.125em; font-weight: 800; line-height: 0.8; }
+.brand-place { font-size: 0.75em; font-weight: 700; letter-spacing: 0.097em; text-transform: uppercase; }
+.brand-line { font-size: 0.5em; font-weight: 500; letter-spacing: -0.031em; }
 .bar-nav, .bar-actions { display: flex; gap: 10px; }
 /* Contents, Posters and Feedback sit with the other controls, on the right */
 .bar-nav { margin-left: auto; }
@@ -513,28 +522,37 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     transition: width 0.7s var(--ease);
 }
 
-@media (max-width: 1020px) {
+@media (max-width: 1060px) {
     /* Contents, Posters and Feedback as icons */
     .pill span { display: none; }
     .pill { width: 52px; padding: 0; }
 }
-@media (max-width: 780px) {
-    .brand-name { display: none; }
+@media (max-width: 800px) {
+    /* a narrow screen: Contents, Posters and Feedback get a row of their
+       own, and their names back; the logo and name keep the first row, with
+       the other controls beside them (or under them, where the row has not
+       the room for both) */
+    .bar { flex-wrap: wrap; row-gap: 8px; }
+    /* (the name keeps clear of the row under it) */
+    .brand { margin-bottom: 0; }
+    .bar-actions { margin-left: auto; }
+    .bar-nav { order: 3; flex: 1 0 100%; gap: 8px; margin-left: 0; }
+    .bar-nav .pill { flex: 1 1 0; gap: 6px; width: auto; min-width: 0; height: 44px; padding: 0 6px; font-size: 0.88rem; }
+    .bar-nav .pill span { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 @media (max-width: 640px) {
     .nav span { display: none; }
     .nav { padding: 0 20px; }
 }
 @media (max-width: 600px) {
-    /* a phone: Contents, Posters and Feedback get a row of their own, and
-       their names back */
-    .bar { flex-wrap: wrap; row-gap: 8px; }
-    .bar-actions { margin-left: auto; }
-    .bar-nav { order: 3; flex: 1 0 100%; gap: 8px; margin-left: 0; }
-    .bar-nav .pill { flex: 1 1 0; gap: 6px; width: auto; min-width: 0; height: 44px; padding: 0 6px; font-size: 0.88rem; }
-    .bar-nav .pill span { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* a phone: the logo and name smaller, as wide as the row leaves them
+       beside the controls of the Light version (those and the margins take
+       298px, and a little is left spare), and no taller than the controls */
+    .brand { margin-block: 0; font-size: clamp(10px, calc((100vw - 304px) / 15), 13px); }
 }
 @media (max-width: 480px) {
+    /* (the controls are smaller here: they and the margins take 194px) */
+    .brand { margin-block: -0.25em 0; font-size: clamp(10px, calc((100vw - 198px) / 15), 13px); }
     .bar-actions { gap: 8px; }
     /* room for the Light / 3D switch on a phone */
     .pill, .round { width: 44px; height: 44px; }
@@ -1278,6 +1296,11 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     cursor: pointer;
 }
 .poster-tab[aria-pressed="true"] { border-color: transparent; background: var(--cta); color: var(--on-cta); }
+/* (a narrower screen: the names closer together, which keeps them on one row for longer) */
+@media (max-width: 1440px) {
+    .poster-tabs { gap: 8px; }
+    .poster-tab { padding: 0 13px; font-size: 0.94rem; }
+}
 /* On a small screen (a phone, held either way) the names are one dropdown
    instead: a row of them would run off the side. */
 .poster-pick { position: relative; display: none; flex: 1; min-width: 0; }
@@ -1649,10 +1672,26 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     break-inside: avoid;
 }
 .po-part b { min-width: 2ch; font-family: var(--f-mono); font-size: 0.92em; font-weight: 600; color: var(--foil); }
-/* Bulletin, Events and Others: what is posted, or a line saying that nothing is */
-.po-posts ul { display: grid; gap: calc(1.6 * var(--u)); margin: calc(3.4 * var(--u)) 0 0; padding: 0; list-style: none; }
+/* Bulletin, Events and Others: what is posted, or a line saying that nothing
+   is. The posts are in one column, the newest first, in the room the sheet
+   has for them: a post that does not fit whole goes to a second column,
+   which lies outside the list and is not seen. (On a phone, where a sheet is
+   as long as it needs to be, they are all there.) */
+.po-posts ul {
+    display: flex;
+    flex-flow: column wrap;
+    align-content: flex-start;
+    gap: calc(1.6 * var(--u)) calc(10 * var(--u));
+    min-height: 0;
+    margin: calc(3.4 * var(--u)) 0 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+}
 .po-posts li {
     display: grid;
+    flex-shrink: 0;
+    width: 100%;
     gap: calc(0.6 * var(--u));
     padding: calc(2.4 * var(--u)) calc(2.8 * var(--u));
     border: 1px solid rgba(var(--foil-rgb), 0.26);
@@ -1662,6 +1701,42 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .po-posts li i { font-family: var(--f-mono); font-size: calc(2 * var(--u)); font-style: normal; letter-spacing: 0.06em; color: var(--foil); }
 .po-posts li b { font-size: calc(3 * var(--u)); font-weight: 700; line-height: 1.25; }
 .po-posts li span { font-size: calc(2.5 * var(--u)); line-height: 1.4; color: var(--foil-soft); }
+/* Others with pictures: a gallery. The posts share the sheet evenly, in as
+   many columns as the script counts for a wide sheet (--wide) and for a tall
+   one (--tall); each picture is as large as its share lets it be, whole,
+   with the words of its post under it. */
+.po-gallery .po-title { font-size: calc(5.4 * var(--u)); }
+.po-gallery ul {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(var(--wide, 1), minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: calc(2.4 * var(--u));
+    min-height: 0;
+    margin: calc(2.4 * var(--u)) 0 0;
+    padding: 0;
+    list-style: none;
+}
+@container (max-aspect-ratio: 1/1) {
+    .po-gallery ul { grid-template-columns: repeat(var(--tall, 1), minmax(0, 1fr)); }
+}
+.po-gallery li { display: flex; flex-direction: column; justify-content: center; gap: calc(1.2 * var(--u)); min-width: 0; min-height: 0; }
+.po-gallery li img { flex: 1 1 0; width: 100%; min-height: 0; object-fit: contain; -webkit-user-drag: none; user-select: none; }
+.po-gallery li p { display: grid; gap: calc(0.4 * var(--u)); margin: 0; text-align: center; text-wrap: balance; }
+.po-gallery li i { font-family: var(--f-mono); font-size: calc(1.7 * var(--u)); font-style: normal; letter-spacing: 0.06em; color: var(--foil); }
+.po-gallery li b { font-size: calc(2.4 * var(--u)); font-weight: 700; line-height: 1.2; }
+.po-gallery li span {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: calc(2 * var(--u));
+    line-height: 1.35;
+    color: var(--foil-soft);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+/* (a post without a picture, among those with: its words, larger) */
+.po-gallery li:not(:has(img)) b { font-size: calc(3 * var(--u)); }
+.po-gallery li:not(:has(img)) span { font-size: calc(2.4 * var(--u)); -webkit-line-clamp: 6; }
 .po-none {
     margin: calc(4 * var(--u)) 0 0;
     padding: calc(6 * var(--u)) calc(4 * var(--u));
@@ -1679,7 +1754,9 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
    towards the pointer and turns under a dragging finger (--rx and --ry, set
    by the script), and the part named by the line of the legend that is lit
    (data-part on the sheet) comes forward while the rest fades. */
-.po-logo .po-title, .po-cert-sheet .po-title { font-size: calc(6.2 * var(--u)); }
+.po-logo .po-title { font-size: calc(6.2 * var(--u)); }
+/* (a long title: small enough to stay on one line of a wide sheet) */
+.po-cert-sheet .po-title { font-size: calc(4.8 * var(--u)); }
 .po-logo-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(1.6 * var(--u)) calc(2.4 * var(--u)); margin-top: calc(2.6 * var(--u)); }
 .logo3d {
     position: relative;
@@ -1779,8 +1856,8 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stroke-width: 9; }
 .po-key.is-wide { grid-column: 1 / -1; }
 
-/* Certifications: the certificate, and the accredited laboratories with the
-   number and the last day of each accreditation */
+/* Certification and Accreditation: the certificate, and the accredited
+   laboratories with the number and the last day of each accreditation */
 .po-certs { display: grid; gap: calc(2 * var(--u)); margin-top: calc(2.4 * var(--u)); }
 .po-cert {
     padding: calc(2.2 * var(--u)) calc(2.8 * var(--u)) calc(2.4 * var(--u));
@@ -1880,6 +1957,12 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-who em, .po-who span { font-size: calc(2.4 * var(--u)); }
     .po-who small { font-size: calc(2.2 * var(--u)); }
     .po-box.is-head { width: 100%; }
+    /* the gallery is one column of pictures, each as tall as it is */
+    .po-gallery ul { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; gap: calc(5 * var(--u)); }
+    .po-gallery li img { flex: none; height: auto; }
+    .po-gallery li b { font-size: calc(3 * var(--u)); }
+    .po-gallery li i { font-size: calc(2.2 * var(--u)); }
+    .po-gallery li span { font-size: calc(2.5 * var(--u)); -webkit-line-clamp: 6; }
 }
 /* (a phone: the four across are two across, the parts of a service one list) */
 @container poster-stage (max-width: 438px) {
@@ -1999,7 +2082,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
    but nothing is drawn in 3D: the open pages lie flat and a turn swaps
    them with a short fade. Also left out: the particle background, the
    floor grid, the wave lines, blur, glows, shadows, the decorations that
-   never stop animating, and the page sound. The script keeps a page in
+   never stop animating, the page sound and the music. The script keeps a page in
    the document only while it is on screen. */
 .lite .field, .lite .floor, .lite .floor-shadow, .lite .holo, .lite #sound-btn { display: none; }
 .lite .pg-cover::before { content: none; }
@@ -2039,7 +2122,12 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     <header class="bar">
         <button class="brand" id="brand-btn" type="button" aria-label="Close the book">
             <img src="assets/dost-logo.png" alt="">
-            <span class="brand-name">DOST Region IX</span>
+            <span class="brand-name">
+                <span class="brand-top">Republic of the Philippines</span>
+                <b>DOST IX</b>
+                <span class="brand-place">Zamboanga Peninsula</span>
+                <span class="brand-line">One DOST 4U: Solutions and Opportunities for All</span>
+            </span>
         </button>
         <div class="bar-nav">
             <button class="pill" id="contents-btn" type="button" aria-controls="menu" aria-expanded="false">
@@ -2057,7 +2145,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
                 <button class="mode-opt" id="mode-light" type="button" aria-pressed="false" title="Light version: flat pages, for phones and slower devices">Light</button>
                 <button class="mode-opt" id="mode-3d" type="button" aria-pressed="false" title="3D version: turning pages and effects">3D</button>
             </div>
-            <button class="round" id="sound-btn" type="button" aria-label="Turn page sound off"></button>
+            <button class="round" id="sound-btn" type="button" aria-label="Turn sound off"></button>
             <button class="round" id="theme-btn" type="button" aria-label="Switch theme"></button>
             <button class="round" id="fs-btn" type="button" aria-label="Enter full screen">
                 <svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -2243,6 +2331,8 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         return {
             get enabled() { return enabled; },
             unlock: () => { if (enabled) ensure(); },
+            // the audio engine, for the music; none while sound is off
+            context: () => (enabled ? ensure() : null),
             setEnabled(on) {
                 enabled = on;
                 try { localStorage.setItem('cc-sound', on ? 'on' : 'off'); } catch (err) { /* ignore */ }
@@ -2268,6 +2358,116 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         };
     })();
     const FLIP_MS = reduceMotion ? 1 : 950;
+
+    // ------------------------------------------------------------------
+    // Music for the auto display (see "Kiosk behaviour", below), so the
+    // screen is not silent while nobody is at it. Synthesized like the page
+    // sound, so there is still no audio file to ship: a slow chord every
+    // bar, and over it a few bell notes that wander up and down a five-note
+    // scale, which keeps it from repeating. It stops at the first touch.
+    // Like the page sound it follows the sound button, is left out of the
+    // light version, and can only start once the screen has been touched
+    // (a browser rule; see "ensure", above).
+    // ------------------------------------------------------------------
+    const music = (() => {
+        const BAR = 6;              // seconds a chord is held
+        // a chord a bar, as MIDI notes: a bass note and three above it
+        const CHORDS = [
+            [48, 64, 67, 71],       // C major 7
+            [45, 64, 67, 72],       // A minor 7
+            [41, 64, 69, 72],       // F major 7
+            [43, 62, 67, 71],       // G
+        ];
+        // the bells keep to these notes, which sit well over every chord
+        const SCALE = [72, 74, 76, 79, 81, 84, 86, 88];
+        const MOVES = [-2, -1, -1, 1, 1, 2];
+        const hz = (note) => 440 * 2 ** ((note - 69) / 12);
+
+        let bus = null;             // all of it goes through this, to fade it out
+        let echo = null;            // the bells go through this
+        let timer;
+        let nextBar = 0;
+        let bar = 0;
+        let step = 2;               // where the bells are on the scale
+
+        const tone = (out, type, freq, start, attack, hold, release, peak) => {
+            const ctx = out.context;
+            const osc = ctx.createOscillator();
+            osc.type = type;
+            osc.frequency.value = freq;
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(peak, start + attack);
+            gain.gain.setValueAtTime(peak, start + attack + hold);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + attack + hold + release);
+            osc.connect(gain).connect(out);
+            osc.start(start);
+            osc.stop(start + attack + hold + release + 0.05);
+        };
+
+        const playBar = (at) => {
+            const [bass, ...upper] = CHORDS[bar % CHORDS.length];
+            bar += 1;
+            // every note swells in and dies away slowly, so a chord melts into the next
+            tone(bus, 'triangle', hz(bass), at, 1.5, BAR - 1.5, 3, 0.07);
+            upper.forEach((note) => {
+                // two oscillators a little apart in pitch sound warmer than one
+                tone(bus, 'sine', hz(note) * 1.002, at, 2, BAR - 2, 3, 0.035);
+                tone(bus, 'triangle', hz(note) * 0.998, at, 2, BAR - 2, 3, 0.02);
+            });
+            // a bell on some of the bar's eight beats, a step or two from the last one
+            for (let beat = 0; beat < 8; beat++) {
+                if (Math.random() > 0.4) continue;
+                const move = MOVES[Math.floor(Math.random() * MOVES.length)];
+                step += step + move < 0 || step + move >= SCALE.length ? -move : move;
+                const t = at + beat * (BAR / 8);
+                tone(echo, 'sine', hz(SCALE[step]), t, 0.01, 0, 2.4, 0.08);
+                tone(echo, 'sine', hz(SCALE[step]) * 2, t, 0.01, 0, 0.9, 0.02);
+            }
+        };
+
+        return {
+            start() {
+                // (nobody hears a tab that is hidden)
+                if (bus || lite || document.hidden) return;
+                const ctx = pageSound.context();
+                if (!ctx) return;
+                bus = ctx.createGain();
+                bus.connect(ctx.destination);
+                // each bell is heard again, fainter, three quarters of a beat later
+                echo = ctx.createGain();
+                const delay = ctx.createDelay(1);
+                delay.delayTime.value = (BAR / 8) * 0.75;
+                const fainter = ctx.createGain();
+                fainter.gain.value = 0.35;
+                echo.connect(bus);
+                echo.connect(delay).connect(fainter).connect(delay);
+                fainter.connect(bus);
+
+                bar = 0;
+                nextBar = ctx.currentTime + 0.1;
+                // a bar is written out a second before it is due
+                const fill = () => {
+                    while (nextBar < ctx.currentTime + 1) {
+                        playBar(nextBar);
+                        nextBar += BAR;
+                    }
+                };
+                fill();
+                timer = setInterval(fill, 250);
+            },
+            stop() {
+                if (!bus) return;
+                clearInterval(timer);
+                const old = bus;
+                bus = null;
+                echo = null;
+                // fades out in about half a second
+                old.gain.setTargetAtTime(0, old.context.currentTime, 0.12);
+                setTimeout(() => old.disconnect(), 1000);
+            },
+        };
+    })();
 
     // ------------------------------------------------------------------
     // Icons
@@ -4184,7 +4384,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         }[item.part]}</svg>`);
 
     // The office's certificate and its accredited laboratories, for the
-    // Certifications poster: copied from the office's own poster (the
+    // Certification and Accreditation poster: copied from the office's own poster (the
     // numbers, and the day each is valid until).
     const CERTS = {
         iso: {
@@ -4209,8 +4409,11 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     // What is posted on the Bulletin, Events and Others sheets, newest first, each
     // { title: 'Office closed on 30 November', when: '28 November 2026', text: 'Regular holiday.' }
     // (`when` and `text` may be left out). Others is for what is neither an
-    // announcement nor an event. All three are empty until DOST IX has
-    // something to post.
+    // announcement nor an event, and a post on it may have a picture
+    // (`image`, its address): a poster, say. The posts are kept in the CRMS, under
+    // Libraries > Charter Posts, and fetched from it (loadPosts, below); all
+    // three are empty until DOST IX has something to post, and where the
+    // book is read without the CRMS behind it.
     const BULLETIN = [];
     const EVENTS = [];
     const OTHER_POSTS = [];
@@ -4235,6 +4438,19 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         ${posts.length
             ? `<ul>${posts.map((post) => `<li>${post.when ? `<i>${esc(post.when)}</i>` : ''}<b>${esc(post.title)}</b>${post.text ? `<span>${esc(post.text)}</span>` : ''}</li>`).join('')}</ul>`
             : `<p class="po-none">${esc(none)}</p>`}`);
+    // Others with pictures: its newest posts as a gallery (see .po-gallery).
+    const GALLERY_MOST = 8;
+    const gallerySheet = (title, posts) => {
+        const shown = posts.slice(0, GALLERY_MOST);
+        const n = shown.length;
+        // one row of up to four on a wide sheet, then two rows; two columns on a tall one
+        const wide = n <= 4 ? n : Math.ceil(n / 2);
+        const tall = n <= 2 ? 1 : 2;
+        return posterSheet('gallery', `
+            <p class="po-kicker">DOST Region IX</p>
+            <h2 class="po-title">${esc(title)}</h2>
+            <ul style="--wide:${wide};--tall:${tall}">${shown.map((post) => `<li>${post.image ? `<img src="${esc(post.image)}" alt="" draggable="false">` : ''}<p>${post.when ? `<i>${esc(post.when)}</i>` : ''}<b>${esc(post.title)}</b>${post.text ? `<span>${esc(post.text)}</span>` : ''}</p></li>`).join('')}</ul>`);
+    };
     const POSTERS = [
         {
             title: 'Mandate, Mission & Vision',
@@ -4275,10 +4491,10 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             },
         },
         {
-            title: 'Certifications',
+            title: 'Certification and Accreditation',
             html: () => posterSheet('cert-sheet', `
                 <p class="po-kicker">DOST Region IX</p>
-                <h2 class="po-title">Certifications</h2>
+                <h2 class="po-title">Certification and Accreditation</h2>
                 <div class="po-certs">
                     <section class="po-cert">
                         <h3>${esc(CERTS.iso.name)}</h3>
@@ -4330,7 +4546,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         // (`empty`: nothing is posted, so the carousel leaves the sheet out)
         { title: 'Bulletin', empty: () => !BULLETIN.length, html: () => postsSheet('Bulletin', BULLETIN, 'No announcements are posted at this time.') },
         { title: 'Events', empty: () => !EVENTS.length, html: () => postsSheet('Events', EVENTS, 'No upcoming events are posted at this time.') },
-        { title: 'Others', empty: () => !OTHER_POSTS.length, html: () => postsSheet('Others', OTHER_POSTS, 'Nothing else is posted at this time.') },
+        { title: 'Others', empty: () => !OTHER_POSTS.length, html: () => (OTHER_POSTS.some((post) => post.image) ? gallerySheet('Others', OTHER_POSTS) : postsSheet('Others', OTHER_POSTS, 'Nothing else is posted at this time.')) },
     ];
 
     const itemNo = (html) => html.replace(/^(\d+\.(?:\d+\.?)*)\s+/, '<span class="svc-n">$1</span>');
@@ -5349,6 +5565,35 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         tourLogo();
     };
 
+    // The posts of the Bulletin, Events and Others sheets, from the CRMS:
+    // { bulletin: [...], events: [...], others: [...] }. They are fetched as
+    // the book opens, when the Posters button is pressed, and every five
+    // minutes, so that a display left running shows what is new. No answer
+    // (the book read offline, say) leaves the sheets as they are.
+    const POSTS_URL = '/citizens-charter/posts';
+    const POSTS_EVERY = 5 * 60 * 1000;
+    const POSTED = { bulletin: BULLETIN, events: EVENTS, others: OTHER_POSTS };
+    let postsSeen = '';
+    const loadPosts = async () => {
+        try {
+            const answer = await fetch(POSTS_URL, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+            if (!answer.ok) return;
+            const text = await answer.text();
+            if (text === postsSeen) return;
+            const sheets = JSON.parse(text);
+            Object.entries(POSTED).forEach(([sheet, list]) => {
+                const posts = Array.isArray(sheets[sheet]) ? sheets[sheet].filter((post) => post && post.title) : [];
+                list.splice(0, list.length, ...posts);
+            });
+            postsSeen = text;
+            // a sheet of posts that is up is drawn again with what it has now
+            if (layer === 'posters' && POSTERS[posterAt].empty) showPoster(posterAt);
+        } catch (err) { /* no CRMS to ask: nothing more is posted */ }
+    };
+    loadPosts();
+    setInterval(loadPosts, POSTS_EVERY);
+    $('posters-btn').addEventListener('click', loadPosts);
+
     // The DOST Logo sheet. A touch on a line of its legend lights that line
     // and brings its part of the logo forward (a second touch lets it go);
     // a mouse over a line does the same for as long as it is there. Left
@@ -5751,6 +5996,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         auto = on;
         document.body.classList.toggle('is-auto', on);
         clearInterval(autoTimer);
+        if (on) music.start(); else music.stop();
         if (!on) return;
         // (it starts from the cover, which the book has just been shut on)
         autoPoster = -1;
@@ -5774,6 +6020,11 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     };
     ['pointerdown', 'pointermove', 'keydown', 'wheel'].forEach((ev) => window.addEventListener(ev, poke, { passive: true }));
     poke();
+    // the music waits while the tab is hidden, like the carousel
+    document.addEventListener('visibilitychange', () => {
+        if (!auto) return;
+        if (document.hidden) music.stop(); else music.start();
+    });
 
     let wakeLock = null;
     const keepAwake = async () => {
@@ -5805,7 +6056,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     const paintSoundButton = () => {
         const on = pageSound.enabled;
         soundBtn.innerHTML = svg(on ? ICON.soundOn : ICON.soundOff);
-        soundBtn.setAttribute('aria-label', on ? 'Turn page sound off' : 'Turn page sound on');
+        soundBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
         soundBtn.setAttribute('aria-pressed', String(on));
     };
     soundBtn.addEventListener('click', () => {

@@ -59,6 +59,13 @@ const libraryItems = [
         icon: 'ri-calendar-line',
         toneClass: 'tone-indigo',
     },
+    {
+        title: 'Charter Posts',
+        description: "Post on the Citizen's Charter: Bulletin, Events and Others",
+        href: '/charter-posts',
+        icon: 'ri-megaphone-line',
+        toneClass: 'tone-blue',
+    },
 ];
 </script>
 

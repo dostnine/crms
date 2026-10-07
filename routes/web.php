@@ -8,6 +8,7 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\PstoController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\AssignatoreesController;
+use App\Http\Controllers\CharterPostController;
 use App\Http\Controllers\ShowDateCSFFormController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
@@ -56,6 +57,11 @@ Route::get('/services/csf/keep-alive', fn () => response()->noContent())->name('
 // The DOST IX Citizen's Charter is a self-contained page book in public/charter
 // (static HTML, not an Inertia page), so this only sends the browser to it.
 Route::redirect('/citizens-charter', '/charter/index.html')->name('citizens_charter');
+// What is posted on its Bulletin, Events and Others sheets (kept by an admin
+// under Libraries > Charter Posts), for the book to show.
+Route::get('/citizens-charter/posts', [CharterPostController::class, 'posts'])->name('citizens_charter_posts');
+// ...and the picture of one of them (a post on the Others sheet may have one).
+Route::get('/citizens-charter/posts/{post}/image', [CharterPostController::class, 'image'])->whereNumber('post')->name('citizens_charter_post_image');
 Route::get('captcha/{config?}', '\Mews\Captcha\CaptchaController@getCaptcha')->middleware('web');
 // Route::post('/captcha/verify', [SurveyFormController::class, 'verifyCaptcha']);
 Route::post('/csf_submission', [SurveyFormController::class, 'store']);
@@ -91,6 +97,10 @@ Route::middleware([
         Route::post('/assignatorees/delete', [AssignatoreesController::class, 'destroy']);
         Route::get('/show-date-csf-form', [ShowDateCSFFormController::class, 'index'])->name('showdate');
         Route::post('/show-date-csf-form/update', [ShowDateCSFFormController::class, 'update']);
+        Route::get('/charter-posts', [CharterPostController::class, 'index'])->name('charterPosts');
+        Route::post('/charter-posts/add', [CharterPostController::class, 'store']);
+        Route::post('/charter-posts/update', [CharterPostController::class, 'update']);
+        Route::post('/charter-posts/delete', [CharterPostController::class, 'destroy']);
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
