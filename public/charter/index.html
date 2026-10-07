@@ -67,9 +67,6 @@
     --foil-rgb: 255, 255, 255;
     --foil-ink: #ffffff;
     --foil-soft: #e6e3ff;
-    /* the head of a poster: muted indigo (deeper in dark mode), under the
-       white and yellow words of the sheet */
-    --poster-head: #3b3786;
 
     --f-display: 'Unbounded', 'Segoe UI', system-ui, sans-serif;
     --f-body: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -116,7 +113,6 @@
         --dock-line: rgba(255, 255, 255, 0.28);
         --meter-fill: linear-gradient(90deg, var(--cta), #ffffff);
         --meter-glow: rgba(255, 232, 26, 0.5);
-        --poster-head: #2b2778;
         color-scheme: dark;
     }
 }
@@ -156,7 +152,6 @@
     --dock-line: rgba(255, 255, 255, 0.28);
     --meter-fill: linear-gradient(90deg, var(--cta), #ffffff);
     --meter-glow: rgba(255, 232, 26, 0.5);
-    --poster-head: #2b2778;
     color-scheme: dark;
 }
 
@@ -265,8 +260,6 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 .pill { padding: 0 20px; font-size: 1rem; }
 .round { width: 52px; font-size: 1.25rem; }
 .pill:active, .round:active { transform: scale(0.95); border-color: var(--brand); }
-/* the way to the feedback form, in the yellow of the page buttons */
-.pill-cta { border-color: transparent; background: var(--cta); color: var(--on-cta); }
 /* the Light / 3D switch: two options, the one in use filled in */
 .mode {
     display: inline-flex;
@@ -1382,9 +1375,14 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     background: linear-gradient(170deg, var(--cover-b), var(--cover-c));
     box-shadow: 0 18px 50px var(--shadow);
     container-type: size;
-    /* a hundredth of the width of an upright sheet; on a wider one, the
-       measure that leaves its words the same room downwards */
-    --u: min(1cqw, calc(100cqh / 130));
+    /* a hundredth of the width of an upright sheet; on a wide one, the
+       measure that leaves its words the same room downwards (a 130th of the
+       height). Between the two, on a sheet taller than it is wide but less
+       so than an upright one, it goes evenly from the one to the other (the
+       third measure: a 141st of the height on an upright sheet, a 130th on a
+       square one), so that such a sheet has no less room than an upright
+       one has. */
+    --u: min(1cqw, calc(100cqh / 130), calc(0.212cqw + 0.5572cqh));
     /* the margin down both sides of the sheet */
     --side: calc(8.5 * var(--u));
 }
@@ -1423,14 +1421,14 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     line-height: 1.45;
     color: var(--foil-ink);
 }
-/* the head of the sheet: a band of muted indigo over a yellow rule */
+/* the head of the sheet, over a yellow rule: the same colour as the rest of
+   the sheet (nothing is laid over it) */
 .po-head {
     display: flex;
     align-items: center;
     gap: calc(3 * var(--u));
     padding: calc(4 * var(--u)) var(--side) calc(3.4 * var(--u));
     border-bottom: calc(0.7 * var(--u)) solid var(--foil);
-    background: var(--poster-head);
     color: var(--foil-ink);
 }
 .po-head img { width: calc(10 * var(--u)); height: calc(10 * var(--u)); object-fit: contain; }
@@ -1651,7 +1649,7 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     break-inside: avoid;
 }
 .po-part b { min-width: 2ch; font-family: var(--f-mono); font-size: 0.92em; font-weight: 600; color: var(--foil); }
-/* Bulletin and Events: what is posted, or a line saying that nothing is */
+/* Bulletin, Events and Others: what is posted, or a line saying that nothing is */
 .po-posts ul { display: grid; gap: calc(1.6 * var(--u)); margin: calc(3.4 * var(--u)) 0 0; padding: 0; list-style: none; }
 .po-posts li {
     display: grid;
@@ -1677,11 +1675,11 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 }
 
 /* The DOST Logo: the logo in its parts, standing off a plate at different
-   depths, and what each part stands for. It sways by itself, turns with the
-   pointer or a dragging finger (--rx and --ry, set by the script), and the
-   part named by the line of the legend that is lit (data-part on the
-   sheet) comes forward while the rest fades. */
-.po-logo .po-title { font-size: calc(6.2 * var(--u)); }
+   depths, and what each part stands for. It faces straight ahead, leans
+   towards the pointer and turns under a dragging finger (--rx and --ry, set
+   by the script), and the part named by the line of the legend that is lit
+   (data-part on the sheet) comes forward while the rest fades. */
+.po-logo .po-title, .po-cert-sheet .po-title { font-size: calc(6.2 * var(--u)); }
 .po-logo-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(1.6 * var(--u)) calc(2.4 * var(--u)); margin-top: calc(2.6 * var(--u)); }
 .logo3d {
     position: relative;
@@ -1696,17 +1694,14 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     touch-action: none;
 }
 .logo3d.is-held { cursor: grabbing; }
-.logo3d-turn, .logo3d-sway { position: absolute; inset: 0; transform-style: preserve-3d; }
 .logo3d-turn {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
     transform: rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
     transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .logo3d.is-held .logo3d-turn { transition: none; }
-.logo3d-sway { animation: logo-sway 11s ease-in-out infinite; }
-@keyframes logo-sway {
-    0%, 100% { transform: rotateX(5deg) rotateY(-16deg); }
-    50% { transform: rotateX(-4deg) rotateY(16deg); }
-}
 /* the plate the logo stands off: light, so that the black of the logo reads */
 .logo3d-plate {
     position: absolute;
@@ -1784,6 +1779,25 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
 svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stroke-width: 9; }
 .po-key.is-wide { grid-column: 1 / -1; }
 
+/* Certifications: the certificate, and the accredited laboratories with the
+   number and the last day of each accreditation */
+.po-certs { display: grid; gap: calc(2 * var(--u)); margin-top: calc(2.4 * var(--u)); }
+.po-cert {
+    padding: calc(2.2 * var(--u)) calc(2.8 * var(--u)) calc(2.4 * var(--u));
+    border: 1px solid rgba(var(--foil-rgb), 0.28);
+    border-radius: calc(2.2 * var(--u));
+    background: rgba(var(--foil-rgb), 0.08);
+}
+.po-cert h3 { margin: 0; font-family: var(--f-display); font-size: calc(3 * var(--u)); font-weight: 700; line-height: 1.15; text-wrap: balance; }
+/* what the certificate or the accreditation is for, in its own words */
+.po-scope { margin: calc(1 * var(--u)) 0 calc(1.6 * var(--u)); font-size: calc(2.2 * var(--u)); font-style: italic; font-weight: 600; line-height: 1.35; color: var(--foil); text-wrap: pretty; }
+.po-cert dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: calc(0.3 * var(--u)) calc(2 * var(--u)); margin: 0; font-size: calc(2.2 * var(--u)); }
+.po-cert dt { color: var(--foil-soft); }
+.po-cert dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.po-labs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(1.6 * var(--u)) calc(3 * var(--u)); margin: 0; padding: 0; list-style: none; }
+.po-labs b { display: block; margin-bottom: calc(0.4 * var(--u)); font-size: calc(2.3 * var(--u)); line-height: 1.22; }
+.po-labs dl { font-size: calc(1.95 * var(--u)); }
+
 /* An upright sheet (a kiosk standing on end) has the height for a larger logo. */
 @container (max-aspect-ratio: 4/5) {
     .logo3d { width: calc(33 * var(--u)); margin: calc(4.2 * var(--u)) 0 calc(5 * var(--u)); }
@@ -1798,6 +1812,13 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-tenet small { font-size: calc(2.4 * var(--u)); }
     .po-tenet p { padding-left: calc(5 * var(--u)); font-size: calc(3.9 * var(--u)); }
     .po-tenet.is-lead p { font-size: calc(5.2 * var(--u)); }
+    .po-certs { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); align-items: start; gap: calc(3 * var(--u)); margin-top: calc(4 * var(--u)); }
+    .po-cert { padding: calc(3 * var(--u)) calc(3.4 * var(--u)); }
+    .po-cert h3 { font-size: calc(3.6 * var(--u)); }
+    .po-scope { font-size: calc(2.6 * var(--u)); }
+    .po-cert dl { font-size: calc(2.6 * var(--u)); }
+    .po-labs b { font-size: calc(2.7 * var(--u)); }
+    .po-labs dl { font-size: calc(2.3 * var(--u)); }
     .po-logo-body { grid-template-columns: minmax(0, 1fr) calc(68 * var(--u)) minmax(0, 1.3fr); align-items: center; gap: calc(2.4 * var(--u)) calc(3 * var(--u)); margin-top: calc(8 * var(--u)); }
     .logo3d { grid-column: 2; grid-row: 1 / span 3; width: calc(52 * var(--u)); margin: 0; }
     .po-key { grid-column: 3; grid-row: var(--row); padding: calc(1.6 * var(--u)) calc(2 * var(--u)); }
@@ -1848,6 +1869,10 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-svc > strong { font-size: calc(2.8 * var(--u)); }
     .po-services .po-main { padding-block: calc(6 * var(--u)); }
     .po-svc > em { font-size: calc(2.1 * var(--u)); }
+    .po-cert h3 { font-size: calc(3.3 * var(--u)); }
+    .po-scope, .po-cert dl { font-size: calc(2.5 * var(--u)); }
+    .po-labs b { font-size: calc(2.6 * var(--u)); }
+    .po-labs dl { font-size: calc(2.3 * var(--u)); }
     .logo3d { width: min(100%, calc(42 * var(--u))); touch-action: pan-y; }
     .po-key b { font-size: calc(2.8 * var(--u)); }
     .po-key span { font-size: calc(2.5 * var(--u)); }
@@ -1860,6 +1885,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
 @container poster-stage (max-width: 438px) {
     .po-chart ul.po-field { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .po-logo-body { grid-template-columns: minmax(0, 1fr); }
+    .po-labs { grid-template-columns: minmax(0, 1fr); }
     .po-box.is-head { flex-direction: column; gap: calc(1.6 * var(--u)); }
     .po-box.is-head .po-who { justify-items: center; text-align: center; }
     .po-parts { columns: 1; }
@@ -1984,7 +2010,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
 .lite .brand img, .lite .seal img, .lite .cover-title { filter: none; }
 .lite .nav, .lite .rule, .lite .meter-fill, .lite .menu, .lite .poster, .lite .csf-card { box-shadow: none; }
 .lite .posters { background: var(--stage); }
-.lite .logo3d-sway { animation: none; transform: rotateX(5deg) rotateY(-14deg); }
 .lite .logo3d svg { filter: none; }
 .lite .logo3d-plate { box-shadow: none; }
 /* flat pages: every leaf stays on the right half of the book, and the back
@@ -2002,7 +2027,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     :root { --flip: 1ms; }
     .lite .face.is-shown { animation: none; }
     .menu, .menu-open .menu, .menu-scrim { transition: none; }
-    .floor, .book, .holo, .seal::after, .cover-hint, .orb::before, .orb::after, .logo3d-sway { animation: none; }
+    .floor, .book, .holo, .seal::after, .cover-hint, .orb::before, .orb::after { animation: none; }
 }
 </style>
 </head>
@@ -2023,7 +2048,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             <button class="pill" id="posters-btn" type="button" aria-haspopup="dialog" aria-label="Posters: sheets about DOST Region IX, for display">
                 <svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span>Posters</span>
             </button>
-            <button class="pill pill-cta" id="csf-btn" type="button" aria-haspopup="dialog" aria-label="Feedback: answer the Customer Satisfaction Feedback survey">
+            <button class="pill" id="csf-btn" type="button" aria-haspopup="dialog" aria-label="Feedback: answer the Customer Satisfaction Feedback survey">
                 <svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 13.5c1.6 1.6 5.4 1.6 7 0"/></svg><span>Feedback</span>
             </button>
         </div>
@@ -2116,7 +2141,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     <form class="csf-card" id="csf-form">
         <span class="menu-kicker">Customer Satisfaction Feedback (CSF)</span>
         <h2 class="menu-title" id="csf-title">Tell us how we did</h2>
-        <p class="csf-text">Choose the unit you transacted with, then answer the survey. It only takes a few minutes.</p>
+        <p class="csf-text">The survey asks for the service and unit you transacted with, then for your feedback. It only takes a few minutes.</p>
         <div class="csf-fields" id="csf-fields"></div>
         <div class="csf-qr" id="csf-qr" hidden>
             <img id="csf-qr-code" alt="" width="148" height="148">
@@ -2133,7 +2158,8 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
 <script>
 (() => {
     // Kiosk timing: after IDLE_MS without a touch nobody is around, and the
-    // display changes by itself every AUTO_MS (see the carousel, below).
+    // display changes by itself: the cover for AUTO_MS, then each poster for
+    // twice that (see the carousel, below).
     // Both can be set in the address, in seconds: ?idle=60&auto=15, and
     // ?auto=0 for a display that never changes by itself.
     const seconds = (name, fallback, least) => {
@@ -4157,12 +4183,37 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             four: '<circle cx="28" cy="28" r="20"/><circle cx="72" cy="28" r="20"/><circle cx="28" cy="72" r="20"/><circle cx="72" cy="72" r="20"/>',
         }[item.part]}</svg>`);
 
-    // What is posted on the Bulletin and Events sheets, newest first, each
+    // The office's certificate and its accredited laboratories, for the
+    // Certifications poster: copied from the office's own poster (the
+    // numbers, and the day each is valid until).
+    const CERTS = {
+        iso: {
+            name: 'ISO 9001:2015 Certified',
+            scope: 'Provision of Science and Technology Transfer Services, Science Promotion, S&T Information Dissemination, and S&T Scholarships',
+            rows: [['Cert. No.', 'CIP/4068/07/12/552'], ['Issued Date', '11 September 2023'], ['Valid Until', '10 September 2026']],
+        },
+        labs: {
+            name: 'PNS ISO/IEC 17025:2005 Accredited Laboratories',
+            scope: 'General Requirements for the Competence of Testing and Calibration Laboratories',
+            // [laboratory, accreditation number, valid until]
+            list: [
+                ['Chemical/Physical Laboratory', 'LA-2005-075E', '04 September 2028'],
+                ['Microbiology Laboratory', 'LA-2005-070E', '04 September 2028'],
+                ['Metrology Laboratory', 'LA-2011-194C', '07 June 2026'],
+                ['Mechanical Testing for Raw & Natural Rubber Laboratory', 'LA-2018-319B', '18 January 2028'],
+                ['Chemical Testing for Raw & Natural Rubber Laboratory', 'LA-2018-318B', '18 January 2028'],
+            ],
+        },
+    };
+
+    // What is posted on the Bulletin, Events and Others sheets, newest first, each
     // { title: 'Office closed on 30 November', when: '28 November 2026', text: 'Regular holiday.' }
-    // (`when` and `text` may be left out). Both are empty until DOST IX has
+    // (`when` and `text` may be left out). Others is for what is neither an
+    // announcement nor an event. All three are empty until DOST IX has
     // something to post.
     const BULLETIN = [];
     const EVENTS = [];
+    const OTHER_POSTS = [];
 
     // Posters: single sheets for display, opened with the Posters button.
     // Their words are the charter's own (ABOUT and FEEDBACK above, and the
@@ -4224,6 +4275,24 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             },
         },
         {
+            title: 'Certifications',
+            html: () => posterSheet('cert-sheet', `
+                <p class="po-kicker">DOST Region IX</p>
+                <h2 class="po-title">Certifications</h2>
+                <div class="po-certs">
+                    <section class="po-cert">
+                        <h3>${esc(CERTS.iso.name)}</h3>
+                        <p class="po-scope">\u201c${esc(CERTS.iso.scope)}\u201d</p>
+                        <dl>${CERTS.iso.rows.map(([what, value]) => `<dt>${esc(what)}:</dt><dd>${esc(value)}</dd>`).join('')}</dl>
+                    </section>
+                    <section class="po-cert">
+                        <h3>${esc(CERTS.labs.name)}</h3>
+                        <p class="po-scope">\u201c${esc(CERTS.labs.scope)}\u201d</p>
+                        <ul class="po-labs">${CERTS.labs.list.map(([lab, number, until]) => `<li><b>${esc(lab)}</b><dl><dt>Accreditation No.:</dt><dd>${esc(number)}</dd><dt>Valid Until:</dt><dd>${esc(until)}</dd></dl></li>`).join('')}</ul>
+                    </section>
+                </div>`),
+        },
+        {
             // The frontline services as the contents of the book have them
             // (its first group), each with its parts and the page of the
             // book it starts on. A touch opens the book there.
@@ -4250,10 +4319,10 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
                 <h2 class="po-title">The DOST Logo</h2>
                 <div class="po-logo-body">
                     <div class="logo3d" role="img" aria-label="The DOST logo: four circles, each a black half with a white and a blue quarter, around a star-shaped space">
-                        <div class="logo3d-turn"><div class="logo3d-sway">
+                        <div class="logo3d-turn">
                             <div class="logo3d-plate"></div>
                             ${['black', 'blue', 'white', 'star', 'rings'].map(logoLayer).join('')}
-                        </div></div>
+                        </div>
                     </div>
                     ${LOGO_PARTS.map((item) => `<button class="po-key${item.chip ? ' is-colour' : ''}${item.wide ? ' is-wide' : ''}" type="button" data-part="${item.part}" style="--row:${item.row || { circles: 1, centre: 2, four: 3 }[item.part]}">${logoChip(item)}<b>${esc(item.name)}</b><span>${item.html || esc(item.text)}</span></button>`).join('')}
                 </div>`),
@@ -4261,6 +4330,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         // (`empty`: nothing is posted, so the carousel leaves the sheet out)
         { title: 'Bulletin', empty: () => !BULLETIN.length, html: () => postsSheet('Bulletin', BULLETIN, 'No announcements are posted at this time.') },
         { title: 'Events', empty: () => !EVENTS.length, html: () => postsSheet('Events', EVENTS, 'No upcoming events are posted at this time.') },
+        { title: 'Others', empty: () => !OTHER_POSTS.length, html: () => postsSheet('Others', OTHER_POSTS, 'Nothing else is posted at this time.') },
     ];
 
     const itemNo = (html) => html.replace(/^(\d+\.(?:\d+\.?)*)\s+/, '<span class="svc-n">$1</span>');
@@ -5512,23 +5582,21 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     // two fingers are for zooming: the browser is not to scroll the sheet with them
     posterStage.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
-    // Feedback: the Customer Satisfaction Feedback (CSF) survey is answered
-    // for one unit. The form asks what the survey's own pages ask (region,
-    // service, unit, then a sub unit and a PSTO or type where the unit has
-    // them) as dropdowns, each choice bringing the next, and then opens the
-    // survey for that choice. The choices come from the CRMS as one tree of
-    // steps: { label, options: [{ name, url } or { name, next: step }] }.
+    // Feedback: the Customer Satisfaction Feedback (CSF) survey. The form
+    // asks for the region only, and a single region is chosen already; the
+    // survey's own pages then ask for the service and the unit. The regions
+    // come from the CRMS, each with the address its survey starts at:
+    // { label, options: [{ name, url }] }.
     const CSF_OPTIONS = '/services/csf/options';
-    const CSF_QR = '/services/csf/qr';          // draws the address of a survey as a QR code
+    const CSF_QR = '/services/csf/qr';          // draws an address of the survey as a QR code
     const CSF_START = '/services/csf/regions';  // the survey's own first page
     const csfFields = $('csf-fields');
     const csfGo = $('csf-go');
-    let csfTree = null;     // the first step, once it has been fetched
-    let csfPicks = [];      // the choice made at each step: its place in the options
-    let csfUrl = '';        // where the survey for those choices is, once they are complete
+    let csfRegions = null;  // the regions, once they have been fetched
+    let csfUrl = '';        // where the survey starts for the region chosen
     const csfSay = (text) => { $('csf-status').textContent = text; };
-    // With the choices complete, the survey they lead to is also shown as a
-    // QR code, for answering it on one's own phone. The CRMS draws the code.
+    // That address is also shown as a QR code, for answering the survey on
+    // one's own phone. The CRMS draws the code.
     const csfQr = $('csf-qr');
     const csfQrCode = $('csf-qr-code');
     const drawCsfQr = (url, name = '') => {
@@ -5542,60 +5610,46 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     };
     // no code to show (the CRMS did not draw one): the form works without it
     csfQrCode.addEventListener('error', () => { csfQr.hidden = true; });
-    // Draws the dropdowns from step `from` on.
-    const drawCsf = (from = 0) => {
-        [...csfFields.children].slice(from).forEach((el) => el.remove());
-        csfUrl = '';
-        let step = csfTree;
-        let chosen = '';    // the last choice made: the unit, or its sub unit, PSTO or type
-        for (let i = 0; step; i++) {
-            // a step with a single choice is made already
-            if (i >= from && step.options.length === 1) csfPicks[i] = 0;
-            const pick = step.options[csfPicks[i]];
-            if (i >= from) {
-                csfFields.insertAdjacentHTML('beforeend', `
-                    <label class="csf-field">
-                        <span class="csf-label">${esc(step.label)}</span>
-                        <span class="csf-pick"><select data-step="${i}" required>
-                            <option value="" disabled hidden${pick ? '' : ' selected'}>Select ${esc(step.label)}</option>
-                            ${step.options.map((o, n) => `<option value="${n}"${pick === o ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}
-                        </select></span>
-                    </label>`);
-            }
-            csfUrl = pick && pick.url ? pick.url : '';
-            if (pick) chosen = pick.name;
-            step = pick ? pick.next : null;
-        }
+    // The region in the dropdown: where its survey starts, and the QR code of that.
+    const pickCsf = () => {
+        const region = csfRegions.options[csfFields.querySelector('select').value];
+        csfUrl = region ? region.url : '';
         csfGo.disabled = !csfUrl;
-        drawCsfQr(csfUrl, chosen);
+        drawCsfQr(csfUrl, region ? region.name : '');
     };
-    csfFields.addEventListener('change', (e) => {
-        const at = Number(e.target.dataset.step);
-        csfPicks.length = at;
-        csfPicks[at] = Number(e.target.value);
-        drawCsf(at + 1);
-    });
+    const drawCsf = () => {
+        const only = csfRegions.options.length === 1;
+        csfFields.innerHTML = `
+            <label class="csf-field">
+                <span class="csf-label">${esc(csfRegions.label)}</span>
+                <span class="csf-pick"><select required>
+                    <option value="" disabled hidden${only ? '' : ' selected'}>Select ${esc(csfRegions.label)}</option>
+                    ${csfRegions.options.map((o, n) => `<option value="${n}"${only ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}
+                </select></span>
+            </label>`;
+        pickCsf();
+    };
+    csfFields.addEventListener('change', pickCsf);
     const openCsf = async () => {
         setLayer('csf');
-        csfPicks = [];
         csfFields.innerHTML = '';
         csfUrl = '';
         csfGo.disabled = true;
         drawCsfQr('');
-        if (!csfTree) {
-            csfSay('Loading the list of units\u2026');
+        if (!csfRegions) {
+            csfSay('Loading\u2026');
             $('csf-cancel').focus({ preventScroll: true });
             try {
                 const answer = await fetch(CSF_OPTIONS, { headers: { Accept: 'application/json' } });
                 if (!answer.ok) throw new Error(`HTTP ${answer.status}`);
-                const tree = await answer.json();
-                if (!tree || !Array.isArray(tree.options) || !tree.options.length) throw new Error('no choices');
-                csfTree = tree;
+                const regions = await answer.json();
+                if (!regions || !Array.isArray(regions.options) || !regions.options.length) throw new Error('no regions');
+                csfRegions = regions;
             } catch (err) {
                 // No list (offline, or the CRMS did not answer): the survey's
-                // own first page asks the same questions.
+                // own first page asks for the region.
                 if (layer !== 'csf') return;
-                csfSay('The list of units could not be loaded here. The survey will ask for your unit on its first pages.');
+                csfSay('The regions could not be loaded here. The survey will ask for yours on its first page.');
                 csfUrl = CSF_START;
                 csfGo.disabled = false;
                 return;
@@ -5604,8 +5658,8 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         }
         csfSay('');
         drawCsf();
-        const first = csfFields.querySelector('select:invalid') || csfFields.querySelector('select');
-        if (first) first.focus({ preventScroll: true });
+        // with the region chosen already, Enter starts the survey
+        (csfUrl ? csfGo : csfFields.querySelector('select')).focus({ preventScroll: true });
     };
     $('csf-btn').addEventListener('click', openCsf);
     $('csf-cancel').addEventListener('click', () => setLayer(null));
@@ -5614,6 +5668,9 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     $('csf-form').addEventListener('submit', (e) => {
         e.preventDefault();
         if (!csfUrl) return;
+        // The survey takes the mode this book is in, light or dark: its pages
+        // follow what its own form remembers under "csf-theme".
+        try { localStorage.setItem('csf-theme', isDark() ? 'dark' : 'light'); } catch (err) { /* it keeps its own */ }
         // The survey opens in a tab of its own, so the book stays as it is.
         // (Where the browser will not open one, it opens here instead.)
         const tab = window.open(csfUrl, '_blank');
@@ -5659,17 +5716,16 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     // someone touches it. It also keeps the screen awake, and goes full
     // screen on demand.
     //
-    // The carousel: the book turns its own pages, cover to cover and round
-    // again, and after every few pages one of the posters is shown for a
-    // while, each in its turn. A sheet with nothing posted on it is left out.
+    // The carousel: the cover of the book for a while, then the posters one
+    // after another (a sheet with nothing posted on it is left out), then
+    // the cover again, round and round. The book itself stays shut: its
+    // pages are for a reader to turn.
     // ------------------------------------------------------------------
-    const AUTO_PAGES = 3;       // page turns between two posters
-    const AUTO_POSTER = 2;      // how long a poster stays up, in page turns
+    const AUTO_POSTER = 2;      // a poster stays up this many times as long as the cover
     let idleTimer;
     let autoTimer;
-    let autoTurns = 0;          // pages turned since the last poster
     let autoHeld = 0;           // how long the poster on show has been up
-    let autoPoster = -1;        // the poster shown last
+    let autoPoster = -1;        // the poster on show; -1 while it is the cover
     let lastSeen = 0;
     const autoStep = () => {
         // nobody is looking at a tab that is hidden
@@ -5677,22 +5733,18 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         if (layer === 'posters') {
             autoHeld += 1;
             if (autoHeld < AUTO_POSTER) return;
-            // the poster has had its time: back to the book, on its next pages
-            setLayer(null);
-        } else if (autoTurns >= AUTO_PAGES) {
-            for (let n = 1; n <= POSTERS.length; n++) {
-                const i = (autoPoster + n) % POSTERS.length;
-                if (POSTERS[i].empty && POSTERS[i].empty()) continue;
-                autoPoster = i;
-                autoTurns = 0;
-                autoHeld = 0;
-                setLayer('posters');
-                showPoster(i);
-                return;
-            }
         }
-        autoTurns += 1;
-        if (current >= maxCurrent()) flipTo(0); else next();
+        autoHeld = 0;
+        // the next poster with something on it; after the last of them, the cover again
+        for (let i = autoPoster + 1; i < POSTERS.length; i++) {
+            if (POSTERS[i].empty && POSTERS[i].empty()) continue;
+            autoPoster = i;
+            setLayer('posters');
+            showPoster(i);
+            return;
+        }
+        autoPoster = -1;
+        setLayer(null);
     };
     const setAuto = (on) => {
         if (on === auto) return;
@@ -5700,7 +5752,8 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         document.body.classList.toggle('is-auto', on);
         clearInterval(autoTimer);
         if (!on) return;
-        autoTurns = 0;
+        // (it starts from the cover, which the book has just been shut on)
+        autoPoster = -1;
         autoHeld = 0;
         autoTimer = setInterval(autoStep, AUTO_MS);
     };

@@ -43,10 +43,10 @@ Route::get('/services/csf/service_units', [SurveyFormController::class, 'service
 Route::get('/services/csf/unit/sub-units', [SurveyFormController::class, 'getUnitSubUnits'])->name('getUnitSubUnits');
 Route::get('/services/csf/sub-unit/pstos', [SurveyFormController::class, 'getSubUnitPSTO'])->name('getSubUnitPSTO');
 Route::get('/services/csf/sub-unit/types', [SurveyFormController::class, 'getSubUnitTypes'])->name('getSubUnitTypes');
-// The same choices as the step pages above, as one JSON tree, for the
-// "Feedback" form of the Citizen's Charter book.
+// For the "Feedback" form of the Citizen's Charter book: the regions and
+// where the survey starts for each...
 Route::get('/services/csf/options', [SurveyFormController::class, 'options'])->name('csf_options');
-// ...and the address of one of those CSF forms as a QR code, to scan with a phone.
+// ...and that address as a QR code, to scan with a phone.
 Route::get('/services/csf/qr', [SurveyFormController::class, 'qr'])->name('csf_qr');
 Route::get('/services/csf', [SurveyFormController::class, 'index'])->name('csf_form');
 Route::get('/form/csf/msg', [SurveyFormController::class, 'msg_index'])->name('msg_index');

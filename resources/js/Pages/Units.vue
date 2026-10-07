@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import ScienceBackground from '@/Components/ScienceBackground.vue';
+import { csfTheme } from '@/csfTheme';
 
 defineProps({
     service_units: Object,
@@ -19,14 +20,18 @@ const unitIcons = [
 ];
 const iconFor = (i) => unitIcons[i % unitIcons.length];
 
+// Light or dark, as the CSF form remembers it.
+const theme = csfTheme();
+
 const goBack = () => window.history.back();
 </script>
 
 <template>
     <Head title="Service Units" />
 
-    <div class="flow">
-        <ScienceBackground />
+    <div class="flow" :class="{ light: theme === 'light' }">
+        <ScienceBackground v-if="theme === 'dark'" />
+        <div v-else class="light-aurora"></div>
 
         <nav class="rnav">
             <a href="/" class="rnav-brand">
@@ -204,6 +209,42 @@ const goBack = () => window.history.back();
 .flow-cta i { transition: transform 0.25s ease; }
 .flow-card:hover .flow-cta i { transform: translateX(4px); }
 
+/* Light theme: the ground and cards of the CSF form's light theme */
+.flow.light {
+    color: #12243a;
+    background: radial-gradient(120% 120% at 50% 0%, #eef4ff 0%, #e5edf8 55%, #dde7f6 100%);
+}
+.light-aurora {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 60% at 18% 15%, rgba(56, 189, 248, 0.2), transparent 60%),
+        radial-gradient(55% 55% at 82% 20%, rgba(99, 102, 241, 0.16), transparent 60%),
+        radial-gradient(70% 70% at 50% 95%, rgba(34, 211, 238, 0.12), transparent 60%);
+}
+.light .rnav { background: rgba(255, 255, 255, 0.82); border-bottom: 1px solid #e2e8f0; }
+.light .rnav-brand { color: #10214a; }
+.light .btn-ghost { color: #334155; border-color: #cbd7ea; background: #fff; }
+.light .btn-ghost:hover { background: #f1f6fc; border-color: #a9bbd6; }
+.light .rhero-kicker { color: #2266a8; border-color: rgba(34, 102, 168, 0.3); background: rgba(56, 189, 248, 0.12); }
+.light .rhero-title { color: #10214a; }
+.light .rhero-title .gradient { background-image: linear-gradient(120deg, #0e7490 0%, #0369a1 45%, #4338ca 90%); }
+.light .rhero-sub { color: #4a607a; }
+.light .rhero-count { color: #5b7088; }
+.light .flow-card {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(21, 59, 112, 0.12);
+    box-shadow: 0 10px 30px rgba(21, 59, 112, 0.08);
+}
+.light .flow-card:hover {
+    border-color: rgba(2, 132, 199, 0.5);
+    background: #fff;
+    box-shadow: 0 16px 34px rgba(13, 47, 84, 0.16);
+}
+.light .flow-name { color: #10214a; }
+.light .flow-cta { color: #2266a8; }
 @keyframes rise {
     from { opacity: 0; transform: translateY(22px); }
     to { opacity: 1; transform: translateY(0); }

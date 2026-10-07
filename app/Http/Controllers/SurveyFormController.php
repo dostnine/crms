@@ -401,82 +401,21 @@ class SurveyFormController extends Controller
     }
 
     /**
-     * Everything the survey asks before the form opens, as one tree: region,
-     * service, unit, then a sub unit and a PSTO or a type where the unit has
-     * them. Each end of the tree carries the address of its CSF form.
-     *
-     * The Citizen's Charter book (public/charter) fills the dropdowns of its
-     * "Feedback" form from this. The choices and the addresses must stay the
-     * same as the step pages above (regions_index to getSubUnitTypes) and
-     * their Vue pages hand out, oddities included, so a survey started from
-     * the book is recorded exactly like one started from the landing page.
+     * The regions, and where the survey starts for each: the Citizen's
+     * Charter book (public/charter) fills the dropdown of its "Feedback" form
+     * from this. A region leads to the survey's own Services page for it
+     * (services_index above), which goes on to ask for the service and the
+     * unit as it does for a survey started from the landing page.
      */
     public function options()
     {
-        $services = Services::all();
-        $units = Unit::all()->groupBy('services_id');
-        $sub_units = SubUnit::all()->groupBy('unit_id');
-        $pstos = psto::all();
-        $unit_pstos = UnitPsto::all()->groupBy('unit_id');
-        $sub_unit_pstos = SubUnitPsto::all()->groupBy('sub_unit_id');
-        $types = SubUnitType::all();
-
-        $form = fn (array $query) => '/services/csf?' . collect($query)->map(fn ($value, $key) => $key . '=' . $value)->implode('&');
-        $step = fn (string $label, $options) => ['label' => $label, 'options' => collect($options)->values()];
-        // the offices of a region, among those attached to a unit or sub unit
-        $offices = fn ($region, $attached) => $pstos
-            ->where('region_id', $region->id)
-            ->whereIn('id', $attached ? $attached->pluck('psto_id')->all() : []);
-
-        $regions = Region::all()->map(fn ($region) => [
-            'name' => $region->name,
-            'next' => $step('Service', $services->map(fn ($service) => [
-                'name' => $service->services_name,
-                'next' => $step('Unit', $units->get($service->id, collect())->map(function ($unit) use ($region, $service, $sub_units, $unit_pstos, $sub_unit_pstos, $types, $form, $step, $offices) {
-                    $query = ['region_id' => $region->id, 'service_id' => $service->id, 'unit_id' => $unit->id];
-                    $subs = $sub_units->get($unit->id, collect());
-
-                    if ($subs->isEmpty()) {
-                        $unit_offices = $offices($region, $unit_pstos->get($unit->id));
-                        if ($unit_offices->isEmpty()) {
-                            return ['name' => $unit->unit_name, 'url' => $form($query)];
-                        }
-                        // the PSTO page writes "null" for the sub unit a unit does not have
-                        return ['name' => $unit->unit_name, 'next' => $step('PSTO', $unit_offices->map(fn ($office) => [
-                            'name' => $office->psto_name,
-                            'url' => $form($query + ['sub_unit_id' => 'null', 'psto_id' => $office->id]),
-                        ]))];
-                    }
-
-                    return ['name' => $unit->unit_name, 'next' => $step('Sub unit', $subs->map(function ($sub) use ($region, $query, $sub_unit_pstos, $types, $form, $step, $offices) {
-                        $query += ['sub_unit_id' => $sub->id];
-
-                        // Driving (sub unit 3) is chosen by type, not by PSTO: see SubUnits.vue
-                        if ($sub->id == 3) {
-                            $sub_types = $types->where('sub_unit_id', $sub->id)->where('region_id', $region->id);
-                            if ($sub_types->isEmpty()) {
-                                return ['name' => $sub->sub_unit_name, 'url' => $form($query + ['type_id' => ''])];
-                            }
-                            return ['name' => $sub->sub_unit_name, 'next' => $step('Type', $sub_types->map(fn ($type) => [
-                                'name' => $type->type_name,
-                                'url' => $form($query + ['sub_unit_type' => $this->encodeURIComponent($type->type_name)]),
-                            ]))];
-                        }
-
-                        $sub_offices = $offices($region, $sub_unit_pstos->get($sub->id));
-                        if ($sub_offices->isEmpty()) {
-                            return ['name' => $sub->sub_unit_name, 'url' => $form($query + ['psto_id' => ''])];
-                        }
-                        return ['name' => $sub->sub_unit_name, 'next' => $step('PSTO', $sub_offices->map(fn ($office) => [
-                            'name' => $office->psto_name,
-                            'url' => $form($query + ['psto_id' => $office->id]),
-                        ]))];
-                    }))];
-                })),
-            ])),
+        return response()->json([
+            'label' => 'Region',
+            'options' => Region::all()->map(fn ($region) => [
+                'name' => $region->name,
+                'url' => '/services/csf/services?region_id=' . $region->id,
+            ])->values(),
         ]);
-
-        return response()->json($step('Region', $regions));
     }
 
     // The address this site is reached at from outside. CSF_PUBLIC_URL when it
@@ -494,11 +433,11 @@ class SurveyFormController extends Controller
     }
 
     /**
-     * The address of a CSF form as a QR code (an SVG picture). The "Feedback"
-     * form of the Citizen's Charter book shows it beside its dropdowns, so
-     * someone at the kiosk can scan it and answer the survey on their own
-     * phone. `to` is the form's address on this site, as options() gives it;
-     * nothing but an address of the CSF form is drawn. The code holds the
+     * An address of the survey as a QR code (an SVG picture). The "Feedback"
+     * form of the Citizen's Charter book shows it, so someone at the kiosk can
+     * scan it and answer the survey on their own phone. `to` is the address
+     * on this site: where the survey starts for a region, as options() gives
+     * it, or a CSF form itself. Nothing else is drawn. The code holds the
      * whole address, starting with publicRoot().
      *
      * Drawn with bacon/bacon-qr-code, which is installed for the two-factor
@@ -508,7 +447,7 @@ class SurveyFormController extends Controller
     {
         $to = $request->query('to');
         abort_unless(
-            is_string($to) && strlen($to) <= 300 && preg_match('#^/services/csf\?[\w=&%.()!*\'~-]*$#', $to),
+            is_string($to) && strlen($to) <= 300 && preg_match('#^/services/csf(/services)?\?[\w=&%.()!*\'~-]*$#', $to),
             404
         );
 
@@ -518,13 +457,6 @@ class SurveyFormController extends Controller
             'Content-Type' => 'image/svg+xml',
             'Cache-Control' => 'public, max-age=3600',
         ]);
-    }
-
-    // Escapes a value the way JavaScript's encodeURIComponent does: the Type
-    // page builds its links with it, and it leaves ! * ' ( ) as they are.
-    private function encodeURIComponent($value)
-    {
-        return strtr(rawurlencode($value), ['%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')']);
     }
 
 }
