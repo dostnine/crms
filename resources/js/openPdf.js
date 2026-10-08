@@ -1,9 +1,13 @@
 import { usePage } from '@inertiajs/vue3';
 
+// The part of a signatory (a user or an assignatoree) that the PDFs print.
+export function signatory(person) {
+    return { name: person?.name, designation: person?.designation };
+}
+
 // Opens a PDF report in a new tab, with its parameters posted in the body of
-// the request instead of written in the address. The report form carries the
-// whole unit, sub-units included, and for a unit with many of them the
-// address grew past what nginx accepts: "414 Request-URI Too Large".
+// the request instead of written in the address, where their length is
+// limited: past it the server answers "414 Request-URI Too Large".
 // `query` is the same query string the address used to end with.
 export function openPdf(url, query) {
     const form = document.createElement('form');

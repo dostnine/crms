@@ -8,7 +8,7 @@ import AltMonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/AltContent.v
 import VueMultiselect from "vue-multiselect";
 import AOS from 'aos'
 import 'aos/dist/aos.css'
-import { openPdf } from '@/openPdf';
+import { openPdf, signatory } from '@/openPdf';
 
 AOS.init();
 const props = defineProps({
@@ -191,16 +191,13 @@ const generateCSIReport = async () => {
       // Opens a real PDF in a new tab (rendered by Blade + dompdf) instead of
       // cloning the DOM into a print popup. `format` selects which of the two
       // layouts the server renders.
-      let query = toQueryString(form)
-          + '&format=' + encodeURIComponent(report_format.value)
-          + '&' + toQueryString(assignatorees_form.prepared_by || {}, 'prepared_by')
-          + '&' + toQueryString(assignatorees_form.noted_by || {}, 'noted_by');
-
-      if (isYearlyReport.value) {
-          query += '&' + toQueryString(assignatorees_form.reviewed_by || {}, 'reviewed_by');
-      }
-
-      openPdf('/csi/print/all-units', query);
+      openPdf('/csi/print/all-units', toQueryString({
+          ...form,
+          format: report_format.value,
+          prepared_by: signatory(assignatorees_form.prepared_by),
+          noted_by: signatory(assignatorees_form.noted_by),
+          reviewed_by: isYearlyReport.value ? signatory(assignatorees_form.reviewed_by) : null,
+      }));
   };
 
 </script>

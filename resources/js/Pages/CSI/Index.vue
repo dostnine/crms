@@ -17,7 +17,7 @@ import { reactive, ref, computed, onMounted, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import Swal from 'sweetalert2';
 import { Printd } from "printd";
-import { openPdf } from '@/openPdf';
+import { openPdf, signatory } from '@/openPdf';
 
 
 const props = defineProps({
@@ -385,16 +385,31 @@ const pdfAssignatorees = reactive({
     noted_by: {},
 });
 
+// A record's own values, without the lists inside it. The order is kept: the
+// server filters by a selected sub-unit or PSTO with the first value of what
+// it is sent, which has to stay the id.
+const plain = (record) => Object.fromEntries(
+    Object.entries(record || {}).filter(([, value]) => value === null || typeof value !== 'object')
+);
+
+// Only what the PDF is made from is sent, not the form as the page holds it.
+// A unit there lists every PSTO it has, and so does each of its sub-units:
+// on the live site, with 83 PSTOs to a unit, that was thousands of fields.
+const pdfFields = () => ({
+    ...form,
+    service: plain(form.service),
+    unit: { data: [plain(form.unit?.data?.[0])] },
+    selected_sub_unit: plain(form.selected_sub_unit),
+    selected_unit_psto: plain(form.selected_unit_psto),
+    selected_sub_unit_psto: plain(form.selected_sub_unit_psto),
+    prepared_by: signatory(pdfAssignatorees.prepared_by),
+    noted_by: signatory(pdfAssignatorees.noted_by),
+    reviewed_by: pdfReportKind.value === 'year' ? signatory(pdfAssignatorees.reviewed_by) : null,
+});
+
 const confirmPdfPrint = () => {
     show_pdf_assignatoree_modal.value = false;
-    const isYearly = pdfReportKind.value === 'year';
-    let query = toQueryString(form)
-        + '&' + toQueryString(pdfAssignatorees.prepared_by || {}, 'prepared_by')
-        + '&' + toQueryString(pdfAssignatorees.noted_by || {}, 'noted_by');
-    if (isYearly) {
-        query += '&' + toQueryString(pdfAssignatorees.reviewed_by || {}, 'reviewed_by');
-    }
-    openPdf(`/csi/print/${pdfReportKind.value}`, query);
+    openPdf(`/csi/print/${pdfReportKind.value}`, toQueryString(pdfFields()));
 };
 
 const PDF_REPORT_KINDS = {
