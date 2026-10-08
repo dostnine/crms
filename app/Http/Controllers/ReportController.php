@@ -1696,9 +1696,9 @@ class ReportController extends Controller
         $psto_id = $request->selected_unit_psto ?: $request->selected_sub_unit_psto;
         $user = Auth::user();
 
-        // Unlike generateReports()'s GET-refresh path, this route always gets a
-        // fully-populated query string (the frontend serializes the whole form
-        // with bracket notation), so $request->service / ->unit already arrive
+        // Unlike generateReports()'s GET-refresh path, this route always gets
+        // the whole form (the frontend serializes it with bracket notation and
+        // posts it as form fields), so $request->service / ->unit already arrive
         // as plain arrays -- exactly what buildQuarterReportData() expects.
         // Skipping convertArraysToObjects() here since it would turn them into
         // stdClass and break the array-access reads inside that method.

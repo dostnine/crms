@@ -37,6 +37,10 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request)
     {
         return array_merge(parent::share($request), [
+            // for forms the browser posts by itself (resources/js/openPdf.js)
+            'csrf_token' => function () {
+                return csrf_token();
+            },
             'auth' => function () use ($request) {
                 return [
                     'user' => $request->user() ? [

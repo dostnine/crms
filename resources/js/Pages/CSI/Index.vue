@@ -17,6 +17,7 @@ import { reactive, ref, computed, onMounted, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import Swal from 'sweetalert2';
 import { Printd } from "printd";
+import { openPdf } from '@/openPdf';
 
 
 const props = defineProps({
@@ -393,7 +394,7 @@ const confirmPdfPrint = () => {
     if (isYearly) {
         query += '&' + toQueryString(pdfAssignatorees.reviewed_by || {}, 'reviewed_by');
     }
-    window.open(`/csi/print/${pdfReportKind.value}?` + query, '_blank');
+    openPdf(`/csi/print/${pdfReportKind.value}`, query);
 };
 
 const PDF_REPORT_KINDS = {

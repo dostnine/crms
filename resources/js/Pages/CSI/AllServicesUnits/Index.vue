@@ -8,6 +8,7 @@ import AltMonthlyContent from '@/Pages/CSI/AllServicesUnits/Monthly/AltContent.v
 import VueMultiselect from "vue-multiselect";
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import { openPdf } from '@/openPdf';
 
 AOS.init();
 const props = defineProps({
@@ -199,7 +200,7 @@ const generateCSIReport = async () => {
           query += '&' + toQueryString(assignatorees_form.reviewed_by || {}, 'reviewed_by');
       }
 
-      window.open('/csi/print/all-units?' + query, '_blank');
+      openPdf('/csi/print/all-units', query);
   };
 
 </script>

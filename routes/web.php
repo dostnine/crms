@@ -126,10 +126,13 @@ Route::middleware([
     // Refreshing the page after a POST re-requests the same URL as a GET (this is how
     // Inertia's client-side history push works) -- allow both so that doesn't 405.
     Route::match(['get', 'post'], '/csi/generate', [ReportController::class, 'generateReports']);
-    Route::get('/csi/print/quarter', [ReportController::class, 'printCSIByQuarter'])->name('csi_print_quarter');
-    Route::get('/csi/print/year', [ReportController::class, 'printCSIByYear'])->name('csi_print_year');
-    Route::get('/csi/print/month', [ReportController::class, 'printCSIByMonth'])->name('csi_print_month');
-    Route::get('/csi/print/all-units', [ReportController::class, 'printAllUnits'])->name('csi_print_all_units');
+    // The pages post the report form to these (see resources/js/openPdf.js): in
+    // the address it could pass nginx's limit, "414 Request-URI Too Large".
+    // GET still works, for links made before that.
+    Route::match(['get', 'post'], '/csi/print/quarter', [ReportController::class, 'printCSIByQuarter'])->name('csi_print_quarter');
+    Route::match(['get', 'post'], '/csi/print/year', [ReportController::class, 'printCSIByYear'])->name('csi_print_year');
+    Route::match(['get', 'post'], '/csi/print/month', [ReportController::class, 'printCSIByMonth'])->name('csi_print_month');
+    Route::match(['get', 'post'], '/csi/print/all-units', [ReportController::class, 'printAllUnits'])->name('csi_print_all_units');
 
 
 
