@@ -1,7 +1,8 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import ScienceBackground from "@/Components/ScienceBackground.vue";
+import { csfTheme } from "@/csfTheme";
 
 const props = defineProps({
   message: String,
@@ -9,15 +10,8 @@ const props = defineProps({
   current_url: String,
 });
 
-const theme = ref("dark");
-onMounted(() => {
-  try {
-    const saved = localStorage.getItem("csf-theme");
-    if (saved === "light" || saved === "dark") theme.value = saved;
-  } catch (e) {
-    /* ignore */
-  }
-});
+// read before the page is first drawn, so a light page never flashes dark first
+const theme = ref(csfTheme());
 </script>
 
 <template>

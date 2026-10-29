@@ -12,6 +12,12 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // The printed CSI reports. They only read, and the same addresses
+        // answer a plain GET, which never needs a token. Their filters are
+        // posted to a new tab (too long for an address, see openPdf.js), and
+        // the token such a post carried was the one the report page had when
+        // it loaded: once that was no longer the session's, printing opened
+        // "419 Page Expired" instead of the report.
+        'csi/print/*',
     ];
 }

@@ -1,5 +1,3 @@
-import { usePage } from '@inertiajs/vue3';
-
 // The part of a signatory (a user or an assignatoree) that the PDFs print.
 export function signatory(person) {
     return { name: person?.name, designation: person?.designation };
@@ -9,6 +7,8 @@ export function signatory(person) {
 // the request instead of written in the address, where their length is
 // limited: past it the server answers "414 Request-URI Too Large".
 // `query` is the same query string the address used to end with.
+// (No CSRF token is sent: the print addresses do not ask for one, see
+// App\Http\Middleware\VerifyCsrfToken.)
 export function openPdf(url, query) {
     const form = document.createElement('form');
     form.method = 'post';
@@ -23,7 +23,6 @@ export function openPdf(url, query) {
         input.value = value;
         form.appendChild(input);
     };
-    add('_token', usePage().props.csrf_token);
     new URLSearchParams(query).forEach((value, name) => add(name, value));
 
     document.body.appendChild(form);

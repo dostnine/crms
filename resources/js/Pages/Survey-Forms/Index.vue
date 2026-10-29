@@ -6,6 +6,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import Swal from "sweetalert2";
 import ScienceBackground from "@/Components/ScienceBackground.vue";
+import { csfTheme } from "@/csfTheme";
 /* Native selects used - Multiselect removed */
 
 const props = defineProps({
@@ -143,8 +144,10 @@ const startKeepAlive = () => {
   }, 5 * 60 * 1000);
 };
 
-// Light / dark (immersive) theme, remembered across the session.
-const theme = ref("dark");
+// Light / dark (immersive) theme, remembered across the session. Read before
+// the page is first drawn: a light page then never flashes dark first, nor
+// starts on the dark theme's moving background.
+const theme = ref(csfTheme());
 // SweetAlert renders outside the page, so mark <html> and let global CSS theme it.
 const applyThemeClass = () => {
   const el = document.documentElement;
@@ -176,12 +179,6 @@ const getDimension = (index, dimension_id) => {
 onMounted(() => {
   AOS.init();
 
-  try {
-    const saved = localStorage.getItem("csf-theme");
-    if (saved === "light" || saved === "dark") theme.value = saved;
-  } catch (e) {
-    /* ignore */
-  }
   applyThemeClass();
 
   // signaturePad.value = new SignaturePad(signaturePad.value);
@@ -266,6 +263,17 @@ const saveCSF = async () => {
 
   // Include the data URL in your form data
   // form.signature = imageDataUrl;
+
+  // The session (where the captcha is kept, and what the form's token
+  // belongs to) lapses after two hours without a request: a phone put away,
+  // or a kiosk left on the form, where the keep-alive above cannot run. Wake
+  // it first, so the captcha is drawn for a session that is still there when
+  // the form is sent, instead of the form coming back "Session Expired".
+  try {
+    await fetch("/services/csf/keep-alive", { credentials: "same-origin", cache: "no-store" });
+  } catch (e) {
+    /* offline: sending the form will say so */
+  }
 
   let captcha_code = Math.random();
   // Function to generate a new CAPTCHA image
