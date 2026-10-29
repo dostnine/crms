@@ -4327,7 +4327,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         head: { name: 'Rosemarie S. Salazar', post: 'Regional Director', office: 'Office of the Regional Director', photo: 'assets/people/rosemarie-salazar.jpg' },
         services: [
             { name: 'Ricardo J. Apolinario III', post: 'Assistant Regional Director', code: 'TOS', office: 'Technical Operations Services', photo: 'assets/people/ricardo-apolinario.jpg' },
-            { name: 'Ronnel B. Gundoy', post: 'OIC - Assistant Regional Director', code: 'FASS', office: 'Finance and Administrative Support Services', photo: 'assets/people/ronnel-gundoy.jpg' },
+            { name: 'Atty. Ramida I. Ajuji', post: 'Assistant Regional Director', code: 'FASS', office: 'Finance and Administrative Support Services', photo: 'assets/people/ramida-ajuji.jpg' },
         ],
         field: [
             { name: 'Ricardo J. Apolinario III', post: 'City Director', code: 'CSTC-ZCIC', at: 1, photo: 'assets/people/ricardo-apolinario.jpg' },
@@ -4462,9 +4462,9 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         {
             title: 'Directory',
             html: () => {
-                // the first and last initials of a name ("III" and "Jr." are not names)
+                // the first and last initials of a name ("III", "Jr." and "Atty." are not names)
                 const initials = (name) => {
-                    const words = name.split(' ').filter((word) => !/^(jr|sr|ii|iii|iv)\.?$/i.test(word));
+                    const words = name.split(' ').filter((word) => !/^(jr|sr|ii|iii|iv|atty|dr|engr)\.?$/i.test(word));
                     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
                 };
                 // One box: the person's picture (or initials), their name and
