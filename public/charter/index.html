@@ -1524,15 +1524,6 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     text-align: right;
     color: var(--foil);
 }
-.po-tenet small {
-    display: block;
-    margin-top: calc(0.8 * var(--u));
-    font-family: var(--f-mono);
-    font-size: calc(2 * var(--u));
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    color: var(--foil-soft);
-}
 .po-tenet p {
     margin: 0;
     padding-left: calc(4 * var(--u));
@@ -1672,88 +1663,12 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     break-inside: avoid;
 }
 .po-part b { min-width: 2ch; font-family: var(--f-mono); font-size: 0.92em; font-weight: 600; color: var(--foil); }
-/* Bulletin, Events and Others: what is posted, or a line saying that nothing
-   is. The posts are in one column, the newest first, in the room the sheet
-   has for them: a post that does not fit whole goes to a second column,
-   which lies outside the list and is not seen. (On a phone, where a sheet is
-   as long as it needs to be, they are all there.) */
-.po-posts ul {
-    display: flex;
-    flex-flow: column wrap;
-    align-content: flex-start;
-    gap: calc(1.6 * var(--u)) calc(10 * var(--u));
-    min-height: 0;
-    margin: calc(3.4 * var(--u)) 0 0;
-    padding: 0;
-    overflow: hidden;
-    list-style: none;
-}
-.po-posts li {
-    display: grid;
-    flex-shrink: 0;
-    width: 100%;
-    gap: calc(0.6 * var(--u));
-    padding: calc(2.4 * var(--u)) calc(2.8 * var(--u));
-    border: 1px solid rgba(var(--foil-rgb), 0.26);
-    border-radius: calc(2 * var(--u));
-    background: rgba(var(--foil-rgb), 0.08);
-}
-.po-posts li i { font-family: var(--f-mono); font-size: calc(2 * var(--u)); font-style: normal; letter-spacing: 0.06em; color: var(--foil); }
-.po-posts li b { font-size: calc(3 * var(--u)); font-weight: 700; line-height: 1.25; }
-.po-posts li span { font-size: calc(2.5 * var(--u)); line-height: 1.4; color: var(--foil-soft); }
-/* Others with pictures: a gallery. The posts share the sheet evenly, in as
-   many columns as the script counts for a wide sheet (--wide) and for a tall
-   one (--tall); each picture is as large as its share lets it be, whole,
-   with the words of its post under it. */
-.po-gallery .po-title { font-size: calc(5.4 * var(--u)); }
-.po-gallery ul {
-    display: grid;
-    flex: 1;
-    grid-template-columns: repeat(var(--wide, 1), minmax(0, 1fr));
-    grid-auto-rows: minmax(0, 1fr);
-    gap: calc(2.4 * var(--u));
-    min-height: 0;
-    margin: calc(2.4 * var(--u)) 0 0;
-    padding: 0;
-    list-style: none;
-}
-@container (max-aspect-ratio: 1/1) {
-    .po-gallery ul { grid-template-columns: repeat(var(--tall, 1), minmax(0, 1fr)); }
-}
-.po-gallery li { display: flex; flex-direction: column; justify-content: center; gap: calc(1.2 * var(--u)); min-width: 0; min-height: 0; }
-.po-gallery li img { flex: 1 1 0; width: 100%; min-height: 0; object-fit: contain; -webkit-user-drag: none; user-select: none; }
-.po-gallery li p { display: grid; gap: calc(0.4 * var(--u)); margin: 0; text-align: center; text-wrap: balance; }
-.po-gallery li i { font-family: var(--f-mono); font-size: calc(1.7 * var(--u)); font-style: normal; letter-spacing: 0.06em; color: var(--foil); }
-.po-gallery li b { font-size: calc(2.4 * var(--u)); font-weight: 700; line-height: 1.2; }
-.po-gallery li span {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: calc(2 * var(--u));
-    line-height: 1.35;
-    color: var(--foil-soft);
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-}
-/* (a post without a picture, among those with: its words, larger) */
-.po-gallery li:not(:has(img)) b { font-size: calc(3 * var(--u)); }
-.po-gallery li:not(:has(img)) span { font-size: calc(2.4 * var(--u)); -webkit-line-clamp: 6; }
-.po-none {
-    margin: calc(4 * var(--u)) 0 0;
-    padding: calc(6 * var(--u)) calc(4 * var(--u));
-    border: 1px dashed rgba(var(--foil-rgb), 0.45);
-    border-radius: calc(2.4 * var(--u));
-    font-size: calc(3 * var(--u));
-    font-weight: 500;
-    text-align: center;
-    text-wrap: balance;
-    color: var(--foil-soft);
-}
 
 /* The DOST Logo: the logo in its parts, standing off a plate at different
-   depths, and what each part stands for. It faces straight ahead, leans
-   towards the pointer and turns under a dragging finger (--rx and --ry, set
-   by the script), and the part named by the line of the legend that is lit
-   (data-part on the sheet) comes forward while the rest fades. */
+   depths, and what each part stands for. It always faces straight ahead
+   (it is never seen from the side), and the part named by the line of the
+   legend that is lit (data-part on the sheet) comes forward while the rest
+   fades. */
 .po-logo .po-title { font-size: calc(6.2 * var(--u)); }
 /* (a long title: small enough to stay on one line of a wide sheet) */
 .po-cert-sheet .po-title { font-size: calc(4.8 * var(--u)); }
@@ -1766,19 +1681,12 @@ svg.i { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-
     aspect-ratio: 1;
     margin: calc(3.4 * var(--u)) 0 calc(4.2 * var(--u));
     perspective: calc(150 * var(--u));
-    cursor: grab;
-    /* a finger on the logo turns it; it does not scroll or swipe the sheet */
-    touch-action: none;
 }
-.logo3d.is-held { cursor: grabbing; }
 .logo3d-turn {
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
-    transform: rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
-    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.logo3d.is-held .logo3d-turn { transition: none; }
 /* the plate the logo stands off: light, so that the black of the logo reads */
 .logo3d-plate {
     position: absolute;
@@ -1886,7 +1794,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-tenets .po-main { gap: calc(7 * var(--u)); }
     .po-tenet { grid-template-columns: calc(30 * var(--u)) minmax(0, 1fr); gap: calc(5 * var(--u)); }
     .po-tenet h3 { font-size: calc(5.4 * var(--u)); }
-    .po-tenet small { font-size: calc(2.4 * var(--u)); }
     .po-tenet p { padding-left: calc(5 * var(--u)); font-size: calc(3.9 * var(--u)); }
     .po-tenet.is-lead p { font-size: calc(5.2 * var(--u)); }
     .po-certs { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); align-items: start; gap: calc(3 * var(--u)); margin-top: calc(4 * var(--u)); }
@@ -1933,7 +1840,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-kicker { font-size: calc(2.3 * var(--u)); letter-spacing: 0.18em; }
     .po-tier { font-size: calc(2.2 * var(--u)); letter-spacing: 0.14em; }
     .po-foot { font-size: calc(2 * var(--u)); }
-    .po-tenet small { font-size: calc(2.3 * var(--u)); }
     .poster.is-image img { max-height: none; }
     .po { height: auto; }
     .po-main { padding-block: calc(6 * var(--u)); }
@@ -1950,19 +1856,13 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     .po-scope, .po-cert dl { font-size: calc(2.5 * var(--u)); }
     .po-labs b { font-size: calc(2.6 * var(--u)); }
     .po-labs dl { font-size: calc(2.3 * var(--u)); }
-    .logo3d { width: min(100%, calc(42 * var(--u))); touch-action: pan-y; }
+    .logo3d { width: min(100%, calc(42 * var(--u))); }
     .po-key b { font-size: calc(2.8 * var(--u)); }
     .po-key span { font-size: calc(2.5 * var(--u)); }
     .po-who strong { font-size: calc(3 * var(--u)); }
     .po-who em, .po-who span { font-size: calc(2.4 * var(--u)); }
     .po-who small { font-size: calc(2.2 * var(--u)); }
     .po-box.is-head { width: 100%; }
-    /* the gallery is one column of pictures, each as tall as it is */
-    .po-gallery ul { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; gap: calc(5 * var(--u)); }
-    .po-gallery li img { flex: none; height: auto; }
-    .po-gallery li b { font-size: calc(3 * var(--u)); }
-    .po-gallery li i { font-size: calc(2.2 * var(--u)); }
-    .po-gallery li span { font-size: calc(2.5 * var(--u)); -webkit-line-clamp: 6; }
 }
 /* (a phone: the four across are two across, the parts of a service one list) */
 @container poster-stage (max-width: 438px) {
@@ -4327,7 +4227,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         head: { name: 'Rosemarie S. Salazar', post: 'Regional Director', office: 'Office of the Regional Director', photo: 'assets/people/rosemarie-salazar.jpg' },
         services: [
             { name: 'Ricardo J. Apolinario III', post: 'Assistant Regional Director', code: 'TOS', office: 'Technical Operations Services', photo: 'assets/people/ricardo-apolinario.jpg' },
-            { name: 'Atty. Ramida I. Ajuji', post: 'Assistant Regional Director', code: 'FASS', office: 'Finance and Administrative Support Services', photo: 'assets/people/ramida-ajuji.jpg' },
+            { name: 'Ramida I. Ajuji', post: 'Assistant Regional Director', code: 'FASS', office: 'Finance and Administrative Support Services', photo: 'assets/people/ramida-ajuji.jpg' },
         ],
         field: [
             { name: 'Ricardo J. Apolinario III', post: 'City Director', code: 'CSTC-ZCIC', at: 1, photo: 'assets/people/ricardo-apolinario.jpg' },
@@ -4406,18 +4306,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         },
     };
 
-    // What is posted on the Bulletin, Events and Others sheets, newest first, each
-    // { title: 'Office closed on 30 November', when: '28 November 2026', text: 'Regular holiday.' }
-    // (`when` and `text` may be left out). Others is for what is neither an
-    // announcement nor an event, and a post on it may have a picture
-    // (`image`, its address): a poster, say. The posts are kept in the CRMS, under
-    // Libraries > Charter Posts, and fetched from it (loadPosts, below); all
-    // three are empty until DOST IX has something to post, and where the
-    // book is read without the CRMS behind it.
-    const BULLETIN = [];
-    const EVENTS = [];
-    const OTHER_POSTS = [];
-
     // Posters: single sheets for display, opened with the Posters button.
     // Their words are the charter's own (ABOUT and FEEDBACK above, and the
     // contents of the book). A poster that is a picture needs only a title
@@ -4432,31 +4320,12 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             <div class="po-main">${inner}</div>
             <footer class="po-foot"><span>DOST Region IX</span></footer>
         </div>`;
-    const postsSheet = (title, posts, none) => posterSheet('posts', `
-        <p class="po-kicker">DOST Region IX</p>
-        <h2 class="po-title">${esc(title)}</h2>
-        ${posts.length
-            ? `<ul>${posts.map((post) => `<li>${post.when ? `<i>${esc(post.when)}</i>` : ''}<b>${esc(post.title)}</b>${post.text ? `<span>${esc(post.text)}</span>` : ''}</li>`).join('')}</ul>`
-            : `<p class="po-none">${esc(none)}</p>`}`);
-    // Others with pictures: its newest posts as a gallery (see .po-gallery).
-    const GALLERY_MOST = 8;
-    const gallerySheet = (title, posts) => {
-        const shown = posts.slice(0, GALLERY_MOST);
-        const n = shown.length;
-        // one row of up to four on a wide sheet, then two rows; two columns on a tall one
-        const wide = n <= 4 ? n : Math.ceil(n / 2);
-        const tall = n <= 2 ? 1 : 2;
-        return posterSheet('gallery', `
-            <p class="po-kicker">DOST Region IX</p>
-            <h2 class="po-title">${esc(title)}</h2>
-            <ul style="--wide:${wide};--tall:${tall}">${shown.map((post) => `<li>${post.image ? `<img src="${esc(post.image)}" alt="" draggable="false">` : ''}<p>${post.when ? `<i>${esc(post.when)}</i>` : ''}<b>${esc(post.title)}</b>${post.text ? `<span>${esc(post.text)}</span>` : ''}</p></li>`).join('')}</ul>`);
-    };
     const POSTERS = [
         {
             title: 'Mandate, Mission & Vision',
             html: () => posterSheet('tenets', `
                 <section class="po-tenet"><h3>Mandate</h3><p>${esc(ABOUT.mandate)}</p></section>
-                <section class="po-tenet is-lead"><h3>Mission <small>(2026)</small></h3><p>${esc(ABOUT.mission)}</p></section>
+                <section class="po-tenet is-lead"><h3>Mission</h3><p>${esc(ABOUT.mission)}</p></section>
                 <section class="po-tenet is-lead"><h3>Vision</h3><p>${esc(ABOUT.vision)}</p></section>`),
         },
         {
@@ -4543,10 +4412,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
                     ${LOGO_PARTS.map((item) => `<button class="po-key${item.chip ? ' is-colour' : ''}${item.wide ? ' is-wide' : ''}" type="button" data-part="${item.part}" style="--row:${item.row || { circles: 1, centre: 2, four: 3 }[item.part]}">${logoChip(item)}<b>${esc(item.name)}</b><span>${item.html || esc(item.text)}</span></button>`).join('')}
                 </div>`),
         },
-        // (`empty`: nothing is posted, so the carousel leaves the sheet out)
-        { title: 'Bulletin', empty: () => !BULLETIN.length, html: () => postsSheet('Bulletin', BULLETIN, 'No announcements are posted at this time.') },
-        { title: 'Events', empty: () => !EVENTS.length, html: () => postsSheet('Events', EVENTS, 'No upcoming events are posted at this time.') },
-        { title: 'Others', empty: () => !OTHER_POSTS.length, html: () => (OTHER_POSTS.some((post) => post.image) ? gallerySheet('Others', OTHER_POSTS) : postsSheet('Others', OTHER_POSTS, 'Nothing else is posted at this time.')) },
     ];
 
     const itemNo = (html) => html.replace(/^(\d+\.(?:\d+\.?)*)\s+/, '<span class="svc-n">$1</span>');
@@ -5565,35 +5430,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         tourLogo();
     };
 
-    // The posts of the Bulletin, Events and Others sheets, from the CRMS:
-    // { bulletin: [...], events: [...], others: [...] }. They are fetched as
-    // the book opens, when the Posters button is pressed, and every five
-    // minutes, so that a display left running shows what is new. No answer
-    // (the book read offline, say) leaves the sheets as they are.
-    const POSTS_URL = '/citizens-charter/posts';
-    const POSTS_EVERY = 5 * 60 * 1000;
-    const POSTED = { bulletin: BULLETIN, events: EVENTS, others: OTHER_POSTS };
-    let postsSeen = '';
-    const loadPosts = async () => {
-        try {
-            const answer = await fetch(POSTS_URL, { headers: { Accept: 'application/json' }, cache: 'no-store' });
-            if (!answer.ok) return;
-            const text = await answer.text();
-            if (text === postsSeen) return;
-            const sheets = JSON.parse(text);
-            Object.entries(POSTED).forEach(([sheet, list]) => {
-                const posts = Array.isArray(sheets[sheet]) ? sheets[sheet].filter((post) => post && post.title) : [];
-                list.splice(0, list.length, ...posts);
-            });
-            postsSeen = text;
-            // a sheet of posts that is up is drawn again with what it has now
-            if (layer === 'posters' && POSTERS[posterAt].empty) showPoster(posterAt);
-        } catch (err) { /* no CRMS to ask: nothing more is posted */ }
-    };
-    loadPosts();
-    setInterval(loadPosts, POSTS_EVERY);
-    $('posters-btn').addEventListener('click', loadPosts);
-
     // The DOST Logo sheet. A touch on a line of its legend lights that line
     // and brings its part of the logo forward (a second touch lets it go);
     // a mouse over a line does the same for as long as it is there. Left
@@ -5640,23 +5476,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     posterEl.addEventListener('pointerout', (e) => {
         if (e.pointerType === 'mouse' && e.target.closest('.po-key') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.po-key'))) showLogoPart(logoPinned);
     });
-    // the logo leans towards a mouse moving over the sheet
-    const leanLogo = (e) => {
-        const logo = posterEl.querySelector('.logo3d');
-        if (!logo || logo.classList.contains('is-held')) return;
-        if (!e) {
-            logo.style.removeProperty('--rx');
-            logo.style.removeProperty('--ry');
-            return;
-        }
-        const rect = logo.getBoundingClientRect();
-        const across = Math.max(-1, Math.min(1, (e.clientX - rect.left - rect.width / 2) / rect.width));
-        const down = Math.max(-1, Math.min(1, (e.clientY - rect.top - rect.height / 2) / rect.height));
-        logo.style.setProperty('--ry', (across * 26).toFixed(1));
-        logo.style.setProperty('--rx', (-down * 18).toFixed(1));
-    };
-    posterStage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' && !e.buttons) leanLogo(e); });
-    posterStage.addEventListener('pointerleave', () => leanLogo(null));
     $('posters-btn').addEventListener('click', () => {
         setLayer('posters');
         showPoster(0);
@@ -5750,9 +5569,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         } else if (posterFingers.size === 1) {
             // (a finger at 100% scrolls a long sheet by itself; the mouse, and a finger on a zoomed sheet, are followed here)
             posterDrag = { x: e.clientX, y: e.clientY, left: posterStage.scrollLeft, top: posterStage.scrollTop, moved: false, followed: e.pointerType === 'mouse' || posterZoom > 1 };
-            // on the logo of the DOST Logo sheet (not zoomed) the drag turns the logo instead
-            const logo = posterZoom === 1 ? e.target.closest('.logo3d') : null;
-            if (logo) posterDrag.spin = { logo, rx: parseFloat(logo.style.getPropertyValue('--rx')) || 0, ry: parseFloat(logo.style.getPropertyValue('--ry')) || 0 };
         }
     });
     posterStage.addEventListener('pointermove', (e) => {
@@ -5768,18 +5584,13 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             const dy = e.clientY - posterDrag.y;
             if (!posterDrag.moved && Math.hypot(dx, dy) > 8) {
                 posterDrag.moved = true;
-                if (posterDrag.followed || posterDrag.spin) {
+                if (posterDrag.followed) {
                     // keep hearing from it if it slides off the stage
                     try { posterStage.setPointerCapture(e.pointerId); } catch (err) { /* not available: fine */ }
-                    if (posterDrag.spin) posterDrag.spin.logo.classList.add('is-held'); else posterStage.classList.add('is-dragging');
+                    posterStage.classList.add('is-dragging');
                 }
             }
-            if (posterDrag.moved && posterDrag.spin) {
-                const { logo, rx, ry } = posterDrag.spin;
-                logo.style.setProperty('--ry', Math.max(-80, Math.min(80, ry + dx * 0.4)).toFixed(1));
-                logo.style.setProperty('--rx', Math.max(-65, Math.min(65, rx - dy * 0.4)).toFixed(1));
-                logoTouched = performance.now();
-            } else if (posterDrag.moved && posterDrag.followed) {
+            if (posterDrag.moved && posterDrag.followed) {
                 posterStage.scrollLeft = posterDrag.left - dx;
                 posterStage.scrollTop = posterDrag.top - dy;
             }
@@ -5790,12 +5601,6 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         posterStage.classList.remove('is-dragging');
         const drag = posterDrag;
         posterDrag = null;
-        if (drag && drag.spin) {
-            // let go, the logo swings back to rest
-            drag.spin.logo.classList.remove('is-held');
-            drag.spin.logo.style.removeProperty('--rx');
-            drag.spin.logo.style.removeProperty('--ry');
-        }
         if (posterPinch) {
             posterPinch = null;
             return;
@@ -5804,9 +5609,9 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
         const dx = e.clientX - drag.x;
         const dy = e.clientY - drag.y;
         if (drag.moved) {
-            posterDragged = drag.followed || Boolean(drag.spin);
-            // at 100% a sideways swipe changes the poster (but not one that turned the logo)
-            if (!drag.spin && posterZoom === 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPoster(posterAt + (dx < 0 ? 1 : -1));
+            posterDragged = drag.followed;
+            // at 100% a sideways swipe changes the poster
+            if (posterZoom === 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPoster(posterAt + (dx < 0 ? 1 : -1));
         } else if (posterZoom > 1) {
             // two taps (or clicks) close together on a zoomed poster: back to 100%
             const now = Date.now();
@@ -5962,8 +5767,7 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
     // screen on demand.
     //
     // The carousel: the cover of the book for a while, then the posters one
-    // after another (a sheet with nothing posted on it is left out), then
-    // the cover again, round and round. The book itself stays shut: its
+    // after another, then the cover again, round and round. The book itself stays shut: its
     // pages are for a reader to turn.
     // ------------------------------------------------------------------
     const AUTO_POSTER = 2;      // a poster stays up this many times as long as the cover
@@ -5980,12 +5784,11 @@ svg.po-chip { border: 0; border-radius: 0; fill: none; stroke: var(--foil); stro
             if (autoHeld < AUTO_POSTER) return;
         }
         autoHeld = 0;
-        // the next poster with something on it; after the last of them, the cover again
-        for (let i = autoPoster + 1; i < POSTERS.length; i++) {
-            if (POSTERS[i].empty && POSTERS[i].empty()) continue;
-            autoPoster = i;
+        // the next poster; after the last of them, the cover again
+        if (autoPoster + 1 < POSTERS.length) {
+            autoPoster += 1;
             setLayer('posters');
-            showPoster(i);
+            showPoster(autoPoster);
             return;
         }
         autoPoster = -1;
