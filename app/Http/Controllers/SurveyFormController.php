@@ -173,7 +173,8 @@ class SurveyFormController extends Controller
         }
         $csf_form->psto_id = $request->psto_id;
         $csf_form->client_type = $request->client_type;
-        $csf_form->sub_unit_type = $request->sub_unit_type;
+        // the listed name, even when the link carries an old one
+        $csf_form->sub_unit_type = SubUnitType::listedName($csf_form->sub_unit_id, $request->sub_unit_type);
         if($request->date){
             $csf_form->created_at = $request->date;
             $csf_form->updated_at = $request->date;

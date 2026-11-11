@@ -41,7 +41,7 @@ class SubUnitTypeSeeder extends Seeder
             [
                 'sub_unit_id' => 3,
                 'region_id'=> 10,
-                'type_name' => 'CJB (PSTO-ZS)',
+                'type_name' => 'CGB (PSTO-ZS)',
             ],
             [
                 'sub_unit_id' => 3,
